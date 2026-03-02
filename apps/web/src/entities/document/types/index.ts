@@ -198,3 +198,17 @@ export type DividerElement = z.infer<typeof dividerElementSchema>;
 export type SpacerElement = z.infer<typeof spacerElementSchema>;
 export type ImageElement = z.infer<typeof imageElementSchema>;
 export type DocumentMetadata = z.infer<typeof documentMetadataSchema>;
+
+// File-system based document types
+export interface DocumentMeta {
+  title: string;
+  description?: string;
+  createdAt: string; // ISO date string
+  tags?: string[];
+}
+
+export interface DiscoveredDocument {
+  slug: string;
+  meta: DocumentMeta;
+  slideCount: number;
+}

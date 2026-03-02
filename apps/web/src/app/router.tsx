@@ -12,9 +12,9 @@ export function AppRouter() {
         <Route element={<AppLayout />}>
           <Route path="/" element={<HomePage />} />
           <Route path="/new" element={<NewDocumentPage />} />
-          <Route path="/document/:id" element={<DocumentPage />} />
+          <Route path="/document/:slug" element={<DocumentPage />} />
         </Route>
-        <Route path="/document/:id/present" element={<PresentPage />} />
+        <Route path="/document/:slug/present" element={<PresentPage />} />
       </Routes>
     </BrowserRouter>
   );

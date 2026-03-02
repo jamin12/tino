@@ -3,8 +3,8 @@ import { useDocument } from "@entities/document";
 import { SlidePresenter } from "@widgets/slide-presenter";
 
 export function DocumentPage() {
-  const { id } = useParams<{ id: string }>();
-  const { data: document, isLoading } = useDocument(id!);
+  const { slug } = useParams<{ slug: string }>();
+  const { data: document, isLoading } = useDocument(slug!);
 
   if (isLoading) {
     return (
@@ -30,10 +30,12 @@ export function DocumentPage() {
       {/* Header */}
       <div className="flex items-center justify-between border-b border-gray-200 bg-white px-6 py-3">
         <div>
-          <h1 className="text-lg font-semibold text-gray-900">{document.title}</h1>
+          <h1 className="text-lg font-semibold text-gray-900">
+            {document.meta.title}
+          </h1>
         </div>
         <Link
-          to={`/document/${id}/present`}
+          to={`/document/${slug}/present`}
           className="rounded-lg bg-gray-900 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-gray-800"
         >
           Present

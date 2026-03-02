@@ -1,1 +1,0 @@
-export { useCreateNewDocument } from "./model";

@@ -1,118 +1,95 @@
-import { useState } from "react";
-import { hasApiKey, setApiKey } from "@entities/ai";
-import { useGenerateDocument } from "@features/generate-document";
-import { useCreateNewDocument } from "@features/create-document";
-
 export function NewDocumentPage() {
-  const [prompt, setPrompt] = useState("");
-  const [apiKeyInput, setApiKeyInput] = useState("");
-  const [showApiKeyForm, setShowApiKeyForm] = useState(!hasApiKey());
-  const { generate, isGenerating, error } = useGenerateDocument();
-  const { createEmpty } = useCreateNewDocument();
-
-  const handleSaveApiKey = () => {
-    if (apiKeyInput.trim()) {
-      setApiKey(apiKeyInput.trim());
-      setShowApiKeyForm(false);
-    }
-  };
-
-  const handleGenerate = async () => {
-    if (!prompt.trim()) return;
-    try {
-      await generate(prompt.trim());
-    } catch {
-      // error is handled in the hook
-    }
-  };
-
-  const handleCreateEmpty = () => {
-    createEmpty("Untitled Document");
-  };
-
   return (
     <div className="mx-auto max-w-2xl p-8">
-      <h1 className="text-2xl font-bold text-gray-900">New Document</h1>
+      <h1 className="text-2xl font-bold text-gray-900">Create a Document</h1>
       <p className="mt-2 text-gray-500">
-        Describe what you want to plan, and AI will generate a structured document.
+        Tino uses a file-system based approach. Documents are React components
+        in the <code className="rounded bg-gray-100 px-1.5 py-0.5 text-sm">src/content/</code> directory.
       </p>
 
-      {/* API Key Setup */}
-      {showApiKeyForm && (
-        <div className="mt-6 rounded-lg border border-yellow-200 bg-yellow-50 p-4">
-          <h3 className="font-medium text-yellow-800">API Key Required</h3>
-          <p className="mt-1 text-sm text-yellow-700">
-            Enter your Anthropic API key to enable AI generation.
-          </p>
-          <div className="mt-3 flex gap-2">
-            <input
-              type="password"
-              value={apiKeyInput}
-              onChange={(e) => setApiKeyInput(e.target.value)}
-              placeholder="sk-ant-..."
-              className="flex-1 rounded-lg border border-yellow-300 bg-white px-3 py-2 text-sm focus:border-yellow-500 focus:outline-none focus:ring-1 focus:ring-yellow-500"
-            />
-            <button
-              onClick={handleSaveApiKey}
-              className="rounded-lg bg-yellow-600 px-4 py-2 text-sm font-medium text-white hover:bg-yellow-700"
-            >
-              Save
-            </button>
+      {/* File structure */}
+      <div className="mt-8">
+        <h2 className="text-lg font-semibold text-gray-900">File Structure</h2>
+        <div className="mt-3 rounded-lg border border-gray-200 bg-gray-50 p-4 font-mono text-sm text-gray-700">
+          <pre>{`src/content/
+├── my-document/          # Document = directory
+│   ├── meta.ts           # Metadata (title, description, tags)
+│   ├── Slide01.tsx       # Slide 1
+│   ├── Slide02.tsx       # Slide 2
+│   └── Slide03.tsx       # Slide 3
+└── _template/            # Copy this to start`}</pre>
+        </div>
+      </div>
+
+      {/* Meta file */}
+      <div className="mt-8">
+        <h2 className="text-lg font-semibold text-gray-900">meta.ts</h2>
+        <div className="mt-3 rounded-lg border border-gray-200 bg-gray-950 p-4 font-mono text-sm text-gray-100">
+          <pre>{`import type { DocumentMeta } from "@entities/document";
+
+const meta: DocumentMeta = {
+  title: "My Document",
+  description: "A brief description",
+  createdAt: "${new Date().toISOString().split("T")[0]}",
+  tags: ["tag1", "tag2"],
+};
+
+export default meta;`}</pre>
+        </div>
+      </div>
+
+      {/* Slide file */}
+      <div className="mt-8">
+        <h2 className="text-lg font-semibold text-gray-900">Slide File</h2>
+        <div className="mt-3 rounded-lg border border-gray-200 bg-gray-950 p-4 font-mono text-sm text-gray-100">
+          <pre>{`import { Heading, Paragraph } from "@shared/ui/components/text";
+
+export default function Slide01() {
+  return (
+    <div className="space-y-6">
+      <Heading level={1} content="Title" />
+      <Paragraph content="Content with **markdown**." />
+    </div>
+  );
+}`}</pre>
+        </div>
+      </div>
+
+      {/* Available components */}
+      <div className="mt-8">
+        <h2 className="text-lg font-semibold text-gray-900">Available Components</h2>
+        <div className="mt-3 space-y-2">
+          <div className="rounded-lg border border-gray-200 bg-white p-3">
+            <h3 className="font-medium text-gray-800">Text</h3>
+            <p className="mt-1 text-sm text-gray-500">
+              Heading, Paragraph, BulletList, Callout, CodeBlock, DataTable, Quote
+            </p>
+            <p className="mt-1 text-xs text-gray-400">
+              from <code>@shared/ui/components/text</code>
+            </p>
+          </div>
+          <div className="rounded-lg border border-gray-200 bg-white p-3">
+            <h3 className="font-medium text-gray-800">Diagram</h3>
+            <p className="mt-1 text-sm text-gray-500">
+              Flowchart, MindMap
+            </p>
+            <p className="mt-1 text-xs text-gray-400">
+              from <code>@shared/ui/components/diagram</code>
+            </p>
           </div>
         </div>
-      )}
-
-      {/* Prompt Input */}
-      <div className="mt-6">
-        <textarea
-          value={prompt}
-          onChange={(e) => setPrompt(e.target.value)}
-          placeholder="e.g., Design a user authentication system with OAuth 2.0, JWT tokens, and role-based access control..."
-          rows={5}
-          className="w-full rounded-lg border border-gray-300 p-4 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-          disabled={isGenerating}
-        />
       </div>
 
-      {/* Error */}
-      {error && (
-        <div className="mt-4 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">
-          {error}
-        </div>
-      )}
-
-      {/* Actions */}
-      <div className="mt-4 flex gap-3">
-        <button
-          onClick={handleGenerate}
-          disabled={isGenerating || !prompt.trim() || showApiKeyForm}
-          className="rounded-lg bg-blue-600 px-6 py-2.5 text-sm font-medium text-white transition-colors hover:bg-blue-700 disabled:opacity-50 disabled:hover:bg-blue-600"
-        >
-          {isGenerating ? "Generating..." : "Generate with AI"}
-        </button>
-        <button
-          onClick={handleCreateEmpty}
-          className="rounded-lg border border-gray-300 px-6 py-2.5 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50"
-        >
-          Create Empty
-        </button>
-        {!showApiKeyForm && (
-          <button
-            onClick={() => setShowApiKeyForm(true)}
-            className="ml-auto text-xs text-gray-400 hover:text-gray-600"
-          >
-            Change API Key
-          </button>
-        )}
+      {/* AI prompt tip */}
+      <div className="mt-8 rounded-lg border border-blue-200 bg-blue-50 p-4">
+        <h3 className="font-medium text-blue-800">AI Integration</h3>
+        <p className="mt-1 text-sm text-blue-700">
+          External AI tools (Claude Code, etc.) can read the design system
+          guide in CLAUDE.md and automatically generate slide files using
+          the prebuilt components. Just describe your document and let AI
+          create the .tsx files.
+        </p>
       </div>
-
-      {/* Loading indicator */}
-      {isGenerating && (
-        <div className="mt-6 flex items-center gap-3 text-sm text-gray-500">
-          <div className="h-4 w-4 animate-spin rounded-full border-2 border-blue-500 border-t-transparent" />
-          AI is generating your document...
-        </div>
-      )}
     </div>
   );
 }

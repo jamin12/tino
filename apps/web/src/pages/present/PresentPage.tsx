@@ -1,13 +1,12 @@
 import { useParams, useNavigate } from "react-router";
 import { useDocument } from "@entities/document";
 import { useSlideViewerStore } from "@features/slide-viewer";
-import { ElementRenderer } from "@widgets/element-renderer";
 import { useEffect, useCallback } from "react";
 
 export function PresentPage() {
-  const { id } = useParams<{ id: string }>();
+  const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
-  const { data: document } = useDocument(id!);
+  const { data: document } = useDocument(slug!);
   const { currentSlideIndex, nextSlide, prevSlide, setSlideIndex } =
     useSlideViewerStore();
 
@@ -21,10 +20,10 @@ export function PresentPage() {
         e.preventDefault();
         prevSlide();
       } else if (e.key === "Escape") {
-        navigate(`/document/${id}`);
+        navigate(`/document/${slug}`);
       }
     },
-    [document, nextSlide, prevSlide, navigate, id]
+    [document, nextSlide, prevSlide, navigate, slug]
   );
 
   useEffect(() => {
@@ -44,19 +43,15 @@ export function PresentPage() {
     );
   }
 
-  const currentSlide = document.slides[currentSlideIndex];
-  if (!currentSlide) return null;
+  const CurrentSlide = document.slides[currentSlideIndex];
+  if (!CurrentSlide) return null;
 
   return (
     <div className="flex h-screen flex-col bg-black">
       {/* Slide */}
       <div className="flex flex-1 items-center justify-center p-8">
         <div className="aspect-video w-full max-w-6xl rounded-lg bg-white p-16 shadow-2xl">
-          <div className="space-y-8">
-            {currentSlide.elements.map((element) => (
-              <ElementRenderer key={element.id} element={element} />
-            ))}
-          </div>
+          <CurrentSlide />
         </div>
       </div>
 

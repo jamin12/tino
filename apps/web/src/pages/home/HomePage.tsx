@@ -1,10 +1,9 @@
 import { Link } from "react-router";
-import { useDocuments, useDeleteDocument } from "@entities/document";
+import { useDocuments } from "@entities/document";
 import { DocumentList } from "@widgets/document-list";
 
 export function HomePage() {
   const { data: documents, isLoading } = useDocuments();
-  const deleteDocument = useDeleteDocument();
 
   if (isLoading) {
     return (
@@ -22,13 +21,10 @@ export function HomePage() {
           to="/new"
           className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700"
         >
-          + New Document
+          Guide
         </Link>
       </div>
-      <DocumentList
-        documents={documents ?? []}
-        onDelete={(id) => deleteDocument.mutate(id)}
-      />
+      <DocumentList documents={documents ?? []} />
     </div>
   );
 }

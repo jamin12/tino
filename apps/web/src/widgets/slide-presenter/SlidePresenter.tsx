@@ -1,17 +1,15 @@
-import { useEffect, useCallback } from "react";
-import type { Slide } from "@entities/document";
+import { useEffect, useCallback, type ComponentType } from "react";
 import { useSlideViewerStore } from "@features/slide-viewer";
-import { ElementRenderer } from "@widgets/element-renderer";
 
 interface Props {
-  slides: Slide[];
+  slides: ComponentType[];
 }
 
 export function SlidePresenter({ slides }: Props) {
   const { currentSlideIndex, setSlideIndex, nextSlide, prevSlide } =
     useSlideViewerStore();
 
-  const currentSlide = slides[currentSlideIndex];
+  const CurrentSlide = slides[currentSlideIndex];
 
   const handleKeyDown = useCallback(
     (e: KeyboardEvent) => {
@@ -36,15 +34,15 @@ export function SlidePresenter({ slides }: Props) {
     setSlideIndex(0);
   }, [slides, setSlideIndex]);
 
-  if (!currentSlide) return null;
+  if (!CurrentSlide) return null;
 
   return (
     <div className="flex h-full">
       {/* Thumbnail sidebar */}
       <div className="flex w-48 flex-col gap-2 overflow-y-auto border-r border-gray-200 bg-gray-50 p-3">
-        {slides.map((slide, index) => (
+        {slides.map((_, index) => (
           <button
-            key={slide.id}
+            key={index}
             onClick={() => setSlideIndex(index)}
             className={`rounded-lg border p-2 text-left text-xs transition-colors ${
               index === currentSlideIndex
@@ -52,12 +50,7 @@ export function SlidePresenter({ slides }: Props) {
                 : "border-gray-200 bg-white text-gray-600 hover:border-gray-300"
             }`}
           >
-            <div className="mb-1 font-medium">
-              {index + 1}. {slide.title}
-            </div>
-            <div className="text-gray-400">
-              {slide.elements.length} elements
-            </div>
+            <div className="font-medium">Slide {index + 1}</div>
           </button>
         ))}
       </div>
@@ -67,11 +60,7 @@ export function SlidePresenter({ slides }: Props) {
         {/* Slide content */}
         <div className="flex flex-1 items-center justify-center overflow-auto bg-gray-100 p-8">
           <div className="aspect-video w-full max-w-4xl rounded-lg border border-gray-200 bg-white p-12 shadow-sm">
-            <div className="space-y-6">
-              {currentSlide.elements.map((element) => (
-                <ElementRenderer key={element.id} element={element} />
-              ))}
-            </div>
+            <CurrentSlide />
           </div>
         </div>
 

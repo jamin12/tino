@@ -257,3 +257,104 @@ pnpm preview
 * widgets는 조합만 수행한다
 * features는 use case를 담당한다
 * entities는 도메인 단위로 분리한다
+
+---
+
+## 슬라이드 디자인 시스템 가이드
+
+이 섹션은 외부 AI(Claude Code, Antigravity 등)가 Tino 슬라이드를 자동 생성할 때 참조하는 가이드입니다.
+
+### 문서 구조
+
+문서는 `apps/web/src/content/` 디렉토리의 폴더로 관리됩니다.
+
+```
+src/content/
+├── my-document/          # 문서 = 디렉토리 (폴더명 = URL slug)
+│   ├── meta.ts           # 메타데이터
+│   ├── Slide01.tsx       # 슬라이드 1
+│   ├── Slide02.tsx       # 슬라이드 2
+│   └── Slide03.tsx       # 슬라이드 3
+└── _template/            # 스타터 템플릿 (_로 시작하면 목록에서 제외)
+```
+
+### 네이밍 규칙
+
+- 폴더명: kebab-case (`my-project-plan`)
+- 슬라이드: `Slide` + 2자리 숫자 (`Slide01.tsx`, `Slide02.tsx`, ...)
+- 각 슬라이드는 `export default function SlideNN()` 형태
+
+### meta.ts
+
+```ts
+import type { DocumentMeta } from "@entities/document";
+
+const meta: DocumentMeta = {
+  title: "문서 제목",
+  description: "문서 설명 (선택)",
+  createdAt: "2025-01-15",    // ISO 날짜
+  tags: ["tag1", "tag2"],     // 선택
+};
+
+export default meta;
+```
+
+### 슬라이드 파일 (.tsx)
+
+```tsx
+import { Heading, Paragraph } from "@shared/ui/components/text";
+
+export default function Slide01() {
+  return (
+    <div className="space-y-6">
+      <Heading level={1} content="제목" />
+      <Paragraph content="**마크다운** 지원 텍스트" />
+    </div>
+  );
+}
+```
+
+### 사용 가능한 컴포넌트
+
+#### Text 컴포넌트 (`@shared/ui/components/text`)
+
+| 컴포넌트 | Props | 설명 |
+|----------|-------|------|
+| `Heading` | `level: 1-6`, `content: string` | 제목 (h1~h6) |
+| `Paragraph` | `content: string` | 마크다운 지원 본문 |
+| `BulletList` | `ordered: boolean`, `items: string[]` | 목록 (순서/비순서) |
+| `Callout` | `variant: "info"\|"warning"\|"tip"\|"error"`, `title?: string`, `content: string` | 강조 박스 |
+| `CodeBlock` | `language: string`, `code: string` | 코드 블록 |
+| `DataTable` | `headers: string[]`, `rows: string[][]` | 테이블 |
+| `Quote` | `content: string`, `author?: string` | 인용문 |
+
+#### Diagram 컴포넌트 (`@shared/ui/components/diagram`)
+
+| 컴포넌트 | Props | 설명 |
+|----------|-------|------|
+| `Flowchart` | `nodes: FlowchartNode[]`, `edges: FlowchartEdge[]` | 플로우차트 |
+| `MindMap` | `root: MindmapNode` | 마인드맵 |
+
+**FlowchartNode:**
+```ts
+{ id: string; label: string; position: { x: number; y: number }; shape?: "rectangle" | "diamond" | "circle"; color?: string }
+```
+
+**FlowchartEdge:**
+```ts
+{ id: string; source: string; target: string; label?: string; type?: "default" | "step" | "smoothstep" }
+```
+
+**MindmapNode (재귀):**
+```ts
+{ id: string; label: string; children?: MindmapNode[] }
+```
+
+### 슬라이드 작성 규칙
+
+1. 각 슬라이드는 `<div className="space-y-6">` 래퍼를 사용
+2. 첫 슬라이드에는 반드시 `<Heading level={1}>` 포함
+3. 이후 슬라이드는 `<Heading level={2}>` 사용
+4. 컴포넌트 import는 반드시 `@shared/ui/components/text` 또는 `@shared/ui/components/diagram`에서
+5. Tailwind CSS 클래스 사용 가능
+6. Vite HMR로 저장 시 즉시 브라우저에 반영
