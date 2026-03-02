@@ -1,0 +1,1 @@
+export { useGenerateDocument } from "./model";

@@ -1,0 +1,259 @@
+# Agent Instruction
+
+- 항상 Vercel 관련 스킬(`vercel-composition-patterns`, `vercel-react-best-practices`, `vercel-react-native-skills`)을 우선적으로 사용한다.
+
+
+## 프로젝트 개요
+
+pnpm 워크스페이스 기반 모노레포로 구성된 React 웹 애플리케이션.
+Feature-Sliced Design(FSD)을 기반으로 **도메인, 행동, UI 조합을 명확히 분리**하여 확장성과 유지보수성을 확보한다.
+
+---
+
+## 앱 구조 (FSD)
+
+```
+apps/web/src/
+├── app/                        # 앱 초기화 및 전역 설정
+├── pages/                      # 라우트 단위 화면 (조립)
+├── widgets/                    # 화면 블록 (조합)
+├── features/                   # 사용자 행동 (use case)
+├── entities/                   # 도메인 (데이터 + API)
+├── shared/                     # 공통 (UI, util, config 등)
+└── main.tsx
+```
+
+---
+
+## 레이어별 역할
+
+### 1. app (Application Layer)
+
+* 전역 설정 및 초기화
+* Provider 구성 (Query, Router 등)
+* 글로벌 스타일
+
+```tsx
+QueryProvider + RouterProvider 조합
+```
+
+---
+
+### 2. pages (Page Layer)
+
+* 라우트 단위 화면
+* widgets를 조합하여 페이지 구성
+
+```tsx
+<ProjectPage>
+  <ProjectDashboard />
+</ProjectPage>
+```
+
+특징:
+
+* 로직 없음
+* 조립 역할만 수행 (widgets 조합)
+* `shared` 레이어(예: 공통 Layout, UI 프레임, Config 등)를 직접 import 하여 페이지 뼈대 구성 가능
+
+---
+
+### 3. widgets (Widget Layer)
+
+* 화면에서 사용하는 **UI 블록**
+* 여러 features, entities, shared를 조합
+
+```tsx
+<ProjectDashboard>
+  <ProjectTable />
+  <ProjectFilter />
+  <CreateProjectForm />
+</ProjectDashboard>
+```
+
+특징:
+
+* 조합 중심
+* 비즈니스 로직 최소화
+
+---
+
+### 4. features (Feature Layer)
+
+* 사용자 행동 (use case)
+* 여러 API를 조합하여 기능 구현
+
+구성:
+
+```
+features/
+ ├── model/   # mutation, orchestration
+ └── ui/      # 행동 UI (form, button 등)
+```
+
+예:
+
+* create-project
+* deploy-rollout
+* login
+
+---
+
+### 5. entities (Entity Layer)
+
+* 도메인 단위 데이터 관리
+* API, 상태, 타입 정의
+
+구성:
+
+```
+entities/
+ ├── project/
+ │    ├── api/     # 실제 API 호출
+ │    ├── model/   # query (TanStack Query)
+ │    └── types/
+```
+
+특징:
+
+* 데이터 중심
+* 재사용 가능
+
+---
+
+### 6. shared (Shared Layer)
+
+* 전역 공통 코드
+* 어떤 레이어에서도 사용 가능
+
+구성:
+
+```
+shared/
+ ├── api/      # axios client
+ ├── ui/       # Button, Modal 등
+ ├── lib/      # util 함수
+ ├── config/   # 설정
+ └── types/
+```
+
+규칙:
+
+* 도메인 의존 금지
+* 하위 레이어 import 금지
+
+---
+
+## 레이어 의존 규칙
+
+```id="dep"
+app → pages → widgets → features → entities → shared
+```
+
+* 단방향 의존만 허용 (상위 레이어가 하위 레이어를 의존하는 것은 허용됨)
+* 역방향 import 금지 (하위 레이어가 상위 레이어를 참조하면 안 됨)
+* **동일 레이어 간 참조 금지 (Cross-import 제한)**
+  * 같은 레이어 내의 슬라이스끼리는 서로를 직접 참조(import)해서는 안 됩니다. (예: `features/auth`에서 `features/project` import 금지)
+  * 두 개 이상의 기능이나 도메인이 결합되어야 한다면 상위 레이어(예: `widgets`)에서 **조합(Composition)**하여 해결해야 합니다.
+  * (단, 가장 아래의 `shared` 레이어 내에서는 유틸리티 간 참조가 제한적으로 허용됩니다.)
+* **모든 상위 레이어(`pages` 포함)에서 최하단 `shared` 레이어를 자유롭게 import 가능**
+
+---
+
+## 실행 및 데이터 흐름
+
+사용자 액션은 내려가고(↓), 데이터는 올라옵니다(↑).
+
+```id="dataflow"
+1. pages/widgets: 버튼 클릭이나 화면 진입으로 동작 시작
+   ↓ (요청)
+2. features: 행동(UseCase) 로직 실행, entities의 query/mutation 호출
+   ↓ (요청)
+3. entities/model & api: TanStack Query와 axios를 통해 실제 서버 API 호출 (shared/api 사용)
+   ↑ (응답)
+4. 데이터가 캐싱(Query) 또는 상태(Zustand)에 반영
+   ↑ (반환)
+5. UI 구성요소들이 반응형으로 리렌더링
+```
+
+---
+
+## packages/shared 구조
+
+```
+packages/shared/src/
+├── types/
+├── utils/
+├── constants/
+└── index.ts
+```
+
+역할:
+
+* 앱 간 공통 로직 공유
+* UI는 포함하지 않음 (UI는 app의 shared/ui에서 관리)
+
+---
+
+## Path Alias
+
+| Alias               | 경로                        |
+| ------------------- | ------------------------- |
+| `@/*`               | `apps/web/src/*`          |
+| `@app/*`            | `apps/web/src/app/*`      |
+| `@pages/*`          | `apps/web/src/pages/*`    |
+| `@widgets/*`        | `apps/web/src/widgets/*`  |
+| `@features/*`       | `apps/web/src/features/*` |
+| `@entities/*`       | `apps/web/src/entities/*` |
+| `@shared/*`         | `apps/web/src/shared/*`   |
+| `@workpulse/shared` | `packages/shared/src`     |
+
+---
+
+## 주요 규칙
+
+### 1. API 위치
+
+* 모든 API 호출은 `entities/api`에 정의
+
+### 2. 상태 관리
+
+* 서버 상태: entities/model (TanStack Query)
+* 클라이언트 상태: shared 또는 entities (Zustand)
+
+### 3. Public API (index.ts) 사용을 통한 캡슐화
+
+* 라우팅 타겟인 `pages`를 제외한 각 모듈(features, widgets, entities)은 루트의 `index.ts`를 통해서만 외부로 API 컴포넌트, 훅, 타입을 노출해야 합니다.
+* 외부 레이어에서는 다른 레이어의 깊은 경로(`deep/path`)를 직접 import 하는 것을 엄격히 금지합니다.
+  * ✅ 좋은 예: `import { LoginForm } from '@features/auth'`
+  * ❌ 나쁜 예: `import { LoginForm } from '@features/auth/ui/components/LoginForm'`
+
+### 4. 역할 분리
+
+| 레이어      | 역할  |
+| -------- | --- |
+| entities | 데이터 |
+| features | 행동  |
+| widgets  | 조합  |
+| pages    | 화면  |
+
+---
+
+## 주요 명령어
+
+```bash
+pnpm dev
+pnpm build
+pnpm lint
+pnpm preview
+```
+
+---
+
+## 핵심 설계 원칙
+
+* UI, 데이터, 행동을 분리한다
+* 페이지는 최대한 얇게 유지한다
+* widgets는 조합만 수행한다
+* features는 use case를 담당한다
+* entities는 도메인 단위로 분리한다

@@ -1,0 +1,1 @@
+export { getElementRenderer } from "./model";
