@@ -10,21 +10,6 @@ Feature-Sliced Design(FSD)을 기반으로 **도메인, 행동, UI 조합을 명
 
 ---
 
-## 앱 구조 (FSD)
-
-```
-apps/web/src/
-├── app/                        # 앱 초기화 및 전역 설정
-├── pages/                      # 라우트 단위 화면 (조립)
-├── widgets/                    # 화면 블록 (조합)
-├── features/                   # 사용자 행동 (use case)
-├── entities/                   # 도메인 (데이터 + API)
-├── shared/                     # 공통 (UI, util, config 등)
-└── main.tsx
-```
-
----
-
 ## 레이어별 역할
 
 ### 1. app (Application Layer)
@@ -87,15 +72,21 @@ QueryProvider + RouterProvider 조합
 
 ```
 features/
- ├── model/   # mutation, orchestration
- └── ui/      # 행동 UI (form, button 등)
+ ├── index.ts     # Public API (Re-export)
+ ├── model/       # 순수 비즈니스 로직, Hooks, 상태(Zustand), 오케스트레이션
+ ├── types/       # 해당 기능의 타입 및 인터페이스
+ └── ui/          # 행동이 연결된 시각적 UI 컴포넌트
 ```
 
 예:
 
-* create-project
-* deploy-rollout
-* login
+- create-project
+- deploy-rollout
+- slide-viewer (상태 조작 및 키보드 네비게이션 Action 캡슐화)
+
+특징:
+
+- `model/index.ts`나 `types/index.ts` 같은 내부 진입점 안에는 직접적인 로직이나 타입 선언을 두지 않고, 반드시 `store.ts` 나 `use-feature.ts` 같은 파일을 생성하여 구현한 뒤 Re-export만 수행합니다.
 
 ---
 

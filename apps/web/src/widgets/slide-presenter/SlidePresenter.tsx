@@ -1,5 +1,8 @@
-import { useEffect, useCallback, type ComponentType } from "react";
-import { useSlideViewerStore } from "@features/slide-viewer";
+import { useEffect, type ComponentType } from "react";
+import {
+  useSlideViewerStore,
+  useSlideNavigation,
+} from "@features/slide-viewer";
 
 interface Props {
   slides: ComponentType[];
@@ -11,23 +14,7 @@ export function SlidePresenter({ slides }: Props) {
 
   const CurrentSlide = slides[currentSlideIndex];
 
-  const handleKeyDown = useCallback(
-    (e: KeyboardEvent) => {
-      if (e.key === "ArrowRight" || e.key === " ") {
-        e.preventDefault();
-        nextSlide(slides.length);
-      } else if (e.key === "ArrowLeft") {
-        e.preventDefault();
-        prevSlide();
-      }
-    },
-    [nextSlide, prevSlide, slides.length]
-  );
-
-  useEffect(() => {
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [handleKeyDown]);
+  useSlideNavigation({ totalSlides: slides.length });
 
   // Reset to first slide when slides change
   useEffect(() => {
