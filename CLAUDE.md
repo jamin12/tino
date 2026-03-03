@@ -205,19 +205,20 @@ packages/shared/src/
 
 ### 1. API 위치
 
-* 모든 API 호출은 `entities/api`에 정의
+- 모든 API 호출은 `entities/api`에 정의
 
 ### 2. 상태 관리
 
-* 서버 상태: entities/model (TanStack Query)
-* 클라이언트 상태: shared 또는 entities (Zustand)
+- 서버 상태: entities/model (TanStack Query)
+- 클라이언트 상태: shared 또는 entities (Zustand)
 
-### 3. Public API (index.ts) 사용을 통한 캡슐화
+### 3. Public API (index.ts) 사용을 통한 캡슐화 (Re-export Only)
 
-* 라우팅 타겟인 `pages`를 제외한 각 모듈(features, widgets, entities)은 루트의 `index.ts`를 통해서만 외부로 API 컴포넌트, 훅, 타입을 노출해야 합니다.
-* 외부 레이어에서는 다른 레이어의 깊은 경로(`deep/path`)를 직접 import 하는 것을 엄격히 금지합니다.
-  * ✅ 좋은 예: `import { LoginForm } from '@features/auth'`
-  * ❌ 나쁜 예: `import { LoginForm } from '@features/auth/ui/components/LoginForm'`
+- 라우팅 타겟인 `pages`를 제외한 모든 모듈(features, widgets, entities, shared)은 엔트리 포인트인 `index.ts`를 통해서만 외부로 값을 노출해야 합니다.
+- **🚨 `index.ts` 내부 구현 금지**: `index.ts` 파일 내부에는 인터페이스 선언(`interface...`), 로직(`const... = () => ...`), 컴포넌트 구현 등을 직접 작성해서는 안 됩니다. 오직 `export { ... } from "./구현파일";`과 같이 **Public 경로를 노출(Re-export)하는 역할**만 수행해야 합니다.
+- 외부 레이어에서는 다른 레이어의 깊은 경로(`deep/path`)를 직접 import 하는 것을 엄격히 금지합니다.
+  - ✅ 좋은 예: `import { LoginForm } from '@features/auth'`
+  - ❌ 나쁜 예: `import { LoginForm } from '@features/auth/ui/components/LoginForm'`
 
 ### 4. 역할 분리
 
