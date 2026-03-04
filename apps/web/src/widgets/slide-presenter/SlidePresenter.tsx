@@ -1,4 +1,10 @@
-import { useEffect, useRef, type ComponentType } from "react";
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  type ComponentType,
+} from "react";
 import {
   useSlideViewerStore,
   useSlideNavigation,
@@ -13,7 +19,10 @@ export function SlidePresenter({ slides }: Props) {
   const { currentSlideIndex, setSlideIndex, nextSlide, prevSlide } =
     useSlideViewerStore();
 
-  const slideRef = useRef<HTMLDivElement>(null);
+  const captureRef = useRef<HTMLDivElement>(null);
+  const wrapperRef = useRef<HTMLDivElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [scale, setScale] = useState(1);
 
   const CurrentSlide = slides[currentSlideIndex];
 
@@ -24,23 +33,56 @@ export function SlidePresenter({ slides }: Props) {
     setSlideIndex(0);
   }, [slides, setSlideIndex]);
 
+  const updateScale = useCallback(() => {
+    const container = containerRef.current;
+    const wrapper = wrapperRef.current;
+    if (!container || !wrapper) return;
+
+    // Reset to measure natural size
+    wrapper.style.transform = "translate(-50%, -50%) scale(1)";
+
+    const sw = wrapper.scrollWidth;
+    const sh = wrapper.scrollHeight;
+    const cw = container.clientWidth;
+    const ch = container.clientHeight;
+
+    if (sw > 0 && sh > 0) {
+      const s = Math.min(cw / sw, ch / sh, 1);
+      setScale(s);
+      wrapper.style.transform = `translate(-50%, -50%) scale(${s})`;
+    }
+  }, []);
+
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    const ro = new ResizeObserver(updateScale);
+    ro.observe(container);
+    return () => ro.disconnect();
+  }, [updateScale]);
+
+  useEffect(() => {
+    requestAnimationFrame(updateScale);
+  }, [currentSlideIndex, updateScale]);
+
   if (!CurrentSlide) return null;
 
   return (
     <div className="flex h-full">
       {/* Thumbnail sidebar */}
-      <div className="flex w-48 flex-col gap-2 overflow-y-auto border-r border-gray-200 bg-gray-50 p-3">
+      <div className="flex w-24 flex-col gap-1.5 overflow-y-auto border-r border-gray-200 bg-gray-50 p-2">
         {slides.map((_, index) => (
           <button
             key={index}
             onClick={() => setSlideIndex(index)}
-            className={`rounded-lg border p-2 text-left text-xs transition-colors ${
+            className={`rounded border px-2 py-1.5 text-left text-[10px] transition-colors ${
               index === currentSlideIndex
                 ? "border-blue-500 bg-blue-50 text-blue-700"
                 : "border-gray-200 bg-white text-gray-600 hover:border-gray-300"
             }`}
           >
-            <div className="font-medium">Slide {index + 1}</div>
+            <div className="font-medium">{index + 1}</div>
           </button>
         ))}
       </div>
@@ -49,16 +91,39 @@ export function SlidePresenter({ slides }: Props) {
       <div className="flex flex-1 flex-col relative">
         {/* Header tools */}
         <div className="absolute top-4 right-4 z-10">
-          <CopyToFigmaButton targetRef={slideRef} />
+          <CopyToFigmaButton
+            targetRef={captureRef}
+            onBeforeCapture={() => {
+              if (wrapperRef.current) {
+                wrapperRef.current.style.transform = "translate(-50%, -50%)";
+              }
+            }}
+            onAfterCapture={() => {
+              if (wrapperRef.current) {
+                wrapperRef.current.style.transform = `translate(-50%, -50%) scale(${scale})`;
+              }
+            }}
+          />
         </div>
 
         {/* Slide content */}
-        <div className="flex flex-1 items-center justify-center overflow-auto bg-gray-100 p-8">
-          <div
-            ref={slideRef}
-            className="aspect-video w-full max-w-4xl rounded-lg border border-gray-200 bg-white p-12 shadow-sm"
-          >
-            <CurrentSlide />
+        <div className="flex-1 overflow-hidden bg-gray-100 p-4">
+          <div ref={containerRef} className="relative h-full w-full">
+            <div
+              ref={wrapperRef}
+              className="absolute left-1/2 top-1/2"
+              style={{
+                transform: `translate(-50%, -50%) scale(${scale})`,
+                transformOrigin: "center center",
+              }}
+            >
+              <div
+                ref={captureRef}
+                className="rounded-lg border border-gray-200 bg-white shadow-sm"
+              >
+                <CurrentSlide />
+              </div>
+            </div>
           </div>
         </div>
 

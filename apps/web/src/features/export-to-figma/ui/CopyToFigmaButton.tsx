@@ -3,10 +3,17 @@ import { domToFigmaSvg } from "@shared/lib";
 
 interface Props {
   targetRef: React.RefObject<HTMLElement | null>;
+  onBeforeCapture?: () => void;
+  onAfterCapture?: () => void;
   className?: string;
 }
 
-export function CopyToFigmaButton({ targetRef, className = "" }: Props) {
+export function CopyToFigmaButton({
+  targetRef,
+  onBeforeCapture,
+  onAfterCapture,
+  className = "",
+}: Props) {
   const [copyStatus, setCopyStatus] = useState<
     "idle" | "copying" | "copied" | "error"
   >("idle");
@@ -16,16 +23,23 @@ export function CopyToFigmaButton({ targetRef, className = "" }: Props) {
     try {
       setCopyStatus("copying");
 
-      // Parse DOM to SVG format so Figma pastes them as separated nodes
+      // Remove scale transform so getBoundingClientRect returns natural coords
+      onBeforeCapture?.();
+
       const svgString = await domToFigmaSvg(targetRef.current);
+
+      // Restore scale transform
+      onAfterCapture?.();
+
       if (!svgString) throw new Error("SVG extraction failed");
 
-      // Figma natively parses plain text starting with <svg> into vector elements!
       await navigator.clipboard.writeText(svgString);
 
       setCopyStatus("copied");
       setTimeout(() => setCopyStatus("idle"), 2000);
     } catch (err) {
+      // Ensure transform is restored even on error
+      onAfterCapture?.();
       console.error("Failed to copy element to Figma:", err);
       setCopyStatus("error");
       setTimeout(() => setCopyStatus("idle"), 2000);
@@ -57,8 +71,8 @@ export function CopyToFigmaButton({ targetRef, className = "" }: Props) {
         </>
       )}
       {copyStatus === "copying" && "Copying..."}
-      {copyStatus === "copied" && "Copied! ✅"}
-      {copyStatus === "error" && "Error ❌"}
+      {copyStatus === "copied" && "Copied!"}
+      {copyStatus === "error" && "Error"}
     </button>
   );
 }
