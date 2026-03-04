@@ -1,8 +1,9 @@
-import { useEffect, type ComponentType } from "react";
+import { useEffect, useRef, type ComponentType } from "react";
 import {
   useSlideViewerStore,
   useSlideNavigation,
 } from "@features/slide-viewer";
+import { CopyToFigmaButton } from "@features/export-to-figma";
 
 interface Props {
   slides: ComponentType[];
@@ -11,6 +12,8 @@ interface Props {
 export function SlidePresenter({ slides }: Props) {
   const { currentSlideIndex, setSlideIndex, nextSlide, prevSlide } =
     useSlideViewerStore();
+
+  const slideRef = useRef<HTMLDivElement>(null);
 
   const CurrentSlide = slides[currentSlideIndex];
 
@@ -43,10 +46,18 @@ export function SlidePresenter({ slides }: Props) {
       </div>
 
       {/* Main slide area */}
-      <div className="flex flex-1 flex-col">
+      <div className="flex flex-1 flex-col relative">
+        {/* Header tools */}
+        <div className="absolute top-4 right-4 z-10">
+          <CopyToFigmaButton targetRef={slideRef} />
+        </div>
+
         {/* Slide content */}
         <div className="flex flex-1 items-center justify-center overflow-auto bg-gray-100 p-8">
-          <div className="aspect-video w-full max-w-4xl rounded-lg border border-gray-200 bg-white p-12 shadow-sm">
+          <div
+            ref={slideRef}
+            className="aspect-video w-full max-w-4xl rounded-lg border border-gray-200 bg-white p-12 shadow-sm"
+          >
             <CurrentSlide />
           </div>
         </div>
