@@ -218,19 +218,88 @@ function parseBoxShadow(shadow: string): { filterId: string; def: string } | nul
 
 // ─── Visual rendering ───────────────────────────────────────────────────────
 
+// ─── Border-radius helpers ──────────────────────────────────────────────────
+
+interface CornerRadii {
+  tl: number;
+  tr: number;
+  br: number;
+  bl: number;
+}
+
+function getCornerRadii(style: CSSStyleDeclaration): CornerRadii {
+  return {
+    tl: parseFloat(style.borderTopLeftRadius) || 0,
+    tr: parseFloat(style.borderTopRightRadius) || 0,
+    br: parseFloat(style.borderBottomRightRadius) || 0,
+    bl: parseFloat(style.borderBottomLeftRadius) || 0,
+  };
+}
+
+function isUniformRadius(r: CornerRadii): boolean {
+  return r.tl === r.tr && r.tr === r.br && r.br === r.bl;
+}
+
+function hasAnyRadius(r: CornerRadii): boolean {
+  return r.tl > 0 || r.tr > 0 || r.br > 0 || r.bl > 0;
+}
+
+function roundedRectPath(
+  x: number, y: number, w: number, h: number,
+  r: CornerRadii,
+): string {
+  const { tl, tr, br, bl } = r;
+  return [
+    `M${x + tl},${y}`,
+    `H${x + w - tr}`,
+    tr > 0 ? `A${tr},${tr} 0 0 1 ${x + w},${y + tr}` : `L${x + w},${y}`,
+    `V${y + h - br}`,
+    br > 0 ? `A${br},${br} 0 0 1 ${x + w - br},${y + h}` : `L${x + w},${y + h}`,
+    `H${x + bl}`,
+    bl > 0 ? `A${bl},${bl} 0 0 1 ${x},${y + h - bl}` : `L${x},${y + h}`,
+    `V${y + tl}`,
+    tl > 0 ? `A${tl},${tl} 0 0 1 ${x + tl},${y}` : `L${x},${y}`,
+    "Z",
+  ].join(" ");
+}
+
+function renderRoundedRect(
+  x: number, y: number, w: number, h: number,
+  radii: CornerRadii,
+  fill: string,
+  stroke?: string,
+  strokeWidth?: number,
+): string {
+  if (isUniformRadius(radii)) {
+    const r = radii.tl;
+    let attrs = `x="${x}" y="${y}" width="${w}" height="${h}" fill="${fill}" rx="${r}" ry="${r}"`;
+    if (stroke && strokeWidth) {
+      attrs += ` stroke="${stroke}" stroke-width="${strokeWidth}"`;
+    }
+    return `<rect ${attrs} />`;
+  }
+
+  const d = roundedRectPath(x, y, w, h, radii);
+  let attrs = `d="${d}" fill="${fill}"`;
+  if (stroke && strokeWidth) {
+    attrs += ` stroke="${stroke}" stroke-width="${strokeWidth}"`;
+  }
+  return `<path ${attrs} />`;
+}
+
 function renderBackground(
   style: CSSStyleDeclaration,
   x: number, y: number, w: number, h: number,
 ): string {
   const bg = style.backgroundColor;
   const bgImage = style.backgroundImage;
-  const r = parseFloat(style.borderRadius) || 0;
+  const radii = getCornerRadii(style);
 
   let out = "";
 
   // Solid background color
   if (bg && bg !== "rgba(0, 0, 0, 0)" && bg !== "transparent") {
-    out += `<rect x="${x}" y="${y}" width="${w}" height="${h}" fill="${bg}" rx="${r}" ry="${r}" />`;
+    out += renderRoundedRect(x, y, w, h, radii, bg);
   }
 
   // Gradient background
@@ -238,7 +307,7 @@ function renderBackground(
     const grad = parseLinearGradient(bgImage, x, y, w, h);
     if (grad) {
       defsContent += grad.def;
-      out += `<rect x="${x}" y="${y}" width="${w}" height="${h}" fill="${grad.fill}" rx="${r}" ry="${r}" />`;
+      out += renderRoundedRect(x, y, w, h, radii, grad.fill);
     }
   }
 
@@ -261,7 +330,7 @@ function renderBorders(
 
   if (!hasT && !hasR && !hasB && !hasL) return "";
 
-  // Uniform border → rounded rect
+  // Uniform border → rounded rect (with per-corner radius support)
   if (
     hasT && hasR && hasB && hasL &&
     bt === br && br === bb && bb === bl &&
@@ -269,8 +338,8 @@ function renderBorders(
     style.borderRightColor === style.borderBottomColor &&
     style.borderBottomColor === style.borderLeftColor
   ) {
-    const r = parseFloat(style.borderRadius) || 0;
-    return `<rect x="${x}" y="${y}" width="${w}" height="${h}" fill="none" stroke="${style.borderTopColor}" stroke-width="${bt}" rx="${r}" ry="${r}" />`;
+    const radii = getCornerRadii(style);
+    return renderRoundedRect(x, y, w, h, radii, "none", style.borderTopColor, bt);
   }
 
   // Per-side
@@ -507,8 +576,14 @@ export async function domToFigmaSvg(
     let clipEnd = "";
     if (overflow === "hidden" || overflow === "clip" || overflow === "scroll" || overflow === "auto") {
       const clipId = nextId("clip");
-      const r = parseFloat(style.borderRadius) || 0;
-      defsContent += `<clipPath id="${clipId}"><rect x="${x}" y="${y}" width="${w}" height="${h}" rx="${r}" ry="${r}" /></clipPath>`;
+      const clipRadii = getCornerRadii(style);
+      if (hasAnyRadius(clipRadii) && !isUniformRadius(clipRadii)) {
+        const clipPath = roundedRectPath(x, y, w, h, clipRadii);
+        defsContent += `<clipPath id="${clipId}"><path d="${clipPath}" /></clipPath>`;
+      } else {
+        const r = clipRadii.tl;
+        defsContent += `<clipPath id="${clipId}"><rect x="${x}" y="${y}" width="${w}" height="${h}" rx="${r}" ry="${r}" /></clipPath>`;
+      }
       clipStart = `<g clip-path="url(#${clipId})">`;
       clipEnd = `</g>`;
     }
