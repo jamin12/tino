@@ -29,7 +29,7 @@ export function ContextMenu({ items, className, ...props }: ContextMenuProps) {
   return (
     <nav
       className={cn(
-        "flex flex-col w-[120px] items-start gap-1 py-2 bg-white rounded-lg border border-[#bac0c6]",
+        "flex flex-col w-[120px] items-start py-1 bg-white rounded-lg border border-[#bac0c6]",
         "shadow-[4px_4px_4px_#0000001a]",
         className,
       )}
@@ -41,7 +41,7 @@ export function ContextMenu({ items, className, ...props }: ContextMenuProps) {
           return (
             <div
               key={entry.id}
-              className="w-full px-5 py-1"
+              className="w-full px-3 py-0.5"
               role="separator"
             >
               <div className="w-full h-px bg-[#e0e0e0]" />
@@ -70,7 +70,7 @@ export function ContextMenu({ items, className, ...props }: ContextMenuProps) {
           return (
             <a
               key={entry.id}
-              className="flex h-[30px] items-center gap-1 px-5 py-1 w-full hover:bg-gray-50 focus:bg-gray-100 focus:outline-none"
+              className="flex h-7 items-center gap-1.5 px-3 w-full hover:bg-gray-50 focus:bg-gray-100 focus:outline-none"
               href={entry.href}
               role="menuitem"
             >
@@ -83,7 +83,7 @@ export function ContextMenu({ items, className, ...props }: ContextMenuProps) {
           <button
             key={entry.id}
             type="button"
-            className="flex h-[30px] items-center gap-1 px-5 py-1 w-full hover:bg-gray-50 focus:bg-gray-100 focus:outline-none text-left"
+            className="flex h-7 items-center gap-1.5 px-3 w-full hover:bg-gray-50 focus:bg-gray-100 focus:outline-none text-left"
             role="menuitem"
             onClick={entry.onClick}
           >

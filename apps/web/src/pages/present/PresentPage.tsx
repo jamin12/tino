@@ -29,7 +29,7 @@ export function PresentPage() {
     );
   }
 
-  const CurrentSlide = document.slides[currentSlideIndex];
+  const CurrentSlide = document.slides[currentSlideIndex]?.component;
   if (!CurrentSlide) return null;
 
   return (

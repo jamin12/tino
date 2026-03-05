@@ -20,11 +20,15 @@ import type { NavSelector } from "./GlobalNav";
 
 const defaultLogo = (
   <div className="flex items-center gap-2">
-    <div className="w-6 h-6 rounded bg-[#0077ff] flex items-center justify-center">
-      <span className="text-white text-xs font-bold">C</span>
+    <div className="flex items-center justify-center">
+      <img
+        src="https://api.iconify.design/lucide:box.svg?color=%2329d8ff"
+        className="w-[30px] h-[30px]"
+        alt="logo"
+      />
     </div>
-    <span className="text-white font-bold text-base tracking-[-0.16px]">
-      CONE-Chain
+    <span className="text-white font-bold text-[18px] tracking-tight">
+      CONE<span className="text-[#29d8ff] font-medium">-Chain</span>
     </span>
   </div>
 );
@@ -55,7 +59,7 @@ const defaultSideMenuItems: SideMenuItem[] = [
     expanded: true,
     expandIcon: "minus",
     sections: [
-      { label: "네임스페이스", items: [] },
+      { label: "", items: [{ label: "네임스페이스" }] },
       {
         label: "저장소",
         items: [
@@ -70,7 +74,7 @@ const defaultSideMenuItems: SideMenuItem[] = [
         label: "파이프라인",
         items: [
           { label: "파이프라인 정의" },
-          { label: "파이프라인 실행", active: true, bold: true },
+          { label: "파이프라인 실행", active: true },
           { label: "파이프라인 트리거" },
           { label: "파이프라인 통계" },
         ],
@@ -156,7 +160,7 @@ export function CcpDashboardLayout({
     <div className="relative w-[1920px] h-[1050px] flex bg-[#f6f8fa] overflow-hidden">
       <SideMenu logo={logo} items={sideMenuItems} className="h-[1050px]" />
 
-      <div className="flex flex-col flex-1 min-w-0">
+      <div className="flex flex-col flex-1 min-w-0 -ml-[24px]">
         <GlobalNav
           selectors={navSelectors}
           userName={userName}

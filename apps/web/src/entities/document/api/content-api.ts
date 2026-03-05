@@ -1,5 +1,10 @@
 import type { ComponentType } from "react";
-import type { DocumentMeta, DiscoveredDocument } from "../types";
+import type {
+  DocumentMeta,
+  DiscoveredDocument,
+  SlideMeta,
+  SlideWithMeta,
+} from "../types";
 
 // Eagerly import all meta.ts files from content directories
 const metaModules = import.meta.glob<{ default: DocumentMeta }>(
@@ -7,10 +12,11 @@ const metaModules = import.meta.glob<{ default: DocumentMeta }>(
   { eager: true },
 );
 
-// Lazily import all Slide*.tsx files
-const slideModules = import.meta.glob<{ default: ComponentType }>(
-  "/src/content/*/Slide*.tsx",
-);
+// Lazily import all Slide*.tsx files (includes optional slideMeta named export)
+const slideModules = import.meta.glob<{
+  default: ComponentType;
+  slideMeta?: SlideMeta;
+}>("/src/content/*/Slide*.tsx");
 
 function getSlugFromPath(path: string): string {
   // "/src/content/example-project-overview/meta.ts" → "example-project-overview"
@@ -44,7 +50,7 @@ export function getDocuments(): DiscoveredDocument[] {
 
 export async function getDocument(
   slug: string,
-): Promise<{ meta: DocumentMeta; slides: ComponentType[] } | undefined> {
+): Promise<{ meta: DocumentMeta; slides: SlideWithMeta[] } | undefined> {
   const metaPath = `/src/content/${slug}/meta.ts`;
   const metaMod = metaModules[metaPath];
   if (!metaMod) return undefined;
@@ -54,11 +60,14 @@ export async function getDocument(
     .filter((path) => path.startsWith(`/src/content/${slug}/Slide`))
     .sort();
 
-  // Load all slides in parallel
-  const slides = await Promise.all(
+  // Load all slides in parallel (component + optional slideMeta)
+  const slides: SlideWithMeta[] = await Promise.all(
     slidePaths.map(async (path) => {
       const mod = await slideModules[path]();
-      return mod.default;
+      return {
+        component: mod.default,
+        meta: mod.slideMeta ?? {},
+      };
     }),
   );
 

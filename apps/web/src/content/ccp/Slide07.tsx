@@ -38,7 +38,7 @@ import type {
 import type { SlideMeta } from "@entities/document";
 
 export const slideMeta: SlideMeta = {
-  title: "PVC 목록",
+  title: "Secrets 목록",
   section: "CI/CD 저장소",
 };
 
@@ -76,9 +76,9 @@ const sideMenuItems: SideMenuItem[] = [
         items: [
           { label: "StorageClasses" },
           { label: "PV" },
-          { label: "PVC", active: true, bold: true },
+          { label: "PVC" },
           { label: "ConfigMaps" },
-          { label: "Secrets" },
+          { label: "Secrets", active: true, bold: true },
         ],
       },
       {
@@ -112,92 +112,81 @@ const sideMenuItems: SideMenuItem[] = [
 
 // ─── Table Data ─────────────────────────────────────────────────────────────
 
-interface PvcRow {
+interface SecretRow {
   id: string;
   gitopsColor: string;
   name: string;
   namespace: string;
-  status: "Bound" | "Pending" | "Lost";
-  volume: string;
-  capacity: string;
-  accessModes: string;
-  storageClass: string;
+  type: string;
+  data: number;
   age: string;
 }
 
-const tableData: PvcRow[] = [
+const tableData: SecretRow[] = [
   {
     id: "1",
     gitopsColor: "#00b30e",
-    name: "data-db-mongodb-0",
+    name: "db-credentials",
     namespace: "app-database",
-    status: "Bound",
-    volume: "pvc-1a2b3c4d",
-    capacity: "20Gi",
-    accessModes: "RWO",
-    storageClass: "local-storage",
+    type: "Opaque",
+    data: 3,
     age: "5d",
   },
   {
     id: "2",
     gitopsColor: "#00b30e",
-    name: "data-db-redis-0",
-    namespace: "app-database",
-    status: "Bound",
-    volume: "pvc-5e6f7g8h",
-    capacity: "5Gi",
-    accessModes: "RWO",
-    storageClass: "local-storage",
-    age: "5d",
+    name: "api-tls-cert",
+    namespace: "app-backend",
+    type: "kubernetes.io/tls",
+    data: 2,
+    age: "10d",
   },
   {
     id: "3",
-    gitopsColor: "#6366f1",
-    name: "app-logs-volume",
-    namespace: "app-backend",
-    status: "Pending",
-    volume: "-",
-    capacity: "50Gi",
-    accessModes: "RWX",
-    storageClass: "nfs-client",
-    age: "1h",
+    gitopsColor: "#00b30e",
+    name: "registry-auth",
+    namespace: "app-cicd",
+    type: "kubernetes.io/dockerconfigjson",
+    data: 1,
+    age: "30d",
   },
   {
     id: "4",
-    gitopsColor: "#dea600",
-    name: "nginx-assets-pvc",
-    namespace: "app-frontend",
-    status: "Bound",
-    volume: "pvc-9i0j1k2l",
-    capacity: "1Gi",
-    accessModes: "ROX",
-    storageClass: "standard",
-    age: "12d",
+    gitopsColor: "#6366f1",
+    name: "oauth2-client",
+    namespace: "app-backend",
+    type: "Opaque",
+    data: 4,
+    age: "8d",
   },
   {
     id: "5",
-    gitopsColor: "#da1e28",
-    name: "corrupted-data-pvc",
-    namespace: "app-legacy",
-    status: "Lost",
-    volume: "pvc-3m4n5o6p",
-    capacity: "100Gi",
-    accessModes: "RWO",
-    storageClass: "standard",
-    age: "30d",
+    gitopsColor: "#00b30e",
+    name: "grafana-admin",
+    namespace: "monitoring",
+    type: "Opaque",
+    data: 2,
+    age: "15d",
+  },
+  {
+    id: "6",
+    gitopsColor: "#00b30e",
+    name: "sa-token-default",
+    namespace: "kube-system",
+    type: "kubernetes.io/service-account-token",
+    data: 3,
+    age: "90d",
   },
 ];
 
-const resultVariant: Record<
-  string,
-  "success" | "error" | "warning" | "info" | "neutral"
-> = {
-  Bound: "success",
-  Pending: "warning",
-  Lost: "error",
+const typeVariant: Record<string, "success" | "warning" | "info" | "neutral"> = {
+  Opaque: "neutral",
+  "kubernetes.io/tls": "success",
+  "kubernetes.io/dockerconfigjson": "info" as "success",
+  "kubernetes.io/service-account-token": "warning",
 };
 
-const columns: DataTableColumn<PvcRow>[] = [
+const columns: DataTableColumn<SecretRow>[] = [
   {
     id: "gitops",
     header: "GitOps",
@@ -208,7 +197,7 @@ const columns: DataTableColumn<PvcRow>[] = [
   {
     id: "name",
     header: "이름",
-    width: "240px",
+    width: "220px",
     render: (row) => (
       <TextCell bold color="#111111" className="px-4">
         {row.name}
@@ -223,45 +212,20 @@ const columns: DataTableColumn<PvcRow>[] = [
     render: (row) => <TextCell color="#555555">{row.namespace}</TextCell>,
   },
   {
-    id: "status",
-    header: "상태",
-    width: "100px",
+    id: "type",
+    header: "타입",
+    width: "280px",
     align: "center",
     render: (row) => (
-      <Badge variant={resultVariant[row.status]}>{row.status}</Badge>
+      <Badge variant={typeVariant[row.type] ?? "neutral"}>{row.type}</Badge>
     ),
   },
   {
-    id: "volume",
-    header: "볼륨",
-    width: "160px",
-    align: "center",
-    render: (row) => <TextCell>{row.volume}</TextCell>,
-  },
-  {
-    id: "capacity",
-    header: "용량",
+    id: "data",
+    header: "Data",
     width: "100px",
     align: "center",
-    render: (row) => (
-      <TextCell bold color="#111111">
-        {row.capacity}
-      </TextCell>
-    ),
-  },
-  {
-    id: "accessModes",
-    header: "Access Modes",
-    width: "140px",
-    align: "center",
-    render: (row) => <Badge variant="neutral">{row.accessModes}</Badge>,
-  },
-  {
-    id: "storageClass",
-    header: "Storage Class",
-    width: "160px",
-    align: "center",
-    render: (row) => <TextCell>{row.storageClass}</TextCell>,
+    render: (row) => <Badge variant="neutral">{row.data}</Badge>,
   },
   {
     id: "age",
@@ -294,55 +258,54 @@ const contextMenuItems: ContextMenuEntry[] = [
 
 // ─── Slide ──────────────────────────────────────────────────────────────────
 
-export default function Slide03() {
+export default function Slide07() {
   return (
     <CcpDashboardLayout
-      breadcrumbs={[{ label: "저장소" }, { label: "PVC", isBold: true }]}
-      title="Persistent Volume Claims"
+      breadcrumbs={[{ label: "저장소" }, { label: "Secrets", isBold: true }]}
+      title="Secrets"
       sideMenuItems={sideMenuItems}
     >
       <ContentSection card>
         <StatusSummary
           tabs={[
-            { id: "status", label: "리소스 상태 현황", count: 25 },
-            { id: "gitops", label: "GitOps 현황", count: 25 },
+            { id: "gitops", label: "GitOps 현황", count: 6 },
           ]}
-          activeTabId="status"
-          cards={[]}
-          cardsByTab={{
-            status: [
-              { label: "Bound", count: 22, color: "#00b30e" },
-              { label: "Pending", count: 2, color: "#f59e0b" },
-              { label: "Lost", count: 1, color: "#da1e28" },
-            ],
-            gitops: [
-              { label: "Stable", count: 20, color: "#00b30e" },
-              { label: "Mismatch", count: 2, color: "#da1e28" },
-              { label: "Updating", count: 1, color: "#00b30e" },
-              { label: "Missing", count: 1, color: "#dea600" },
-              { label: "Broken", count: 1, color: "#da1e28" },
-              { label: "Orphaned", count: 0, color: "#6366f1" },
-            ],
-          }}
+          activeTabId="gitops"
+          cards={[
+            { label: "Stable", count: 5, color: "#00b30e" },
+            { label: "Mismatch", count: 1, color: "#da1e28" },
+            { label: "Updating", count: 0, color: "#00b30e" },
+            { label: "Missing", count: 0, color: "#dea600" },
+            { label: "Broken", count: 0, color: "#da1e28" },
+            { label: "Orphaned", count: 0, color: "#6366f1" },
+          ]}
         />
       </ContentSection>
 
       <ContentSection relative>
         <FilterBar className="gap-2">
           <Select
-            label="상태"
+            label="타입"
             options={[
               { value: "", label: "전체" },
-              { value: "bound", label: "Bound" },
-              { value: "pending", label: "Pending" },
-              { value: "lost", label: "Lost" },
+              { value: "opaque", label: "Opaque" },
+              { value: "tls", label: "kubernetes.io/tls" },
+              { value: "docker", label: "dockerconfigjson" },
+              { value: "sa-token", label: "service-account-token" },
             ]}
           />
           <Select
             label="네임스페이스"
-            options={[{ value: "", label: "전체" }]}
+            options={[
+              { value: "", label: "전체" },
+              { value: "app-database", label: "app-database" },
+              { value: "app-backend", label: "app-backend" },
+              { value: "app-cicd", label: "app-cicd" },
+              { value: "monitoring", label: "monitoring" },
+              { value: "kube-system", label: "kube-system" },
+            ]}
           />
-          <SearchInput placeholder="이름 또는 레이블 검색" className="mr-1" />
+          <SearchInput placeholder="이름 검색" className="mr-1" />
           <Button variant="primary" size="md">
             <Plus className="w-4 h-4 mr-1.5" />
             생성
@@ -366,8 +329,8 @@ export default function Slide03() {
 
         <Pagination
           currentPage={1}
-          totalPages={3}
-          visiblePages={[1, 2, 3]}
+          totalPages={4}
+          visiblePages={[1, 2, 3, 4]}
           className="mt-5 pb-10"
         />
       </ContentSection>

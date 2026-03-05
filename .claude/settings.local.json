@@ -19,7 +19,16 @@
       "Bash(pkill:*)",
       "Bash(git add:*)",
       "Bash(git commit:*)",
-      "Bash(git push:*)"
+      "Bash(git push:*)",
+      "WebFetch(domain:github.com)",
+      "Bash(claude mcp:*)",
+      "mcp__playwright__browser_navigate",
+      "mcp__playwright__browser_take_screenshot",
+      "mcp__playwright__browser_evaluate",
+      "mcp__ClaudeTalkToFigma__join_channel",
+      "mcp__ClaudeTalkToFigma__get_node_info",
+      "mcp__ClaudeTalkToFigma__export_node_as_image",
+      "mcp__ClaudeTalkToFigma__get_nodes_info"
     ]
   }
 }

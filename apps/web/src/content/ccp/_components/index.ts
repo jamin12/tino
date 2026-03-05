@@ -23,6 +23,10 @@ export { StatusDot } from "./StatusDot";
 export { Button } from "./Button";
 export { Checkbox } from "./Checkbox";
 export { Divider } from "./Divider";
+export { TextCell } from "./TextCell";
+export { CellGroup } from "./CellGroup";
+
+export { Toggle } from "./Toggle";
 
 // Composites
 export { Breadcrumb } from "./Breadcrumb";
@@ -42,11 +46,27 @@ export { Tooltip } from "./Tooltip";
 export { IconNav } from "./IconNav";
 export type { IconNavItem } from "./IconNav";
 export { InfoRow } from "./InfoRow";
+export { GitOpsStatusBadge } from "./GitOpsStatusBadge";
+export { StatusSummary } from "./StatusSummary";
+export { FilterBar } from "./FilterBar";
+export { Overlay } from "./Overlay";
+
+export { SeeMoreMenu } from "./SeeMoreMenu";
+export type { SeeMoreMenuItem } from "./SeeMoreMenu";
+export { CodeEditor } from "./CodeEditor";
 
 // Patterns
 export { DataTable } from "./DataTable";
 export type { DataTableColumn, DataTableProps } from "./DataTable";
 export { PageHeader } from "./PageHeader";
+export { Card } from "./Card";
+export { ContentSection } from "./ContentSection";
+export { RunDetailCard } from "./RunDetailCard";
+export { PipelineGraph } from "./PipelineGraph";
+export type { PipelineStage } from "./PipelineGraph";
+export { TaskListPanel } from "./TaskListPanel";
+export { LogViewer } from "./LogViewer";
+export { SplitPanel } from "./SplitPanel";
 
 // Layouts
 export { SideMenu } from "./SideMenu";

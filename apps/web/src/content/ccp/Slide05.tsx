@@ -38,7 +38,7 @@ import type {
 import type { SlideMeta } from "@entities/document";
 
 export const slideMeta: SlideMeta = {
-  title: "PVC 목록",
+  title: "PV 목록",
   section: "CI/CD 저장소",
 };
 
@@ -75,8 +75,8 @@ const sideMenuItems: SideMenuItem[] = [
         label: "저장소",
         items: [
           { label: "StorageClasses" },
-          { label: "PV" },
-          { label: "PVC", active: true, bold: true },
+          { label: "PV", active: true, bold: true },
+          { label: "PVC" },
           { label: "ConfigMaps" },
           { label: "Secrets" },
         ],
@@ -112,92 +112,114 @@ const sideMenuItems: SideMenuItem[] = [
 
 // ─── Table Data ─────────────────────────────────────────────────────────────
 
-interface PvcRow {
+interface PvRow {
   id: string;
   gitopsColor: string;
   name: string;
-  namespace: string;
-  status: "Bound" | "Pending" | "Lost";
-  volume: string;
   capacity: string;
   accessModes: string;
+  reclaimPolicy: "Retain" | "Delete" | "Recycle";
+  status: "Available" | "Bound" | "Released" | "Failed";
+  persistentVolumeClaim: string | null;
   storageClass: string;
+  source: string;
+  reason: string | null;
   age: string;
 }
 
-const tableData: PvcRow[] = [
+const tableData: PvRow[] = [
   {
     id: "1",
     gitopsColor: "#00b30e",
-    name: "data-db-mongodb-0",
-    namespace: "app-database",
-    status: "Bound",
-    volume: "pvc-1a2b3c4d",
+    name: "pvc-1a2b3c4d",
     capacity: "20Gi",
     accessModes: "RWO",
+    reclaimPolicy: "Retain",
+    status: "Bound",
+    persistentVolumeClaim: "app-database/data-db-mongodb-0",
     storageClass: "local-storage",
+    source: "local",
+    reason: null,
     age: "5d",
   },
   {
     id: "2",
     gitopsColor: "#00b30e",
-    name: "data-db-redis-0",
-    namespace: "app-database",
-    status: "Bound",
-    volume: "pvc-5e6f7g8h",
+    name: "pvc-5e6f7g8h",
     capacity: "5Gi",
     accessModes: "RWO",
+    reclaimPolicy: "Retain",
+    status: "Bound",
+    persistentVolumeClaim: "app-database/data-db-redis-0",
     storageClass: "local-storage",
+    source: "local",
+    reason: null,
     age: "5d",
   },
   {
     id: "3",
-    gitopsColor: "#6366f1",
-    name: "app-logs-volume",
-    namespace: "app-backend",
-    status: "Pending",
-    volume: "-",
-    capacity: "50Gi",
-    accessModes: "RWX",
-    storageClass: "nfs-client",
-    age: "1h",
+    gitopsColor: "#00b30e",
+    name: "pvc-9i0j1k2l",
+    capacity: "1Gi",
+    accessModes: "ROX",
+    reclaimPolicy: "Delete",
+    status: "Bound",
+    persistentVolumeClaim: "app-frontend/nginx-assets-pvc",
+    storageClass: "standard",
+    source: "hostPath",
+    reason: null,
+    age: "12d",
   },
   {
     id: "4",
     gitopsColor: "#dea600",
-    name: "nginx-assets-pvc",
-    namespace: "app-frontend",
-    status: "Bound",
-    volume: "pvc-9i0j1k2l",
-    capacity: "1Gi",
-    accessModes: "ROX",
-    storageClass: "standard",
-    age: "12d",
+    name: "pv-nfs-shared-01",
+    capacity: "100Gi",
+    accessModes: "RWX",
+    reclaimPolicy: "Retain",
+    status: "Available",
+    persistentVolumeClaim: null,
+    storageClass: "nfs-client",
+    source: "nfs",
+    reason: null,
+    age: "20d",
   },
   {
     id: "5",
     gitopsColor: "#da1e28",
-    name: "corrupted-data-pvc",
-    namespace: "app-legacy",
-    status: "Lost",
-    volume: "pvc-3m4n5o6p",
+    name: "pvc-3m4n5o6p",
     capacity: "100Gi",
     accessModes: "RWO",
+    reclaimPolicy: "Delete",
+    status: "Released",
+    persistentVolumeClaim: null,
     storageClass: "standard",
+    source: "hostPath",
+    reason: "PVC deleted",
     age: "30d",
   },
 ];
 
-const resultVariant: Record<
+const statusVariant: Record<
   string,
-  "success" | "error" | "warning" | "info" | "neutral"
+  "success" | "error" | "warning" | "neutral"
 > = {
+  Available: "info" as "success",
   Bound: "success",
-  Pending: "warning",
-  Lost: "error",
+  Released: "warning",
+  Failed: "error",
 };
 
-const columns: DataTableColumn<PvcRow>[] = [
+const policyVariant: Record<
+  string,
+  "success" | "error" | "warning" | "neutral"
+> = {
+  Retain: "success",
+  Delete: "error",
+  Recycle: "warning",
+};
+
+const columns: DataTableColumn<PvRow>[] = [
   {
     id: "gitops",
     header: "GitOps",
@@ -208,35 +230,12 @@ const columns: DataTableColumn<PvcRow>[] = [
   {
     id: "name",
     header: "이름",
-    width: "240px",
+    width: "200px",
     render: (row) => (
       <TextCell bold color="#111111" className="px-4">
         {row.name}
       </TextCell>
     ),
-  },
-  {
-    id: "namespace",
-    header: "네임스페이스",
-    width: "140px",
-    align: "center",
-    render: (row) => <TextCell color="#555555">{row.namespace}</TextCell>,
-  },
-  {
-    id: "status",
-    header: "상태",
-    width: "100px",
-    align: "center",
-    render: (row) => (
-      <Badge variant={resultVariant[row.status]}>{row.status}</Badge>
-    ),
-  },
-  {
-    id: "volume",
-    header: "볼륨",
-    width: "160px",
-    align: "center",
-    render: (row) => <TextCell>{row.volume}</TextCell>,
   },
   {
     id: "capacity",
@@ -252,16 +251,46 @@ const columns: DataTableColumn<PvcRow>[] = [
   {
     id: "accessModes",
     header: "Access Modes",
-    width: "140px",
+    width: "120px",
     align: "center",
     render: (row) => <Badge variant="neutral">{row.accessModes}</Badge>,
   },
   {
-    id: "storageClass",
-    header: "Storage Class",
-    width: "160px",
+    id: "reclaimPolicy",
+    header: "Reclaim Policy",
+    width: "130px",
     align: "center",
-    render: (row) => <TextCell>{row.storageClass}</TextCell>,
+    render: (row) => (
+      <Badge variant={policyVariant[row.reclaimPolicy]}>
+        {row.reclaimPolicy}
+      </Badge>
+    ),
+  },
+  {
+    id: "status",
+    header: "상태",
+    width: "110px",
+    align: "center",
+    render: (row) => (
+      <Badge variant={statusVariant[row.status]}>{row.status}</Badge>
+    ),
+  },
+  {
+    id: "pvc",
+    header: "PVC",
+    width: "240px",
+    render: (row) => (
+      <TextCell color={row.persistentVolumeClaim ? "#0077ff" : "#999999"}>
+        {row.persistentVolumeClaim ?? "-"}
+      </TextCell>
+    ),
+  },
+  {
+    id: "source",
+    header: "소스",
+    width: "100px",
+    align: "center",
+    render: (row) => <Badge variant="neutral">{row.source}</Badge>,
   },
   {
     id: "age",
@@ -294,32 +323,32 @@ const contextMenuItems: ContextMenuEntry[] = [
 
 // ─── Slide ──────────────────────────────────────────────────────────────────
 
-export default function Slide03() {
+export default function Slide05() {
   return (
     <CcpDashboardLayout
-      breadcrumbs={[{ label: "저장소" }, { label: "PVC", isBold: true }]}
-      title="Persistent Volume Claims"
+      breadcrumbs={[{ label: "저장소" }, { label: "PV", isBold: true }]}
+      title="Persistent Volumes"
       sideMenuItems={sideMenuItems}
     >
       <ContentSection card>
         <StatusSummary
           tabs={[
-            { id: "status", label: "리소스 상태 현황", count: 25 },
-            { id: "gitops", label: "GitOps 현황", count: 25 },
+            { id: "status", label: "리소스 상태 현황", count: 5 },
+            { id: "gitops", label: "GitOps 현황", count: 5 },
           ]}
           activeTabId="status"
           cards={[]}
           cardsByTab={{
             status: [
-              { label: "Bound", count: 22, color: "#00b30e" },
-              { label: "Pending", count: 2, color: "#f59e0b" },
-              { label: "Lost", count: 1, color: "#da1e28" },
+              { label: "Bound", count: 3, color: "#00b30e" },
+              { label: "Available", count: 1, color: "#0077ff" },
+              { label: "Released", count: 1, color: "#f59e0b" },
             ],
             gitops: [
-              { label: "Stable", count: 20, color: "#00b30e" },
-              { label: "Mismatch", count: 2, color: "#da1e28" },
-              { label: "Updating", count: 1, color: "#00b30e" },
-              { label: "Missing", count: 1, color: "#dea600" },
+              { label: "Stable", count: 3, color: "#00b30e" },
+              { label: "Mismatch", count: 1, color: "#da1e28" },
+              { label: "Updating", count: 0, color: "#00b30e" },
+              { label: "Missing", count: 0, color: "#dea600" },
               { label: "Broken", count: 1, color: "#da1e28" },
               { label: "Orphaned", count: 0, color: "#6366f1" },
             ],
@@ -333,16 +362,21 @@ export default function Slide03() {
             label="상태"
             options={[
               { value: "", label: "전체" },
+              { value: "available", label: "Available" },
               { value: "bound", label: "Bound" },
-              { value: "pending", label: "Pending" },
-              { value: "lost", label: "Lost" },
+              { value: "released", label: "Released" },
+              { value: "failed", label: "Failed" },
             ]}
           />
           <Select
-            label="네임스페이스"
-            options={[{ value: "", label: "전체" }]}
+            label="Reclaim Policy"
+            options={[
+              { value: "", label: "전체" },
+              { value: "retain", label: "Retain" },
+              { value: "delete", label: "Delete" },
+            ]}
           />
-          <SearchInput placeholder="이름 또는 레이블 검색" className="mr-1" />
+          <SearchInput placeholder="이름 또는 PVC 검색" className="mr-1" />
           <Button variant="primary" size="md">
             <Plus className="w-4 h-4 mr-1.5" />
             생성
@@ -366,8 +400,8 @@ export default function Slide03() {
 
         <Pagination
           currentPage={1}
-          totalPages={3}
-          visiblePages={[1, 2, 3]}
+          totalPages={2}
+          visiblePages={[1, 2]}
           className="mt-5 pb-10"
         />
       </ContentSection>

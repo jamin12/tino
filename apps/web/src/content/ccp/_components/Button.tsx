@@ -10,6 +10,8 @@ const buttonVariants = cva(
         "primary-semi": "bg-[#0077ff80] text-white hover:bg-[#0077ff] rounded-sm",
         secondary:
           "bg-white text-[#014b9f] border-2 border-[#014b9f] rounded-[18px] hover:bg-[#014b9f] hover:text-white",
+        danger:
+          "bg-[#da1e28] text-white border border-[#da1e28] rounded-sm hover:bg-[#b81922]",
         ghost:
           "bg-[#f9f9f9] text-[#333333] border border-[#dddddd] rounded-sm hover:bg-[#f0f0f0]",
         icon: "bg-[#f9f9f9] border border-[#dddddd] rounded-sm hover:bg-[#f0f0f0]",

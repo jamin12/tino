@@ -38,7 +38,7 @@ import type {
 import type { SlideMeta } from "@entities/document";
 
 export const slideMeta: SlideMeta = {
-  title: "PVC 목록",
+  title: "StorageClasses 목록",
   section: "CI/CD 저장소",
 };
 
@@ -74,9 +74,9 @@ const sideMenuItems: SideMenuItem[] = [
       {
         label: "저장소",
         items: [
-          { label: "StorageClasses" },
+          { label: "StorageClasses", active: true, bold: true },
           { label: "PV" },
-          { label: "PVC", active: true, bold: true },
+          { label: "PVC" },
           { label: "ConfigMaps" },
           { label: "Secrets" },
         ],
@@ -112,92 +112,59 @@ const sideMenuItems: SideMenuItem[] = [
 
 // ─── Table Data ─────────────────────────────────────────────────────────────
 
-interface PvcRow {
+interface StorageClassRow {
   id: string;
   gitopsColor: string;
   name: string;
-  namespace: string;
-  status: "Bound" | "Pending" | "Lost";
-  volume: string;
-  capacity: string;
-  accessModes: string;
-  storageClass: string;
+  provisioner: string;
+  isDefault: boolean;
   age: string;
 }
 
-const tableData: PvcRow[] = [
+const tableData: StorageClassRow[] = [
   {
     id: "1",
     gitopsColor: "#00b30e",
-    name: "data-db-mongodb-0",
-    namespace: "app-database",
-    status: "Bound",
-    volume: "pvc-1a2b3c4d",
-    capacity: "20Gi",
-    accessModes: "RWO",
-    storageClass: "local-storage",
-    age: "5d",
+    name: "standard",
+    provisioner: "kubernetes.io/no-provisioner",
+    isDefault: true,
+    age: "90d",
   },
   {
     id: "2",
     gitopsColor: "#00b30e",
-    name: "data-db-redis-0",
-    namespace: "app-database",
-    status: "Bound",
-    volume: "pvc-5e6f7g8h",
-    capacity: "5Gi",
-    accessModes: "RWO",
-    storageClass: "local-storage",
-    age: "5d",
+    name: "local-storage",
+    provisioner: "kubernetes.io/no-provisioner",
+    isDefault: false,
+    age: "90d",
   },
   {
     id: "3",
-    gitopsColor: "#6366f1",
-    name: "app-logs-volume",
-    namespace: "app-backend",
-    status: "Pending",
-    volume: "-",
-    capacity: "50Gi",
-    accessModes: "RWX",
-    storageClass: "nfs-client",
-    age: "1h",
+    gitopsColor: "#00b30e",
+    name: "nfs-client",
+    provisioner: "nfs-subdir-external-provisioner",
+    isDefault: false,
+    age: "45d",
   },
   {
     id: "4",
-    gitopsColor: "#dea600",
-    name: "nginx-assets-pvc",
-    namespace: "app-frontend",
-    status: "Bound",
-    volume: "pvc-9i0j1k2l",
-    capacity: "1Gi",
-    accessModes: "ROX",
-    storageClass: "standard",
-    age: "12d",
+    gitopsColor: "#6366f1",
+    name: "ceph-block",
+    provisioner: "rook-ceph.rbd.csi.ceph.com",
+    isDefault: false,
+    age: "30d",
   },
   {
     id: "5",
-    gitopsColor: "#da1e28",
-    name: "corrupted-data-pvc",
-    namespace: "app-legacy",
-    status: "Lost",
-    volume: "pvc-3m4n5o6p",
-    capacity: "100Gi",
-    accessModes: "RWO",
-    storageClass: "standard",
+    gitopsColor: "#00b30e",
+    name: "ceph-filesystem",
+    provisioner: "rook-ceph.cephfs.csi.ceph.com",
+    isDefault: false,
     age: "30d",
   },
 ];
 
-const resultVariant: Record<
-  string,
-  "success" | "error" | "warning" | "info" | "neutral"
-> = {
-  Bound: "success",
-  Pending: "warning",
-  Lost: "error",
-};
-
-const columns: DataTableColumn<PvcRow>[] = [
+const columns: DataTableColumn<StorageClassRow>[] = [
   {
     id: "gitops",
     header: "GitOps",
@@ -211,57 +178,26 @@ const columns: DataTableColumn<PvcRow>[] = [
     width: "240px",
     render: (row) => (
       <TextCell bold color="#111111" className="px-4">
-        {row.name}
+        {row.isDefault ? `${row.name} (default)` : row.name}
       </TextCell>
     ),
   },
   {
-    id: "namespace",
-    header: "네임스페이스",
-    width: "140px",
-    align: "center",
-    render: (row) => <TextCell color="#555555">{row.namespace}</TextCell>,
+    id: "provisioner",
+    header: "프로비저너",
+    width: "300px",
+    render: (row) => <Badge variant="neutral">{row.provisioner}</Badge>,
   },
   {
-    id: "status",
-    header: "상태",
-    width: "100px",
+    id: "default",
+    header: "기본 여부",
+    width: "120px",
     align: "center",
     render: (row) => (
-      <Badge variant={resultVariant[row.status]}>{row.status}</Badge>
+      <Badge variant={row.isDefault ? "success" : "neutral"}>
+        {row.isDefault ? "Default" : "-"}
+      </Badge>
     ),
-  },
-  {
-    id: "volume",
-    header: "볼륨",
-    width: "160px",
-    align: "center",
-    render: (row) => <TextCell>{row.volume}</TextCell>,
-  },
-  {
-    id: "capacity",
-    header: "용량",
-    width: "100px",
-    align: "center",
-    render: (row) => (
-      <TextCell bold color="#111111">
-        {row.capacity}
-      </TextCell>
-    ),
-  },
-  {
-    id: "accessModes",
-    header: "Access Modes",
-    width: "140px",
-    align: "center",
-    render: (row) => <Badge variant="neutral">{row.accessModes}</Badge>,
-  },
-  {
-    id: "storageClass",
-    header: "Storage Class",
-    width: "160px",
-    align: "center",
-    render: (row) => <TextCell>{row.storageClass}</TextCell>,
   },
   {
     id: "age",
@@ -294,55 +230,43 @@ const contextMenuItems: ContextMenuEntry[] = [
 
 // ─── Slide ──────────────────────────────────────────────────────────────────
 
-export default function Slide03() {
+export default function Slide04() {
   return (
     <CcpDashboardLayout
-      breadcrumbs={[{ label: "저장소" }, { label: "PVC", isBold: true }]}
-      title="Persistent Volume Claims"
+      breadcrumbs={[{ label: "저장소" }, { label: "StorageClasses", isBold: true }]}
+      title="Storage Classes"
       sideMenuItems={sideMenuItems}
     >
       <ContentSection card>
         <StatusSummary
           tabs={[
-            { id: "status", label: "리소스 상태 현황", count: 25 },
-            { id: "gitops", label: "GitOps 현황", count: 25 },
+            { id: "gitops", label: "GitOps 현황", count: 5 },
           ]}
-          activeTabId="status"
-          cards={[]}
-          cardsByTab={{
-            status: [
-              { label: "Bound", count: 22, color: "#00b30e" },
-              { label: "Pending", count: 2, color: "#f59e0b" },
-              { label: "Lost", count: 1, color: "#da1e28" },
-            ],
-            gitops: [
-              { label: "Stable", count: 20, color: "#00b30e" },
-              { label: "Mismatch", count: 2, color: "#da1e28" },
-              { label: "Updating", count: 1, color: "#00b30e" },
-              { label: "Missing", count: 1, color: "#dea600" },
-              { label: "Broken", count: 1, color: "#da1e28" },
-              { label: "Orphaned", count: 0, color: "#6366f1" },
-            ],
-          }}
+          activeTabId="gitops"
+          cards={[
+            { label: "Stable", count: 4, color: "#00b30e" },
+            { label: "Mismatch", count: 0, color: "#da1e28" },
+            { label: "Updating", count: 1, color: "#00b30e" },
+            { label: "Missing", count: 0, color: "#dea600" },
+            { label: "Broken", count: 0, color: "#da1e28" },
+            { label: "Orphaned", count: 0, color: "#6366f1" },
+          ]}
         />
       </ContentSection>
 
       <ContentSection relative>
         <FilterBar className="gap-2">
           <Select
-            label="상태"
+            label="프로비저너"
             options={[
               { value: "", label: "전체" },
-              { value: "bound", label: "Bound" },
-              { value: "pending", label: "Pending" },
-              { value: "lost", label: "Lost" },
+              { value: "no-provisioner", label: "no-provisioner" },
+              { value: "nfs", label: "nfs-subdir" },
+              { value: "ceph-rbd", label: "rook-ceph (RBD)" },
+              { value: "ceph-fs", label: "rook-ceph (CephFS)" },
             ]}
           />
-          <Select
-            label="네임스페이스"
-            options={[{ value: "", label: "전체" }]}
-          />
-          <SearchInput placeholder="이름 또는 레이블 검색" className="mr-1" />
+          <SearchInput placeholder="이름 검색" className="mr-1" />
           <Button variant="primary" size="md">
             <Plus className="w-4 h-4 mr-1.5" />
             생성
@@ -366,8 +290,8 @@ export default function Slide03() {
 
         <Pagination
           currentPage={1}
-          totalPages={3}
-          visiblePages={[1, 2, 3]}
+          totalPages={1}
+          visiblePages={[1]}
           className="mt-5 pb-10"
         />
       </ContentSection>

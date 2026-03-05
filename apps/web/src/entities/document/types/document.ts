@@ -5,6 +5,16 @@ export interface DocumentMeta {
   tags?: string[];
 }
 
+export interface SlideMeta {
+  title?: string;
+  section?: string;
+}
+
+export interface SlideWithMeta {
+  component: React.ComponentType;
+  meta: SlideMeta;
+}
+
 export interface DiscoveredDocument {
   slug: string;
   meta: DocumentMeta;

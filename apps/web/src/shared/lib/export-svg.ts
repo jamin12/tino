@@ -13,6 +13,20 @@ function esc(text: string): string {
     .replace(/"/g, "&quot;");
 }
 
+// ─── Defs collectors (clip-paths, filters, gradients) ────────────────────────
+
+let defsContent = "";
+let defIdCounter = 0;
+
+function resetDefs() {
+  defsContent = "";
+  defIdCounter = 0;
+}
+
+function nextId(prefix: string): string {
+  return `${prefix}-${++defIdCounter}`;
+}
+
 // ─── Layer naming ────────────────────────────────────────────────────────────
 
 function getLayerName(el: HTMLElement): string {
@@ -118,6 +132,90 @@ function textAttrs(style: CSSStyleDeclaration): string {
   return a.join(" ");
 }
 
+// ─── Gradient parsing ────────────────────────────────────────────────────────
+
+function parseLinearGradient(
+  bgImage: string,
+  x: number, y: number, w: number, h: number,
+): { fill: string; def: string } | null {
+  const match = bgImage.match(/linear-gradient\(([^)]+)\)/);
+  if (!match) return null;
+
+  const parts = match[1].split(",").map((s) => s.trim());
+  let angle = 180; // default: to bottom
+  let stopStart = 0;
+
+  const dirMap: Record<string, number> = {
+    "to top": 0, "to right": 90, "to bottom": 180, "to left": 270,
+    "to top right": 45, "to bottom right": 135,
+    "to bottom left": 225, "to top left": 315,
+  };
+
+  if (dirMap[parts[0]] !== undefined) {
+    angle = dirMap[parts[0]];
+    stopStart = 1;
+  } else if (parts[0].endsWith("deg")) {
+    angle = parseFloat(parts[0]);
+    stopStart = 1;
+  }
+
+  const rad = ((angle - 90) * Math.PI) / 180;
+  const x1 = 50 - Math.cos(rad) * 50;
+  const y1 = 50 - Math.sin(rad) * 50;
+  const x2 = 50 + Math.cos(rad) * 50;
+  const y2 = 50 + Math.sin(rad) * 50;
+
+  const id = nextId("grad");
+  let stops = "";
+  for (let i = stopStart; i < parts.length; i++) {
+    const stopMatch = parts[i].match(/^(.+?)(?:\s+([\d.]+%))?$/);
+    if (!stopMatch) continue;
+    const color = stopMatch[1];
+    const offset = stopMatch[2] || `${((i - stopStart) / Math.max(1, parts.length - stopStart - 1)) * 100}%`;
+    stops += `<stop offset="${offset}" stop-color="${color}" />`;
+  }
+
+  const def = `<linearGradient id="${id}" x1="${x1}%" y1="${y1}%" x2="${x2}%" y2="${y2}%">${stops}</linearGradient>`;
+  return { fill: `url(#${id})`, def };
+}
+
+// ─── Box shadow parsing ─────────────────────────────────────────────────────
+
+function parseBoxShadow(shadow: string): { filterId: string; def: string } | null {
+  if (!shadow || shadow === "none") return null;
+
+  // Parse first shadow: offsetX offsetY blur spread color
+  const match = shadow.match(
+    /(?:rgba?\([^)]+\)|#[0-9a-f]+|\w+)\s|([+-]?\d+(?:\.\d+)?px)\s+([+-]?\d+(?:\.\d+)?px)\s+([+-]?\d+(?:\.\d+)?px)(?:\s+([+-]?\d+(?:\.\d+)?px))?\s+(rgba?\([^)]+\)|#[0-9a-f]+|\w+)/i,
+  );
+
+  if (!match) {
+    // Try color-first format: color offsetX offsetY blur
+    const match2 = shadow.match(
+      /(rgba?\([^)]+\)|#[0-9a-f]+)\s+([+-]?\d+(?:\.\d+)?px)\s+([+-]?\d+(?:\.\d+)?px)\s+([+-]?\d+(?:\.\d+)?px)/i,
+    );
+    if (!match2) return null;
+
+    const color = match2[1];
+    const dx = parseFloat(match2[2]);
+    const dy = parseFloat(match2[3]);
+    const blur = parseFloat(match2[4]);
+
+    const id = nextId("shadow");
+    const def = `<filter id="${id}" x="-50%" y="-50%" width="200%" height="200%"><feDropShadow dx="${dx}" dy="${dy}" stdDeviation="${blur / 2}" flood-color="${color}" /></filter>`;
+    return { filterId: id, def };
+  }
+
+  const dx = parseFloat(match[1]);
+  const dy = parseFloat(match[2]);
+  const blur = parseFloat(match[3]);
+  const color = match[5];
+
+  const id = nextId("shadow");
+  const def = `<filter id="${id}" x="-50%" y="-50%" width="200%" height="200%"><feDropShadow dx="${dx}" dy="${dy}" stdDeviation="${blur / 2}" flood-color="${color}" /></filter>`;
+  return { filterId: id, def };
+}
+
 // ─── Visual rendering ───────────────────────────────────────────────────────
 
 function renderBackground(
@@ -125,9 +223,26 @@ function renderBackground(
   x: number, y: number, w: number, h: number,
 ): string {
   const bg = style.backgroundColor;
-  if (!bg || bg === "rgba(0, 0, 0, 0)" || bg === "transparent") return "";
+  const bgImage = style.backgroundImage;
   const r = parseFloat(style.borderRadius) || 0;
-  return `<rect x="${x}" y="${y}" width="${w}" height="${h}" fill="${bg}" rx="${r}" ry="${r}" />`;
+
+  let out = "";
+
+  // Solid background color
+  if (bg && bg !== "rgba(0, 0, 0, 0)" && bg !== "transparent") {
+    out += `<rect x="${x}" y="${y}" width="${w}" height="${h}" fill="${bg}" rx="${r}" ry="${r}" />`;
+  }
+
+  // Gradient background
+  if (bgImage && bgImage !== "none") {
+    const grad = parseLinearGradient(bgImage, x, y, w, h);
+    if (grad) {
+      defsContent += grad.def;
+      out += `<rect x="${x}" y="${y}" width="${w}" height="${h}" fill="${grad.fill}" rx="${r}" ry="${r}" />`;
+    }
+  }
+
+  return out;
 }
 
 function renderBorders(
@@ -218,11 +333,77 @@ function renderSelect(
   return `<text x="${x + pl}" y="${y + h / 2 + fs * 0.35}" font-family="${font}" font-size="${fs}px" fill="${style.color || "#000"}">${esc(text)}</text>`;
 }
 
+// ─── Pseudo-element rendering ────────────────────────────────────────────────
+
+function renderPseudoElement(
+  el: HTMLElement,
+  pseudo: "::before" | "::after",
+  rootRect: DOMRect,
+): string {
+  const style = window.getComputedStyle(el, pseudo);
+  const content = style.content;
+
+  // No pseudo-element
+  if (!content || content === "none" || content === "normal") return "";
+
+  const display = style.display;
+  if (display === "none") return "";
+
+  const parentRect = el.getBoundingClientRect();
+  const w = parseFloat(style.width) || 0;
+  const h = parseFloat(style.height) || 0;
+
+  // For positioned pseudo-elements, calculate position
+  let px = parentRect.left - rootRect.left;
+  let py = parentRect.top - rootRect.top;
+
+  const position = style.position;
+  if (position === "absolute" || position === "relative") {
+    const left = parseFloat(style.left);
+    const top = parseFloat(style.top);
+    const right = parseFloat(style.right);
+    const bottom = parseFloat(style.bottom);
+
+    if (!isNaN(left)) px += left;
+    else if (!isNaN(right)) px = px + parentRect.width - right - w;
+
+    if (!isNaN(top)) py += top;
+    else if (!isNaN(bottom)) py = py + parentRect.height - bottom - h;
+  }
+
+  let out = "";
+
+  // Background
+  const bg = style.backgroundColor;
+  if (bg && bg !== "rgba(0, 0, 0, 0)" && bg !== "transparent" && w > 0 && h > 0) {
+    const r = parseFloat(style.borderRadius) || 0;
+    out += `<rect x="${px}" y="${py}" width="${w}" height="${h}" fill="${bg}" rx="${r}" ry="${r}" />`;
+  }
+
+  // Border
+  if (w > 0 && h > 0) {
+    out += renderBorders(style, px, py, w, h);
+  }
+
+  // Text content (strip quotes from CSS content value)
+  const text = content.replace(/^["']|["']$/g, "");
+  if (text && text !== " ") {
+    const fs = parseFloat(style.fontSize) || 16;
+    const attrs = textAttrs(style);
+    const tx = px + (parseFloat(style.paddingLeft) || 0);
+    const ty = py + (parseFloat(style.paddingTop) || 0) + fs * 0.85;
+    out += `<text x="${tx}" y="${ty}" ${attrs}>${esc(text)}</text>`;
+  }
+
+  return out;
+}
+
 // ─── Main export ────────────────────────────────────────────────────────────
 
 export async function domToFigmaSvg(
   element: HTMLElement,
 ): Promise<string> {
+  resetDefs();
   const rootRect = element.getBoundingClientRect();
   const nameCount = new Map<string, number>();
 
@@ -277,6 +458,14 @@ export async function domToFigmaSvg(
     inner += renderBackground(style, x, y, w, h);
     inner += renderBorders(style, x, y, w, h);
 
+    // Box shadow
+    const shadowResult = parseBoxShadow(style.boxShadow);
+    let filterAttr = "";
+    if (shadowResult) {
+      defsContent += shadowResult.def;
+      filterAttr = ` filter="url(#${shadowResult.filterId})"`;
+    }
+
     // ── Special leaf elements (don't recurse) ──
 
     if (el.tagName === "INPUT" && (el as HTMLInputElement).type === "checkbox") {
@@ -295,10 +484,15 @@ export async function domToFigmaSvg(
     } else if (el.tagName === "IMG") {
       inner += `<image x="${x}" y="${y}" width="${w}" height="${h}" href="${(el as HTMLImageElement).src}" />`;
     } else {
+      // ── Pseudo-elements ::before and ::after ──
+      inner += renderPseudoElement(el, "::before", rootRect);
+
       // ── Recurse children ──
       for (const child of el.childNodes) {
         inner += traverse(child);
       }
+
+      inner += renderPseudoElement(el, "::after", rootRect);
     }
 
     // ── Wrap in group if visually significant ──
@@ -307,22 +501,36 @@ export async function domToFigmaSvg(
     const opacity = parseFloat(style.opacity);
     const opacityAttr = opacity < 1 && opacity > 0 ? ` opacity="${opacity}"` : "";
 
-    if (shouldGroup(el, style)) {
-      const name = uniqueName(getLayerName(el));
-      return `<g id="${esc(name)}"${opacityAttr}>${inner}</g>`;
+    // ── Overflow clipping ──
+    const overflow = style.overflow || style.overflowX || style.overflowY;
+    let clipStart = "";
+    let clipEnd = "";
+    if (overflow === "hidden" || overflow === "clip" || overflow === "scroll" || overflow === "auto") {
+      const clipId = nextId("clip");
+      const r = parseFloat(style.borderRadius) || 0;
+      defsContent += `<clipPath id="${clipId}"><rect x="${x}" y="${y}" width="${w}" height="${h}" rx="${r}" ry="${r}" /></clipPath>`;
+      clipStart = `<g clip-path="url(#${clipId})">`;
+      clipEnd = `</g>`;
     }
 
-    // Not grouped — but still apply opacity if needed
-    if (opacityAttr) {
-      return `<g${opacityAttr}>${inner}</g>`;
+    if (shouldGroup(el, style)) {
+      const name = uniqueName(getLayerName(el));
+      return `${clipStart}<g id="${esc(name)}"${opacityAttr}${filterAttr}>${inner}</g>${clipEnd}`;
+    }
+
+    // Not grouped — but still apply opacity/filter/clip if needed
+    if (opacityAttr || filterAttr || clipStart) {
+      return `${clipStart}<g${opacityAttr}${filterAttr}>${inner}</g>${clipEnd}`;
     }
 
     return inner;
   }
 
   const content = traverse(element);
+  const defs = defsContent ? `<defs>${defsContent}</defs>` : "";
 
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${rootRect.width}" height="${rootRect.height}" viewBox="0 0 ${rootRect.width} ${rootRect.height}">
+${defs}
 ${content}
 </svg>`;
 }

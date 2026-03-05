@@ -1,18 +1,13 @@
-import {
-  useCallback,
-  useEffect,
-  useRef,
-  useState,
-  type ComponentType,
-} from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   useSlideViewerStore,
   useSlideNavigation,
 } from "@features/slide-viewer";
 import { CopyToFigmaButton } from "@features/export-to-figma";
+import type { SlideWithMeta } from "@entities/document";
 
 interface Props {
-  slides: ComponentType[];
+  slides: SlideWithMeta[];
 }
 
 export function SlidePresenter({ slides }: Props) {
@@ -24,7 +19,7 @@ export function SlidePresenter({ slides }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [scale, setScale] = useState(1);
 
-  const CurrentSlide = slides[currentSlideIndex];
+  const CurrentSlide = slides[currentSlideIndex]?.component;
 
   useSlideNavigation({ totalSlides: slides.length });
 
@@ -71,20 +66,32 @@ export function SlidePresenter({ slides }: Props) {
   return (
     <div className="flex h-full">
       {/* Thumbnail sidebar */}
-      <div className="flex w-24 flex-col gap-1.5 overflow-y-auto border-r border-gray-200 bg-gray-50 p-2">
-        {slides.map((_, index) => (
-          <button
-            key={index}
-            onClick={() => setSlideIndex(index)}
-            className={`rounded border px-2 py-1.5 text-left text-[10px] transition-colors ${
-              index === currentSlideIndex
-                ? "border-blue-500 bg-blue-50 text-blue-700"
-                : "border-gray-200 bg-white text-gray-600 hover:border-gray-300"
-            }`}
-          >
-            <div className="font-medium">{index + 1}</div>
-          </button>
-        ))}
+      <div className="flex w-28 flex-col gap-0.5 overflow-y-auto border-r border-gray-200 bg-gray-50 p-2">
+        {slides.map((slide, index) => {
+          const section = slide.meta.section;
+          const prevSection = index > 0 ? slides[index - 1].meta.section : undefined;
+          const showSectionHeader = section && section !== prevSection;
+
+          return (
+            <div key={index}>
+              {showSectionHeader && (
+                <div className={`px-1 py-1 text-[9px] font-semibold tracking-wide text-gray-400 uppercase ${index > 0 ? "mt-2 border-t border-gray-200 pt-2" : ""}`}>
+                  {section}
+                </div>
+              )}
+              <button
+                onClick={() => setSlideIndex(index)}
+                className={`w-full rounded border px-2 py-1.5 text-left text-[10px] transition-colors ${
+                  index === currentSlideIndex
+                    ? "border-blue-500 bg-blue-50 text-blue-700"
+                    : "border-gray-200 bg-white text-gray-600 hover:border-gray-300"
+                }`}
+              >
+                <div className="font-medium truncate">{slide.meta.title ?? index + 1}</div>
+              </button>
+            </div>
+          );
+        })}
       </div>
 
       {/* Main slide area */}
