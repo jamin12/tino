@@ -51,6 +51,13 @@ export { StatusSummary } from "./StatusSummary";
 export { FilterBar } from "./FilterBar";
 export { Overlay } from "./Overlay";
 
+export { ActionMenu } from "./ActionMenu";
+export type {
+  ActionMenuEntry,
+  ActionMenuItemConfig,
+  ActionMenuDivider,
+  ActionMenuProps,
+} from "./ActionMenu";
 export { SeeMoreMenu } from "./SeeMoreMenu";
 export type { SeeMoreMenuItem } from "./SeeMoreMenu";
 export { CodeEditor } from "./CodeEditor";

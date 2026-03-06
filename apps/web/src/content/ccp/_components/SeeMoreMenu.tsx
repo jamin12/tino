@@ -15,6 +15,7 @@ interface SeeMoreMenuProps extends Omit<React.HTMLAttributes<HTMLDivElement>, "o
   onSelect?: (id: string) => void;
 }
 
+/** @deprecated ActionMenu를 사용하세요. viewport 경계 감지, pin, highlightedKeys 등 추가 기능을 지원합니다. */
 export function SeeMoreMenu({
   items,
   open = false,

@@ -26,6 +26,7 @@ interface ContextMenuProps extends React.HTMLAttributes<HTMLElement> {
   items: ContextMenuEntry[];
 }
 
+/** @deprecated ActionMenu를 사용하세요. viewport 경계 감지, pin, highlightedKeys 등 추가 기능을 지원합니다. */
 export function ContextMenu({ items, className, ...props }: ContextMenuProps) {
   return (
     <nav

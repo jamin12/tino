@@ -13,7 +13,7 @@ import {
   Button,
   CcpDashboardLayout,
   ContentSection,
-  ContextMenu,
+  ActionMenu,
   DataTable,
   FilterBar,
   Overlay,
@@ -33,7 +33,7 @@ import {
 import type {
   SideMenuItem,
   DataTableColumn,
-  ContextMenuEntry,
+  ActionMenuEntry,
 } from "../../_components";
 import type { SlideMeta } from "@entities/document";
 
@@ -250,24 +250,21 @@ const columns: DataTableColumn<SecretRow>[] = [
 ];
 
 const iconClass = "w-[14px] h-[14px] text-[#555759]";
-const contextMenuItems: ContextMenuEntry[] = [
-  { id: "edit", label: "편집", icon: <Settings2 className={iconClass} /> },
-  { id: "duplicate", label: "복제", icon: <Copy className={iconClass} /> },
-  { id: "divider-1", type: "divider" } as ContextMenuEntry,
+const actionMenuItems: ActionMenuEntry[] = [
+  { key: "edit", label: "편집", icon: <Settings2 className={iconClass} /> },
+  { key: "duplicate", label: "복제", icon: <Copy className={iconClass} /> },
+  { type: "divider" },
   {
-    id: "summary",
+    key: "summary",
     label: "요약",
     icon: <FileText className="w-[14px] h-[14px] text-[#0077ff]" />,
-    textColor: "text-[#0077ff]",
-    highlighted: true,
   },
-  { id: "divider-2", type: "divider" } as ContextMenuEntry,
-  { id: "yaml", label: "YAML", icon: <FileCode className={iconClass} /> },
+  { type: "divider" },
+  { key: "yaml", label: "YAML", icon: <FileCode className={iconClass} /> },
   {
-    id: "delete",
+    key: "delete",
     label: "리소스 삭제",
     icon: <Trash2 className="w-[14px] h-[14px] text-[#da1e28]" />,
-    textColor: "text-[#da1e28]",
   },
 ];
 
@@ -337,7 +334,7 @@ export default function SlideSecretsList() {
         />
 
         <Overlay top={133} right={0}>
-          <ContextMenu items={contextMenuItems} className="w-[160px]" />
+          <ActionMenu items={actionMenuItems} highlightedKeys={["summary"]} static className="w-[160px]" />
         </Overlay>
 
         <Pagination
