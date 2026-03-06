@@ -3,6 +3,8 @@ import { domToFigmaSvg } from "@shared/lib";
 
 interface Props {
   targetRef: React.RefObject<HTMLElement | null>;
+  /** Figma에 붙여넣을 때 프레임 이름으로 사용됩니다 */
+  title?: string;
   onBeforeCapture?: () => void;
   onAfterCapture?: () => void;
   className?: string;
@@ -10,6 +12,7 @@ interface Props {
 
 export function CopyToFigmaButton({
   targetRef,
+  title,
   onBeforeCapture,
   onAfterCapture,
   className = "",
@@ -26,7 +29,7 @@ export function CopyToFigmaButton({
       // Remove scale transform so getBoundingClientRect returns natural coords
       onBeforeCapture?.();
 
-      const svgString = await domToFigmaSvg(targetRef.current);
+      const svgString = await domToFigmaSvg(targetRef.current, title);
 
       // Restore scale transform
       onAfterCapture?.();

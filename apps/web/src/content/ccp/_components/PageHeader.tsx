@@ -22,6 +22,7 @@ export function PageHeader({
 }: PageHeaderProps) {
   return (
     <header
+      data-name="PageHeader"
       className={cn(
         "flex flex-col items-start gap-2 px-8 py-5 bg-white border-b border-neutral-200",
         className,

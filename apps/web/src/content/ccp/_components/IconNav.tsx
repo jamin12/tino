@@ -22,6 +22,7 @@ export function IconNav({
 }: IconNavProps) {
   return (
     <nav
+      data-name="IconNav"
       className={cn(
         "flex flex-col w-16 bg-white border-r border-neutral-200 shrink-0",
         className,

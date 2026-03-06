@@ -9,6 +9,7 @@ interface FilterBarProps {
 export function FilterBar({ children, className }: FilterBarProps) {
   return (
     <div
+      data-name="FilterBar"
       className={cn(
         "flex items-center justify-end gap-1 mb-3",
         className,

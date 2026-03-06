@@ -230,7 +230,6 @@ const actionMenuItems: ActionMenuEntry[] = [
     label: "요약",
     icon: <FileText className="w-[14px] h-[14px] text-[#0077ff]" />,
   },
-  { type: "divider" },
   { key: "yaml", label: "YAML", icon: <FileCode className={iconClass} /> },
   {
     key: "delete",

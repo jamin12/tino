@@ -24,6 +24,7 @@ export function Pagination({
 }: PaginationProps) {
   return (
     <nav
+      data-name="Pagination"
       className={cn("flex items-center justify-center gap-2", className)}
       aria-label="Pagination"
       {...props}

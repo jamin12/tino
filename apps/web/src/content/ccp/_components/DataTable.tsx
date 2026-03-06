@@ -54,7 +54,7 @@ export function DataTable<T extends { id: string }>({
   };
 
   return (
-    <div className={cn("flex flex-col items-start gap-2 w-full", className)}>
+    <div data-name="DataTable" className={cn("flex flex-col items-start gap-2 w-full", className)}>
       {/* Header */}
       <header className="flex items-start w-full bg-[#e7edf3] rounded min-w-0">
         {selectable && (

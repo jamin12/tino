@@ -24,6 +24,7 @@ export function ContentSection({
 }: ContentSectionProps) {
   return (
     <div
+      data-name="ContentSection"
       className={cn(
         "mx-8",
         spacingMap[spacing],

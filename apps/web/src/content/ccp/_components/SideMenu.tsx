@@ -49,6 +49,7 @@ export function SideMenu({
 }: SideMenuProps) {
   return (
     <aside
+      data-name="SideMenu"
       className={cn(
         "relative z-10 flex flex-col w-[284px] h-full text-white shrink-0",
         className,

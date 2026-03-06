@@ -25,6 +25,7 @@ export function GlobalNav({
 }: GlobalNavProps) {
   return (
     <nav
+      data-name="GlobalNav"
       className={cn(
         "flex justify-between h-[60px] bg-white border-b border-neutral-200 shadow-[0px_1px_5px_#6b77ac33]",
         className,

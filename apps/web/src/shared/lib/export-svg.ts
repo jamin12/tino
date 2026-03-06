@@ -471,6 +471,7 @@ function renderPseudoElement(
 
 export async function domToFigmaSvg(
   element: HTMLElement,
+  title?: string,
 ): Promise<string> {
   resetDefs();
   const rootRect = element.getBoundingClientRect();
@@ -603,8 +604,9 @@ export async function domToFigmaSvg(
 
   const content = traverse(element);
   const defs = defsContent ? `<defs>${defsContent}</defs>` : "";
+  const nameAttr = title ? ` id="${esc(title)}"` : "";
 
-  return `<svg xmlns="http://www.w3.org/2000/svg" width="${rootRect.width}" height="${rootRect.height}" viewBox="0 0 ${rootRect.width} ${rootRect.height}">
+  return `<svg xmlns="http://www.w3.org/2000/svg"${nameAttr} width="${rootRect.width}" height="${rootRect.height}" viewBox="0 0 ${rootRect.width} ${rootRect.height}">
 ${defs}
 ${content}
 </svg>`;

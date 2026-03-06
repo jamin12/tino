@@ -32,7 +32,7 @@ export function StatusSummary({
   const activeCards = cardsByTab?.[currentTab] ?? cards;
 
   return (
-    <>
+    <div data-name="StatusSummary">
       <Tabs
         items={tabs}
         activeId={currentTab}
@@ -48,6 +48,6 @@ export function StatusSummary({
           />
         ))}
       </div>
-    </>
+    </div>
   );
 }

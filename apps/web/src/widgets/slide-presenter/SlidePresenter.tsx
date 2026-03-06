@@ -4,7 +4,49 @@ import {
   useSlideNavigation,
 } from "@features/slide-viewer";
 import { CopyToFigmaButton } from "@features/export-to-figma";
+import { domToFigmaSvg } from "@shared/lib";
 import type { SlideWithMeta } from "@entities/document";
+
+// ─── Component detection ────────────────────────────────────────────────────
+
+const COMPONENT_SELECTORS = [
+  "[data-name]",
+  "[role='menu']",
+  "[role='table']",
+  "[role='tablist']",
+  "section",
+  "article",
+  "nav",
+  "header",
+  "aside",
+  "table",
+  "form",
+];
+
+const SELECTOR = COMPONENT_SELECTORS.join(",");
+
+function findNearestComponent(
+  target: HTMLElement,
+  boundary: HTMLElement,
+): HTMLElement | null {
+  let el: HTMLElement | null = target;
+  while (el && el !== boundary) {
+    if (el.matches(SELECTOR)) return el;
+    el = el.parentElement;
+  }
+  return null;
+}
+
+function getComponentName(el: HTMLElement): string {
+  return (
+    el.getAttribute("data-name") ||
+    el.getAttribute("aria-label") ||
+    el.getAttribute("role") ||
+    el.tagName.toLowerCase()
+  );
+}
+
+// ─── Component ──────────────────────────────────────────────────────────────
 
 interface Props {
   slides: SlideWithMeta[];
@@ -19,11 +61,16 @@ export function SlidePresenter({ slides }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [scale, setScale] = useState(1);
 
+  // Ctrl 모드 상태
+  const [ctrlHeld, setCtrlHeld] = useState(false);
+  const [hoveredEl, setHoveredEl] = useState<HTMLElement | null>(null);
+  const [selectedEl, setSelectedEl] = useState<HTMLElement | null>(null);
+  const [copyStatus, setCopyStatus] = useState<"idle" | "copying" | "copied" | "error">("idle");
+
   const CurrentSlide = slides[currentSlideIndex]?.component;
 
   useSlideNavigation({ totalSlides: slides.length });
 
-  // Reset to first slide when slides change
   useEffect(() => {
     setSlideIndex(0);
   }, [slides, setSlideIndex]);
@@ -33,7 +80,6 @@ export function SlidePresenter({ slides }: Props) {
     const wrapper = wrapperRef.current;
     if (!container || !wrapper) return;
 
-    // Reset to measure natural size
     wrapper.style.transform = "translate(-50%, -50%) scale(1)";
 
     const sw = wrapper.scrollWidth;
@@ -60,6 +106,110 @@ export function SlidePresenter({ slides }: Props) {
   useEffect(() => {
     requestAnimationFrame(updateScale);
   }, [currentSlideIndex, updateScale]);
+
+  // Ctrl key tracking
+  useEffect(() => {
+    const down = (e: KeyboardEvent) => {
+      if (e.key === "Control" || e.key === "Meta") setCtrlHeld(true);
+    };
+    const up = (e: KeyboardEvent) => {
+      if (e.key === "Control" || e.key === "Meta") {
+        setCtrlHeld(false);
+        setHoveredEl(null);
+      }
+    };
+    const blur = () => {
+      setCtrlHeld(false);
+      setHoveredEl(null);
+    };
+    window.addEventListener("keydown", down);
+    window.addEventListener("keyup", up);
+    window.addEventListener("blur", blur);
+    return () => {
+      window.removeEventListener("keydown", down);
+      window.removeEventListener("keyup", up);
+      window.removeEventListener("blur", blur);
+    };
+  }, []);
+
+  // Clear selection on slide change
+  useEffect(() => {
+    setSelectedEl(null);
+    setHoveredEl(null);
+  }, [currentSlideIndex]);
+
+  // Hover detection with Ctrl
+  const handleMouseMove = useCallback(
+    (e: React.MouseEvent) => {
+      if (!ctrlHeld || !captureRef.current) {
+        setHoveredEl(null);
+        return;
+      }
+      const target = e.target as HTMLElement;
+      const component = findNearestComponent(target, captureRef.current);
+      setHoveredEl(component);
+    },
+    [ctrlHeld],
+  );
+
+  const handleMouseLeave = useCallback(() => {
+    setHoveredEl(null);
+  }, []);
+
+  // Click to select with Ctrl
+  const handleClick = useCallback(
+    (e: React.MouseEvent) => {
+      if (!ctrlHeld || !hoveredEl) return;
+      e.preventDefault();
+      e.stopPropagation();
+      setSelectedEl(hoveredEl);
+    },
+    [ctrlHeld, hoveredEl],
+  );
+
+  // Copy selected component
+  const handleCopySelected = useCallback(async () => {
+    if (!selectedEl) return;
+    try {
+      setCopyStatus("copying");
+
+      if (wrapperRef.current) {
+        wrapperRef.current.style.transform = "translate(-50%, -50%)";
+      }
+
+      const name = getComponentName(selectedEl);
+      const svgString = await domToFigmaSvg(selectedEl, name);
+
+      if (wrapperRef.current) {
+        wrapperRef.current.style.transform = `translate(-50%, -50%) scale(${scale})`;
+      }
+
+      if (!svgString) throw new Error("SVG extraction failed");
+      await navigator.clipboard.writeText(svgString);
+
+      setCopyStatus("copied");
+      setTimeout(() => setCopyStatus("idle"), 2000);
+    } catch (err) {
+      if (wrapperRef.current) {
+        wrapperRef.current.style.transform = `translate(-50%, -50%) scale(${scale})`;
+      }
+      console.error("Failed to copy component to Figma:", err);
+      setCopyStatus("error");
+      setTimeout(() => setCopyStatus("idle"), 2000);
+    }
+  }, [selectedEl, scale]);
+
+  // Deselect on Escape
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setSelectedEl(null);
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, []);
+
+  // Highlight overlay for hovered / selected element
+  const highlightEl = selectedEl || hoveredEl;
 
   if (!CurrentSlide) return null;
 
@@ -97,9 +247,50 @@ export function SlidePresenter({ slides }: Props) {
       {/* Main slide area */}
       <div className="flex flex-1 flex-col relative">
         {/* Header tools */}
-        <div className="absolute top-4 right-4 z-10">
+        <div className="absolute top-4 right-4 z-10 flex items-center gap-2">
+          {/* Selected component info + copy button */}
+          {selectedEl && (
+            <div className="flex items-center gap-2 bg-white rounded-md border border-blue-300 shadow-sm px-3 py-1.5">
+              <span className="text-xs text-blue-600 font-medium max-w-[150px] truncate">
+                {getComponentName(selectedEl)}
+              </span>
+              <button
+                type="button"
+                onClick={handleCopySelected}
+                disabled={copyStatus === "copying"}
+                className="flex items-center gap-1.5 text-xs font-medium text-gray-600 hover:text-gray-900 cursor-pointer disabled:opacity-50"
+              >
+                <svg
+                  className="h-3.5 w-3.5"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"
+                  />
+                </svg>
+                {copyStatus === "copying"
+                  ? "Copying..."
+                  : copyStatus === "copied"
+                    ? "Copied!"
+                    : "Copy"}
+              </button>
+              <button
+                type="button"
+                onClick={() => setSelectedEl(null)}
+                className="text-gray-400 hover:text-gray-600 cursor-pointer text-sm leading-none"
+              >
+                ✕
+              </button>
+            </div>
+          )}
           <CopyToFigmaButton
             targetRef={captureRef}
+            title={slides[currentSlideIndex]?.meta.title}
             onBeforeCapture={() => {
               if (wrapperRef.current) {
                 wrapperRef.current.style.transform = "translate(-50%, -50%)";
@@ -112,6 +303,13 @@ export function SlidePresenter({ slides }: Props) {
             }}
           />
         </div>
+
+        {/* Ctrl mode hint */}
+        {ctrlHeld && !selectedEl && (
+          <div className="absolute top-4 left-1/2 -translate-x-1/2 z-10 bg-gray-800 text-white text-xs px-3 py-1.5 rounded-full shadow-lg pointer-events-none">
+            클릭하여 컴포넌트 선택
+          </div>
+        )}
 
         {/* Slide content */}
         <div className="flex-1 overflow-hidden bg-gray-100 p-4">
@@ -127,9 +325,24 @@ export function SlidePresenter({ slides }: Props) {
               <div
                 ref={captureRef}
                 className="rounded-lg border border-gray-200 bg-white shadow-sm"
+                style={{ cursor: ctrlHeld ? "crosshair" : undefined }}
+                onMouseMove={handleMouseMove}
+                onMouseLeave={handleMouseLeave}
+                onClick={handleClick}
               >
                 <CurrentSlide />
               </div>
+
+              {/* Highlight overlay */}
+              {highlightEl && captureRef.current && (
+                <HighlightOverlay
+                  target={highlightEl}
+                  container={captureRef.current}
+                  isSelected={highlightEl === selectedEl}
+                  name={getComponentName(highlightEl)}
+                  scale={scale}
+                />
+              )}
             </div>
           </div>
         </div>
@@ -154,6 +367,52 @@ export function SlidePresenter({ slides }: Props) {
             Next
           </button>
         </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── Highlight Overlay ──────────────────────────────────────────────────────
+
+function HighlightOverlay({
+  target,
+  container,
+  isSelected,
+  name,
+  scale,
+}: {
+  target: HTMLElement;
+  container: HTMLElement;
+  isSelected: boolean;
+  name: string;
+  scale: number;
+}) {
+  const targetRect = target.getBoundingClientRect();
+  const containerRect = container.getBoundingClientRect();
+
+  // getBoundingClientRect returns screen-space (post-scale) values,
+  // but this overlay is inside the scaled wrapper, so divide by scale
+  // to get correct un-scaled CSS positions.
+  const x = (targetRect.left - containerRect.left) / scale;
+  const y = (targetRect.top - containerRect.top) / scale;
+  const w = targetRect.width / scale;
+  const h = targetRect.height / scale;
+
+  const borderColor = isSelected ? "border-blue-500" : "border-blue-400";
+  const bgColor = isSelected ? "bg-blue-500/5" : "bg-blue-400/5";
+
+  return (
+    <div
+      className={`absolute pointer-events-none border-2 ${borderColor} ${bgColor} rounded-sm transition-all duration-75`}
+      style={{ left: x, top: y, width: w, height: h }}
+    >
+      {/* Label */}
+      <div
+        className={`absolute -top-5 left-0 px-1.5 py-0.5 text-[10px] font-medium text-white rounded-t-sm whitespace-nowrap ${
+          isSelected ? "bg-blue-500" : "bg-blue-400"
+        }`}
+      >
+        {name}
       </div>
     </div>
   );
