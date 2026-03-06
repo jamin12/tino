@@ -5,9 +5,18 @@ export interface DocumentMeta {
   tags?: string[];
 }
 
+export interface SlideAnnotation {
+  id: number;
+  label: string;
+  description: string;
+  x: number; // px from left of slide content
+  y: number; // px from top of slide content
+}
+
 export interface SlideMeta {
   title?: string;
   section?: string;
+  annotations?: SlideAnnotation[];
 }
 
 export interface SlideWithMeta {

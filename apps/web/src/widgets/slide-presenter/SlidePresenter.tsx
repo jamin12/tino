@@ -5,7 +5,7 @@ import {
 } from "@features/slide-viewer";
 import { CopyToFigmaButton } from "@features/export-to-figma";
 import { domToFigmaSvg } from "@shared/lib";
-import type { SlideWithMeta } from "@entities/document";
+import type { SlideWithMeta, SlideAnnotation } from "@entities/document";
 
 // ─── Component detection ────────────────────────────────────────────────────
 
@@ -57,6 +57,7 @@ export function SlidePresenter({ slides }: Props) {
     useSlideViewerStore();
 
   const captureRef = useRef<HTMLDivElement>(null);
+  const slideContentRef = useRef<HTMLDivElement>(null);
   const wrapperRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const [scale, setScale] = useState(1);
@@ -66,8 +67,10 @@ export function SlidePresenter({ slides }: Props) {
   const [hoveredEl, setHoveredEl] = useState<HTMLElement | null>(null);
   const [selectedEl, setSelectedEl] = useState<HTMLElement | null>(null);
   const [copyStatus, setCopyStatus] = useState<"idle" | "copying" | "copied" | "error">("idle");
+  const [showAnnotations, setShowAnnotations] = useState(false);
 
   const CurrentSlide = slides[currentSlideIndex]?.component;
+  const currentAnnotations = slides[currentSlideIndex]?.meta.annotations;
 
   useSlideNavigation({ totalSlides: slides.length });
 
@@ -104,8 +107,9 @@ export function SlidePresenter({ slides }: Props) {
   }, [updateScale]);
 
   useEffect(() => {
-    requestAnimationFrame(updateScale);
-  }, [currentSlideIndex, updateScale]);
+    // Double rAF to ensure layout is settled after DOM changes (e.g. side panel toggle)
+    requestAnimationFrame(() => requestAnimationFrame(updateScale));
+  }, [currentSlideIndex, showAnnotations, updateScale]);
 
   // Ctrl key tracking
   useEffect(() => {
@@ -141,12 +145,12 @@ export function SlidePresenter({ slides }: Props) {
   // Hover detection with Ctrl
   const handleMouseMove = useCallback(
     (e: React.MouseEvent) => {
-      if (!ctrlHeld || !captureRef.current) {
+      if (!ctrlHeld || !slideContentRef.current) {
         setHoveredEl(null);
         return;
       }
       const target = e.target as HTMLElement;
-      const component = findNearestComponent(target, captureRef.current);
+      const component = findNearestComponent(target, slideContentRef.current);
       setHoveredEl(component);
     },
     [ctrlHeld],
@@ -288,6 +292,22 @@ export function SlidePresenter({ slides }: Props) {
               </button>
             </div>
           )}
+          {currentAnnotations && currentAnnotations.length > 0 && (
+            <button
+              type="button"
+              onClick={() => setShowAnnotations((v) => !v)}
+              className={`flex items-center gap-1.5 rounded-md border px-3 py-1.5 text-xs font-medium shadow-sm transition-colors ${
+                showAnnotations
+                  ? "border-amber-400 bg-amber-50 text-amber-700"
+                  : "border-gray-200 bg-white text-gray-600 hover:bg-gray-50"
+              }`}
+            >
+              <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" />
+              </svg>
+              Spec
+            </button>
+          )}
           <CopyToFigmaButton
             targetRef={captureRef}
             title={slides[currentSlideIndex]?.meta.title}
@@ -324,20 +344,34 @@ export function SlidePresenter({ slides }: Props) {
             >
               <div
                 ref={captureRef}
-                className="rounded-lg border border-gray-200 bg-white shadow-sm"
-                style={{ cursor: ctrlHeld ? "crosshair" : undefined }}
-                onMouseMove={handleMouseMove}
-                onMouseLeave={handleMouseLeave}
-                onClick={handleClick}
+                className="flex"
               >
-                <CurrentSlide />
+                <div
+                  ref={slideContentRef}
+                  className="rounded-lg border border-gray-200 bg-white shadow-sm relative"
+                  style={{ cursor: ctrlHeld ? "crosshair" : undefined }}
+                  onMouseMove={handleMouseMove}
+                  onMouseLeave={handleMouseLeave}
+                  onClick={handleClick}
+                >
+                  <CurrentSlide />
+                  {/* Annotation markers */}
+                  {showAnnotations && currentAnnotations && (
+                    <AnnotationMarkers annotations={currentAnnotations} />
+                  )}
+                </div>
+
+                {/* Annotation side panel */}
+                {showAnnotations && currentAnnotations && currentAnnotations.length > 0 && (
+                  <AnnotationSidePanel annotations={currentAnnotations} />
+                )}
               </div>
 
               {/* Highlight overlay */}
-              {highlightEl && captureRef.current && (
+              {highlightEl && slideContentRef.current && (
                 <HighlightOverlay
                   target={highlightEl}
-                  container={captureRef.current}
+                  container={slideContentRef.current}
                   isSelected={highlightEl === selectedEl}
                   name={getComponentName(highlightEl)}
                   scale={scale}
@@ -414,6 +448,47 @@ function HighlightOverlay({
       >
         {name}
       </div>
+    </div>
+  );
+}
+
+// ─── Annotation Components ──────────────────────────────────────────────────
+
+function AnnotationMarkers({ annotations }: { annotations: SlideAnnotation[] }) {
+  return (
+    <>
+      {annotations.map((a) => (
+        <div
+          key={a.id}
+          className="absolute pointer-events-none"
+          style={{ left: a.x, top: a.y }}
+        >
+          <div className="relative -translate-x-1/2 -translate-y-1/2">
+            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-amber-500 text-[16px] font-bold text-white shadow-md ring-3 ring-white">
+              {a.id}
+            </div>
+          </div>
+        </div>
+      ))}
+    </>
+  );
+}
+
+function AnnotationSidePanel({ annotations }: { annotations: SlideAnnotation[] }) {
+  return (
+    <div className="w-[480px] shrink-0 border-l border-gray-200 bg-gray-50 rounded-r-lg p-8 flex flex-col gap-6">
+      <div className="text-[16px] font-bold text-gray-400 uppercase tracking-wide">Spec</div>
+      {annotations.map((a) => (
+        <div key={a.id} className="flex gap-4 items-start">
+          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-amber-500 text-[14px] font-bold text-white mt-0.5">
+            {a.id}
+          </span>
+          <div className="min-w-0">
+            <div className="text-[16px] font-semibold text-gray-800 leading-tight">{a.label}</div>
+            <div className="text-[14px] text-gray-500 leading-snug mt-1">{a.description}</div>
+          </div>
+        </div>
+      ))}
     </div>
   );
 }

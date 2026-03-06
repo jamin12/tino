@@ -40,6 +40,29 @@ import type { SlideMeta } from "@entities/document";
 export const slideMeta: SlideMeta = {
   title: "Secrets 목록",
   section: "CI/CD 저장소",
+  annotations: [
+    {
+      id: 1,
+      label: "GitOps 현황",
+      description: "리소스의 GitOps 동기화 상태를 한눈에 요약. Stable/Mismatch/Updating/Missing/Broken/Orphaned 6가지 상태로 분류.",
+      x: 1860,
+      y: 195,
+    },
+    {
+      id: 2,
+      label: "필터 & 검색",
+      description: "타입별, 네임스페이스별 필터링과 이름 검색을 지원. 생성/동기화 버튼은 우측에 배치.",
+      x: 1860,
+      y: 390,
+    },
+    {
+      id: 3,
+      label: "Secret 목록 테이블",
+      description: "GitOps 상태 도트, 이름, 네임스페이스, 타입(Badge), Data 개수, 생성일을 표시. 행 우측 더보기 버튼으로 컨텍스트 메뉴 접근.",
+      x: 1860,
+      y: 500,
+    },
+  ],
 };
 
 // ─── Side Menu Data ─────────────────────────────────────────────────────────
