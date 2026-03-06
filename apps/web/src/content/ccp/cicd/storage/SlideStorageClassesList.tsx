@@ -1,10 +1,4 @@
 import {
-  LayoutDashboard,
-  Layers,
-  AppWindow,
-  GitBranch,
-  Settings,
-  GitCompare,
   Plus,
   RefreshCw,
   MoreHorizontal,
@@ -29,16 +23,22 @@ import {
   StatusDot,
   StatusSummary,
   TextCell,
-} from "./_components";
+  SidebarDashboardIcon,
+  SidebarNamespaceIcon,
+  SidebarApplicationIcon,
+  SidebarCicdIcon,
+  SidebarSettingsIcon,
+  SidebarGitopsIcon,
+} from "../../_components";
 import type {
   SideMenuItem,
   DataTableColumn,
   ContextMenuEntry,
-} from "./_components";
+} from "../../_components";
 import type { SlideMeta } from "@entities/document";
 
 export const slideMeta: SlideMeta = {
-  title: "Secrets 목록",
+  title: "StorageClasses 목록",
   section: "CI/CD 저장소",
 };
 
@@ -48,24 +48,24 @@ const sideMenuItems: SideMenuItem[] = [
   {
     id: "dashboard",
     label: "대시보드",
-    icon: <LayoutDashboard className="w-5 h-5" />,
+    icon: <SidebarDashboardIcon className="w-5 h-5" />,
   },
   {
     id: "namespace",
     label: "네임스페이스",
-    icon: <Layers className="w-5 h-5" />,
+    icon: <SidebarNamespaceIcon className="w-5 h-5" />,
     expandIcon: "plus",
   },
   {
     id: "application",
     label: "애플리케이션",
-    icon: <AppWindow className="w-5 h-5" />,
+    icon: <SidebarApplicationIcon className="w-5 h-5" />,
     expandIcon: "plus",
   },
   {
     id: "cicd",
     label: "CI/CD",
-    icon: <GitBranch className="w-5 h-5" />,
+    icon: <SidebarCicdIcon className="w-5 h-5" />,
     active: true,
     expanded: true,
     expandIcon: "minus",
@@ -74,11 +74,11 @@ const sideMenuItems: SideMenuItem[] = [
       {
         label: "저장소",
         items: [
-          { label: "StorageClasses" },
+          { label: "StorageClasses", active: true, bold: true },
           { label: "PV" },
           { label: "PVC" },
           { label: "ConfigMaps" },
-          { label: "Secrets", active: true, bold: true },
+          { label: "Secrets" },
         ],
       },
       {
@@ -99,94 +99,72 @@ const sideMenuItems: SideMenuItem[] = [
   {
     id: "settings",
     label: "설정/권한",
-    icon: <Settings className="w-5 h-5" />,
+    icon: <SidebarSettingsIcon className="w-5 h-5" />,
     expandIcon: "plus",
   },
   {
     id: "gitops",
     label: "GitOps",
-    icon: <GitCompare className="w-5 h-5" />,
+    icon: <SidebarGitopsIcon className="w-5 h-5" />,
     expandIcon: "plus",
   },
 ];
 
 // ─── Table Data ─────────────────────────────────────────────────────────────
 
-interface SecretRow {
+interface StorageClassRow {
   id: string;
   gitopsColor: string;
   name: string;
-  namespace: string;
-  type: string;
-  data: number;
+  provisioner: string;
+  isDefault: boolean;
   age: string;
 }
 
-const tableData: SecretRow[] = [
+const tableData: StorageClassRow[] = [
   {
     id: "1",
     gitopsColor: "#00b30e",
-    name: "db-credentials",
-    namespace: "app-database",
-    type: "Opaque",
-    data: 3,
-    age: "5d",
+    name: "standard",
+    provisioner: "kubernetes.io/no-provisioner",
+    isDefault: true,
+    age: "90d",
   },
   {
     id: "2",
     gitopsColor: "#00b30e",
-    name: "api-tls-cert",
-    namespace: "app-backend",
-    type: "kubernetes.io/tls",
-    data: 2,
-    age: "10d",
+    name: "local-storage",
+    provisioner: "kubernetes.io/no-provisioner",
+    isDefault: false,
+    age: "90d",
   },
   {
     id: "3",
     gitopsColor: "#00b30e",
-    name: "registry-auth",
-    namespace: "app-cicd",
-    type: "kubernetes.io/dockerconfigjson",
-    data: 1,
-    age: "30d",
+    name: "nfs-client",
+    provisioner: "nfs-subdir-external-provisioner",
+    isDefault: false,
+    age: "45d",
   },
   {
     id: "4",
     gitopsColor: "#6366f1",
-    name: "oauth2-client",
-    namespace: "app-backend",
-    type: "Opaque",
-    data: 4,
-    age: "8d",
+    name: "ceph-block",
+    provisioner: "rook-ceph.rbd.csi.ceph.com",
+    isDefault: false,
+    age: "30d",
   },
   {
     id: "5",
     gitopsColor: "#00b30e",
-    name: "grafana-admin",
-    namespace: "monitoring",
-    type: "Opaque",
-    data: 2,
-    age: "15d",
-  },
-  {
-    id: "6",
-    gitopsColor: "#00b30e",
-    name: "sa-token-default",
-    namespace: "kube-system",
-    type: "kubernetes.io/service-account-token",
-    data: 3,
-    age: "90d",
+    name: "ceph-filesystem",
+    provisioner: "rook-ceph.cephfs.csi.ceph.com",
+    isDefault: false,
+    age: "30d",
   },
 ];
 
-const typeVariant: Record<string, "success" | "warning" | "info" | "neutral"> = {
-  Opaque: "neutral",
-  "kubernetes.io/tls": "success",
-  "kubernetes.io/dockerconfigjson": "info" as "success",
-  "kubernetes.io/service-account-token": "warning",
-};
-
-const columns: DataTableColumn<SecretRow>[] = [
+const columns: DataTableColumn<StorageClassRow>[] = [
   {
     id: "gitops",
     header: "GitOps",
@@ -197,35 +175,29 @@ const columns: DataTableColumn<SecretRow>[] = [
   {
     id: "name",
     header: "이름",
-    width: "220px",
+    width: "240px",
     render: (row) => (
       <TextCell bold color="#111111" className="px-4">
-        {row.name}
+        {row.isDefault ? `${row.name} (default)` : row.name}
       </TextCell>
     ),
   },
   {
-    id: "namespace",
-    header: "네임스페이스",
-    width: "140px",
-    align: "center",
-    render: (row) => <TextCell color="#555555">{row.namespace}</TextCell>,
+    id: "provisioner",
+    header: "프로비저너",
+    width: "300px",
+    render: (row) => <Badge variant="neutral">{row.provisioner}</Badge>,
   },
   {
-    id: "type",
-    header: "타입",
-    width: "280px",
+    id: "default",
+    header: "기본 여부",
+    width: "120px",
     align: "center",
     render: (row) => (
-      <Badge variant={typeVariant[row.type] ?? "neutral"}>{row.type}</Badge>
+      <Badge variant={row.isDefault ? "success" : "neutral"}>
+        {row.isDefault ? "Default" : "-"}
+      </Badge>
     ),
-  },
-  {
-    id: "data",
-    header: "Data",
-    width: "100px",
-    align: "center",
-    render: (row) => <Badge variant="neutral">{row.data}</Badge>,
   },
   {
     id: "age",
@@ -248,33 +220,48 @@ const columns: DataTableColumn<SecretRow>[] = [
   },
 ];
 
+const iconClass = "w-[14px] h-[14px] text-[#555759]";
 const contextMenuItems: ContextMenuEntry[] = [
-  { id: "edit", label: "편집", icon: Settings2 },
-  { id: "duplicate", label: "복제", icon: Copy },
-  { id: "summary", label: "요약", icon: FileText, textColor: "text-[#0077ff]" },
-  { id: "yaml", label: "YAML", icon: FileCode },
-  { id: "delete", label: "리소스 삭제", icon: Trash2, textColor: "text-[#da1e28]" },
+  { id: "edit", label: "편집", icon: <Settings2 className={iconClass} /> },
+  { id: "duplicate", label: "복제", icon: <Copy className={iconClass} /> },
+  { id: "divider-1", type: "divider" } as ContextMenuEntry,
+  {
+    id: "summary",
+    label: "요약",
+    icon: <FileText className="w-[14px] h-[14px] text-[#0077ff]" />,
+    textColor: "text-[#0077ff]",
+    highlighted: true,
+  },
+  { id: "divider-2", type: "divider" } as ContextMenuEntry,
+  { id: "yaml", label: "YAML", icon: <FileCode className={iconClass} /> },
+  {
+    id: "delete",
+    label: "리소스 삭제",
+    icon: <Trash2 className="w-[14px] h-[14px] text-[#da1e28]" />,
+    textColor: "text-[#da1e28]",
+  },
 ];
 
 // ─── Slide ──────────────────────────────────────────────────────────────────
 
-export default function Slide07() {
+export default function SlideStorageClassesList() {
   return (
     <CcpDashboardLayout
-      breadcrumbs={[{ label: "저장소" }, { label: "Secrets", isBold: true }]}
-      title="Secrets"
+      breadcrumbs={[
+        { label: "저장소" },
+        { label: "StorageClasses", isBold: true },
+      ]}
+      title="Storage Classes"
       sideMenuItems={sideMenuItems}
     >
       <ContentSection card>
         <StatusSummary
-          tabs={[
-            { id: "gitops", label: "GitOps 현황", count: 6 },
-          ]}
+          tabs={[{ id: "gitops", label: "GitOps 현황", count: 5 }]}
           activeTabId="gitops"
           cards={[
-            { label: "Stable", count: 5, color: "#00b30e" },
-            { label: "Mismatch", count: 1, color: "#da1e28" },
-            { label: "Updating", count: 0, color: "#00b30e" },
+            { label: "Stable", count: 4, color: "#00b30e" },
+            { label: "Mismatch", count: 0, color: "#da1e28" },
+            { label: "Updating", count: 1, color: "#00b30e" },
             { label: "Missing", count: 0, color: "#dea600" },
             { label: "Broken", count: 0, color: "#da1e28" },
             { label: "Orphaned", count: 0, color: "#6366f1" },
@@ -285,24 +272,13 @@ export default function Slide07() {
       <ContentSection relative>
         <FilterBar className="gap-2">
           <Select
-            label="타입"
+            label="프로비저너"
             options={[
               { value: "", label: "전체" },
-              { value: "opaque", label: "Opaque" },
-              { value: "tls", label: "kubernetes.io/tls" },
-              { value: "docker", label: "dockerconfigjson" },
-              { value: "sa-token", label: "service-account-token" },
-            ]}
-          />
-          <Select
-            label="네임스페이스"
-            options={[
-              { value: "", label: "전체" },
-              { value: "app-database", label: "app-database" },
-              { value: "app-backend", label: "app-backend" },
-              { value: "app-cicd", label: "app-cicd" },
-              { value: "monitoring", label: "monitoring" },
-              { value: "kube-system", label: "kube-system" },
+              { value: "no-provisioner", label: "no-provisioner" },
+              { value: "nfs", label: "nfs-subdir" },
+              { value: "ceph-rbd", label: "rook-ceph (RBD)" },
+              { value: "ceph-fs", label: "rook-ceph (CephFS)" },
             ]}
           />
           <SearchInput placeholder="이름 검색" className="mr-1" />
@@ -329,8 +305,8 @@ export default function Slide07() {
 
         <Pagination
           currentPage={1}
-          totalPages={4}
-          visiblePages={[1, 2, 3, 4]}
+          totalPages={1}
+          visiblePages={[1]}
           className="mt-5 pb-10"
         />
       </ContentSection>

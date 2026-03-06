@@ -1,10 +1,4 @@
 import {
-  LayoutDashboard,
-  Layers,
-  AppWindow,
-  GitBranch,
-  Settings,
-  GitCompare,
   Plus,
   RefreshCw,
   MoreHorizontal,
@@ -29,12 +23,18 @@ import {
   StatusDot,
   StatusSummary,
   TextCell,
-} from "./_components";
+  SidebarDashboardIcon,
+  SidebarNamespaceIcon,
+  SidebarApplicationIcon,
+  SidebarCicdIcon,
+  SidebarSettingsIcon,
+  SidebarGitopsIcon,
+} from "../../_components";
 import type {
   SideMenuItem,
   DataTableColumn,
   ContextMenuEntry,
-} from "./_components";
+} from "../../_components";
 import type { SlideMeta } from "@entities/document";
 
 export const slideMeta: SlideMeta = {
@@ -48,24 +48,24 @@ const sideMenuItems: SideMenuItem[] = [
   {
     id: "dashboard",
     label: "대시보드",
-    icon: <LayoutDashboard className="w-5 h-5" />,
+    icon: <SidebarDashboardIcon className="w-5 h-5" />,
   },
   {
     id: "namespace",
     label: "네임스페이스",
-    icon: <Layers className="w-5 h-5" />,
+    icon: <SidebarNamespaceIcon className="w-5 h-5" />,
     expandIcon: "plus",
   },
   {
     id: "application",
     label: "애플리케이션",
-    icon: <AppWindow className="w-5 h-5" />,
+    icon: <SidebarApplicationIcon className="w-5 h-5" />,
     expandIcon: "plus",
   },
   {
     id: "cicd",
     label: "CI/CD",
-    icon: <GitBranch className="w-5 h-5" />,
+    icon: <SidebarCicdIcon className="w-5 h-5" />,
     active: true,
     expanded: true,
     expandIcon: "minus",
@@ -99,13 +99,13 @@ const sideMenuItems: SideMenuItem[] = [
   {
     id: "settings",
     label: "설정/권한",
-    icon: <Settings className="w-5 h-5" />,
+    icon: <SidebarSettingsIcon className="w-5 h-5" />,
     expandIcon: "plus",
   },
   {
     id: "gitops",
     label: "GitOps",
-    icon: <GitCompare className="w-5 h-5" />,
+    icon: <SidebarGitopsIcon className="w-5 h-5" />,
     expandIcon: "plus",
   },
 ];
@@ -313,17 +313,31 @@ const columns: DataTableColumn<PvRow>[] = [
   },
 ];
 
+const iconClass = "w-[14px] h-[14px] text-[#555759]";
 const contextMenuItems: ContextMenuEntry[] = [
-  { id: "edit", label: "편집", icon: Settings2 },
-  { id: "duplicate", label: "복제", icon: Copy },
-  { id: "summary", label: "요약", icon: FileText, textColor: "text-[#0077ff]" },
-  { id: "yaml", label: "YAML", icon: FileCode },
-  { id: "delete", label: "리소스 삭제", icon: Trash2, textColor: "text-[#da1e28]" },
+  { id: "edit", label: "편집", icon: <Settings2 className={iconClass} /> },
+  { id: "duplicate", label: "복제", icon: <Copy className={iconClass} /> },
+  { id: "divider-1", type: "divider" } as ContextMenuEntry,
+  {
+    id: "summary",
+    label: "요약",
+    icon: <FileText className="w-[14px] h-[14px] text-[#0077ff]" />,
+    textColor: "text-[#0077ff]",
+    highlighted: true,
+  },
+  { id: "divider-2", type: "divider" } as ContextMenuEntry,
+  { id: "yaml", label: "YAML", icon: <FileCode className={iconClass} /> },
+  {
+    id: "delete",
+    label: "리소스 삭제",
+    icon: <Trash2 className="w-[14px] h-[14px] text-[#da1e28]" />,
+    textColor: "text-[#da1e28]",
+  },
 ];
 
 // ─── Slide ──────────────────────────────────────────────────────────────────
 
-export default function Slide05() {
+export default function SlidePvList() {
   return (
     <CcpDashboardLayout
       breadcrumbs={[{ label: "저장소" }, { label: "PV", isBold: true }]}

@@ -16,17 +16,20 @@ const metaModules = import.meta.glob<{ default: DocumentMeta }>(
 const slideModules = import.meta.glob<{
   default: ComponentType;
   slideMeta?: SlideMeta;
-}>("/src/content/*/Slide*.tsx");
+}>("/src/content/**/Slide*.tsx");
 
 function getSlugFromPath(path: string): string {
   // "/src/content/example-project-overview/meta.ts" → "example-project-overview"
-  const parts = path.split("/");
-  return parts[parts.length - 2];
+  // "/src/content/ccp/cicd/storage/SlideXxx.tsx" → "ccp"
+  const contentPrefix = "/src/content/";
+  const rest = path.slice(contentPrefix.length); // "ccp/cicd/storage/SlideXxx.tsx"
+  return rest.split("/")[0];
 }
 
 function countSlides(slug: string): number {
+  const prefix = `/src/content/${slug}/`;
   return Object.keys(slideModules).filter((path) =>
-    path.startsWith(`/src/content/${slug}/Slide`),
+    path.startsWith(prefix),
   ).length;
 }
 
@@ -56,8 +59,9 @@ export async function getDocument(
   if (!metaMod) return undefined;
 
   // Collect and sort slide paths for this slug
+  const prefix = `/src/content/${slug}/`;
   const slidePaths = Object.keys(slideModules)
-    .filter((path) => path.startsWith(`/src/content/${slug}/Slide`))
+    .filter((path) => path.startsWith(prefix))
     .sort();
 
   // Load all slides in parallel (component + optional slideMeta)

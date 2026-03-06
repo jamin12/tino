@@ -68,6 +68,17 @@ export { TaskListPanel } from "./TaskListPanel";
 export { LogViewer } from "./LogViewer";
 export { SplitPanel } from "./SplitPanel";
 
+// Icons
+export {
+  ConechainIcon,
+  SidebarDashboardIcon,
+  SidebarNamespaceIcon,
+  SidebarApplicationIcon,
+  SidebarCicdIcon,
+  SidebarSettingsIcon,
+  SidebarGitopsIcon,
+} from "./icons";
+
 // Layouts
 export { SideMenu } from "./SideMenu";
 export type { SideMenuItem, MenuSection, SubMenuItem } from "./SideMenu";

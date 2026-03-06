@@ -1,13 +1,14 @@
-import type { LucideIcon } from "lucide-react";
+import type { ReactNode } from "react";
 import { cn } from "./cn";
 
 interface ContextMenuItem {
   id: string;
   label: string;
-  icon?: LucideIcon;
+  icon?: ReactNode;
   href?: string;
   onClick?: () => void;
   textColor?: string;
+  highlighted?: boolean;
 }
 
 interface ContextMenuDivider {
@@ -29,8 +30,8 @@ export function ContextMenu({ items, className, ...props }: ContextMenuProps) {
   return (
     <nav
       className={cn(
-        "flex flex-col w-[120px] items-start py-1 bg-white rounded-lg border border-[#bac0c6]",
-        "shadow-[4px_4px_4px_#0000001a]",
+        "flex flex-col w-[120px] items-start py-[5px] bg-white rounded-[8px] border border-[#d9dce0]",
+        "shadow-[0_4px_12px_rgba(0,0,0,0.12)]",
         className,
       )}
       role="menu"
@@ -41,24 +42,36 @@ export function ContextMenu({ items, className, ...props }: ContextMenuProps) {
           return (
             <div
               key={entry.id}
-              className="w-full px-3 py-0.5"
+              className="w-full px-[10px] py-[3px]"
               role="separator"
             >
-              <div className="w-full h-px bg-[#e0e0e0]" />
+              <div className="w-full h-px bg-[#e5e7eb]" />
             </div>
           );
         }
 
-        const Icon = entry.icon;
+        const itemClass = cn(
+          "flex h-[34px] items-center gap-[8px] px-[14px] w-full text-left",
+          entry.highlighted
+            ? "bg-[#eef4ff]"
+            : "hover:bg-[#f5f6f8] focus:bg-[#eef0f3]",
+          "focus:outline-none",
+        );
+
         const content = (
           <>
-            {Icon && (
-              <Icon className="w-3.5 h-3.5 shrink-0" aria-hidden="true" />
+            {entry.icon && (
+              <span
+                className="shrink-0 flex items-center justify-center w-[16px] h-[16px]"
+                aria-hidden="true"
+              >
+                {entry.icon}
+              </span>
             )}
             <span
               className={cn(
-                "flex-1 text-[13px] font-medium leading-5 tracking-[-0.13px] whitespace-nowrap",
-                entry.textColor ?? "text-[#333333]",
+                "flex-1 text-[13px] font-medium leading-[20px] tracking-[-0.13px] whitespace-nowrap",
+                entry.textColor ?? "text-[#393c40]",
               )}
             >
               {entry.label}
@@ -70,7 +83,7 @@ export function ContextMenu({ items, className, ...props }: ContextMenuProps) {
           return (
             <a
               key={entry.id}
-              className="flex h-7 items-center gap-1.5 px-3 w-full hover:bg-gray-50 focus:bg-gray-100 focus:outline-none"
+              className={itemClass}
               href={entry.href}
               role="menuitem"
             >
@@ -83,7 +96,7 @@ export function ContextMenu({ items, className, ...props }: ContextMenuProps) {
           <button
             key={entry.id}
             type="button"
-            className="flex h-7 items-center gap-1.5 px-3 w-full hover:bg-gray-50 focus:bg-gray-100 focus:outline-none text-left"
+            className={itemClass}
             role="menuitem"
             onClick={entry.onClick}
           >

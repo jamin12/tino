@@ -1,10 +1,4 @@
 import {
-  LayoutDashboard,
-  Layers,
-  AppWindow,
-  GitBranch,
-  Settings,
-  GitCompare,
   Plus,
   RefreshCw,
   MoreHorizontal,
@@ -29,16 +23,22 @@ import {
   StatusDot,
   StatusSummary,
   TextCell,
-} from "./_components";
+  SidebarDashboardIcon,
+  SidebarNamespaceIcon,
+  SidebarApplicationIcon,
+  SidebarCicdIcon,
+  SidebarSettingsIcon,
+  SidebarGitopsIcon,
+} from "../../_components";
 import type {
   SideMenuItem,
   DataTableColumn,
   ContextMenuEntry,
-} from "./_components";
+} from "../../_components";
 import type { SlideMeta } from "@entities/document";
 
 export const slideMeta: SlideMeta = {
-  title: "StorageClasses 목록",
+  title: "ConfigMaps 목록",
   section: "CI/CD 저장소",
 };
 
@@ -48,24 +48,24 @@ const sideMenuItems: SideMenuItem[] = [
   {
     id: "dashboard",
     label: "대시보드",
-    icon: <LayoutDashboard className="w-5 h-5" />,
+    icon: <SidebarDashboardIcon className="w-5 h-5" />,
   },
   {
     id: "namespace",
     label: "네임스페이스",
-    icon: <Layers className="w-5 h-5" />,
+    icon: <SidebarNamespaceIcon className="w-5 h-5" />,
     expandIcon: "plus",
   },
   {
     id: "application",
     label: "애플리케이션",
-    icon: <AppWindow className="w-5 h-5" />,
+    icon: <SidebarApplicationIcon className="w-5 h-5" />,
     expandIcon: "plus",
   },
   {
     id: "cicd",
     label: "CI/CD",
-    icon: <GitBranch className="w-5 h-5" />,
+    icon: <SidebarCicdIcon className="w-5 h-5" />,
     active: true,
     expanded: true,
     expandIcon: "minus",
@@ -74,10 +74,10 @@ const sideMenuItems: SideMenuItem[] = [
       {
         label: "저장소",
         items: [
-          { label: "StorageClasses", active: true, bold: true },
+          { label: "StorageClasses" },
           { label: "PV" },
           { label: "PVC" },
-          { label: "ConfigMaps" },
+          { label: "ConfigMaps", active: true, bold: true },
           { label: "Secrets" },
         ],
       },
@@ -99,72 +99,80 @@ const sideMenuItems: SideMenuItem[] = [
   {
     id: "settings",
     label: "설정/권한",
-    icon: <Settings className="w-5 h-5" />,
+    icon: <SidebarSettingsIcon className="w-5 h-5" />,
     expandIcon: "plus",
   },
   {
     id: "gitops",
     label: "GitOps",
-    icon: <GitCompare className="w-5 h-5" />,
+    icon: <SidebarGitopsIcon className="w-5 h-5" />,
     expandIcon: "plus",
   },
 ];
 
 // ─── Table Data ─────────────────────────────────────────────────────────────
 
-interface StorageClassRow {
+interface ConfigMapRow {
   id: string;
   gitopsColor: string;
   name: string;
-  provisioner: string;
-  isDefault: boolean;
+  namespace: string;
+  data: number;
   age: string;
 }
 
-const tableData: StorageClassRow[] = [
+const tableData: ConfigMapRow[] = [
   {
     id: "1",
     gitopsColor: "#00b30e",
-    name: "standard",
-    provisioner: "kubernetes.io/no-provisioner",
-    isDefault: true,
-    age: "90d",
+    name: "app-config",
+    namespace: "app-backend",
+    data: 5,
+    age: "10d",
   },
   {
     id: "2",
     gitopsColor: "#00b30e",
-    name: "local-storage",
-    provisioner: "kubernetes.io/no-provisioner",
-    isDefault: false,
-    age: "90d",
+    name: "nginx-config",
+    namespace: "app-frontend",
+    data: 2,
+    age: "12d",
   },
   {
     id: "3",
     gitopsColor: "#00b30e",
-    name: "nfs-client",
-    provisioner: "nfs-subdir-external-provisioner",
-    isDefault: false,
-    age: "45d",
+    name: "redis-config",
+    namespace: "app-database",
+    data: 3,
+    age: "5d",
   },
   {
     id: "4",
     gitopsColor: "#6366f1",
-    name: "ceph-block",
-    provisioner: "rook-ceph.rbd.csi.ceph.com",
-    isDefault: false,
-    age: "30d",
+    name: "fluentd-config",
+    namespace: "monitoring",
+    data: 8,
+    age: "20d",
   },
   {
     id: "5",
     gitopsColor: "#00b30e",
-    name: "ceph-filesystem",
-    provisioner: "rook-ceph.cephfs.csi.ceph.com",
-    isDefault: false,
-    age: "30d",
+    name: "prometheus-rules",
+    namespace: "monitoring",
+    data: 12,
+    age: "15d",
+  },
+  {
+    id: "6",
+    gitopsColor: "#00b30e",
+    name: "grafana-dashboards",
+    namespace: "monitoring",
+    data: 6,
+    age: "15d",
   },
 ];
 
-const columns: DataTableColumn<StorageClassRow>[] = [
+const columns: DataTableColumn<ConfigMapRow>[] = [
   {
     id: "gitops",
     header: "GitOps",
@@ -175,29 +183,26 @@ const columns: DataTableColumn<StorageClassRow>[] = [
   {
     id: "name",
     header: "이름",
-    width: "240px",
+    width: "260px",
     render: (row) => (
       <TextCell bold color="#111111" className="px-4">
-        {row.isDefault ? `${row.name} (default)` : row.name}
+        {row.name}
       </TextCell>
     ),
   },
   {
-    id: "provisioner",
-    header: "프로비저너",
-    width: "300px",
-    render: (row) => <Badge variant="neutral">{row.provisioner}</Badge>,
+    id: "namespace",
+    header: "네임스페이스",
+    width: "160px",
+    align: "center",
+    render: (row) => <TextCell color="#555555">{row.namespace}</TextCell>,
   },
   {
-    id: "default",
-    header: "기본 여부",
-    width: "120px",
+    id: "data",
+    header: "Data",
+    width: "100px",
     align: "center",
-    render: (row) => (
-      <Badge variant={row.isDefault ? "success" : "neutral"}>
-        {row.isDefault ? "Default" : "-"}
-      </Badge>
-    ),
+    render: (row) => <Badge variant="neutral">{row.data}</Badge>,
   },
   {
     id: "age",
@@ -220,31 +225,43 @@ const columns: DataTableColumn<StorageClassRow>[] = [
   },
 ];
 
+const iconClass = "w-[14px] h-[14px] text-[#555759]";
 const contextMenuItems: ContextMenuEntry[] = [
-  { id: "edit", label: "편집", icon: Settings2 },
-  { id: "duplicate", label: "복제", icon: Copy },
-  { id: "summary", label: "요약", icon: FileText, textColor: "text-[#0077ff]" },
-  { id: "yaml", label: "YAML", icon: FileCode },
-  { id: "delete", label: "리소스 삭제", icon: Trash2, textColor: "text-[#da1e28]" },
+  { id: "edit", label: "편집", icon: <Settings2 className={iconClass} /> },
+  { id: "duplicate", label: "복제", icon: <Copy className={iconClass} /> },
+  { id: "divider-1", type: "divider" } as ContextMenuEntry,
+  {
+    id: "summary",
+    label: "요약",
+    icon: <FileText className="w-[14px] h-[14px] text-[#0077ff]" />,
+    textColor: "text-[#0077ff]",
+    highlighted: true,
+  },
+  { id: "divider-2", type: "divider" } as ContextMenuEntry,
+  { id: "yaml", label: "YAML", icon: <FileCode className={iconClass} /> },
+  {
+    id: "delete",
+    label: "리소스 삭제",
+    icon: <Trash2 className="w-[14px] h-[14px] text-[#da1e28]" />,
+    textColor: "text-[#da1e28]",
+  },
 ];
 
 // ─── Slide ──────────────────────────────────────────────────────────────────
 
-export default function Slide04() {
+export default function SlideConfigMapsList() {
   return (
     <CcpDashboardLayout
-      breadcrumbs={[{ label: "저장소" }, { label: "StorageClasses", isBold: true }]}
-      title="Storage Classes"
+      breadcrumbs={[{ label: "저장소" }, { label: "ConfigMaps", isBold: true }]}
+      title="ConfigMaps"
       sideMenuItems={sideMenuItems}
     >
       <ContentSection card>
         <StatusSummary
-          tabs={[
-            { id: "gitops", label: "GitOps 현황", count: 5 },
-          ]}
+          tabs={[{ id: "gitops", label: "GitOps 현황", count: 6 }]}
           activeTabId="gitops"
           cards={[
-            { label: "Stable", count: 4, color: "#00b30e" },
+            { label: "Stable", count: 5, color: "#00b30e" },
             { label: "Mismatch", count: 0, color: "#da1e28" },
             { label: "Updating", count: 1, color: "#00b30e" },
             { label: "Missing", count: 0, color: "#dea600" },
@@ -257,13 +274,13 @@ export default function Slide04() {
       <ContentSection relative>
         <FilterBar className="gap-2">
           <Select
-            label="프로비저너"
+            label="네임스페이스"
             options={[
               { value: "", label: "전체" },
-              { value: "no-provisioner", label: "no-provisioner" },
-              { value: "nfs", label: "nfs-subdir" },
-              { value: "ceph-rbd", label: "rook-ceph (RBD)" },
-              { value: "ceph-fs", label: "rook-ceph (CephFS)" },
+              { value: "app-backend", label: "app-backend" },
+              { value: "app-frontend", label: "app-frontend" },
+              { value: "app-database", label: "app-database" },
+              { value: "monitoring", label: "monitoring" },
             ]}
           />
           <SearchInput placeholder="이름 검색" className="mr-1" />
@@ -290,8 +307,8 @@ export default function Slide04() {
 
         <Pagination
           currentPage={1}
-          totalPages={1}
-          visiblePages={[1]}
+          totalPages={3}
+          visiblePages={[1, 2, 3]}
           className="mt-5 pb-10"
         />
       </ContentSection>

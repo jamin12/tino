@@ -1,15 +1,18 @@
 import type { ReactNode } from "react";
 import {
-  LayoutDashboard,
-  Layers,
-  AppWindow,
-  GitBranch,
-  Settings,
-  GitCompare,
   Building2,
   FolderOpen,
   Braces,
 } from "lucide-react";
+import {
+  ConechainIcon,
+  SidebarDashboardIcon,
+  SidebarNamespaceIcon,
+  SidebarApplicationIcon,
+  SidebarCicdIcon,
+  SidebarSettingsIcon,
+  SidebarGitopsIcon,
+} from "./icons";
 import { SideMenu } from "./SideMenu";
 import { GlobalNav } from "./GlobalNav";
 import { PageHeader } from "./PageHeader";
@@ -20,13 +23,7 @@ import type { NavSelector } from "./GlobalNav";
 
 const defaultLogo = (
   <div className="flex items-center gap-2">
-    <div className="flex items-center justify-center">
-      <img
-        src="https://api.iconify.design/lucide:box.svg?color=%2329d8ff"
-        className="w-[30px] h-[30px]"
-        alt="logo"
-      />
-    </div>
+    <ConechainIcon className="w-[30px] h-[30px]" />
     <span className="text-white font-bold text-[18px] tracking-tight">
       CONE<span className="text-[#29d8ff] font-medium">-Chain</span>
     </span>
@@ -37,24 +34,24 @@ const defaultSideMenuItems: SideMenuItem[] = [
   {
     id: "dashboard",
     label: "대시보드",
-    icon: <LayoutDashboard className="w-5 h-5" />,
+    icon: <SidebarDashboardIcon className="w-5 h-5" />,
   },
   {
     id: "namespace",
     label: "네임스페이스",
-    icon: <Layers className="w-5 h-5" />,
+    icon: <SidebarNamespaceIcon className="w-5 h-5" />,
     expandIcon: "plus",
   },
   {
     id: "application",
     label: "애플리케이션",
-    icon: <AppWindow className="w-5 h-5" />,
+    icon: <SidebarApplicationIcon className="w-5 h-5" />,
     expandIcon: "plus",
   },
   {
     id: "cicd",
     label: "CI/CD",
-    icon: <GitBranch className="w-5 h-5" />,
+    icon: <SidebarCicdIcon className="w-5 h-5" />,
     active: true,
     expanded: true,
     expandIcon: "minus",
@@ -88,13 +85,13 @@ const defaultSideMenuItems: SideMenuItem[] = [
   {
     id: "settings",
     label: "설정/권한",
-    icon: <Settings className="w-5 h-5" />,
+    icon: <SidebarSettingsIcon className="w-5 h-5" />,
     expandIcon: "plus",
   },
   {
     id: "gitops",
     label: "GitOps",
-    icon: <GitCompare className="w-5 h-5" />,
+    icon: <SidebarGitopsIcon className="w-5 h-5" />,
     expandIcon: "plus",
   },
 ];
