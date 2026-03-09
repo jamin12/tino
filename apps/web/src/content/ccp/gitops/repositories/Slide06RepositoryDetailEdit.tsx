@@ -177,12 +177,11 @@ export default function Slide06RepositoryDetailEdit() {
         <Tabs
           items={[
             { id: "basic", label: "기본정보" },
-            { id: "code", label: "코드" },
+            { id: "code", label: "파일" },
             { id: "branches", label: "브랜치" },
             { id: "commits", label: "커밋 이력" },
             { id: "tags", label: "태그/릴리스" },
-            { id: "automation", label: "배포 자동화" },
-            { id: "settings", label: "설정" },
+            { id: "gitops", label: "GitOps", dividerBefore: true },
           ]}
           activeId="code"
           className="mb-0"

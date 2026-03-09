@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from "react";
-import { RefreshCw, Server, GripVertical, X, Plus, LayoutDashboard, Pencil, History, MoreVertical, Pin, GitBranch, Box, ArrowLeft } from "lucide-react";
+import { RefreshCw, Server, MoreVertical, Pin, GitBranch, Box, ArrowLeft } from "lucide-react";
 import {
   CcpDashboardLayout,
   ContentSection,
@@ -16,14 +16,10 @@ import type { SideMenuItem } from "../_components";
 import type { SlideMeta } from "@entities/document";
 import { LineChart, PieChart } from "@nhn-cloud/ncui-chart";
 import "@nhn-cloud/ncui-chart/style.css";
-import { draggable, dropTargetForElements, monitorForElements } from "@atlaskit/pragmatic-drag-and-drop/element/adapter";
-import { combine } from "@atlaskit/pragmatic-drag-and-drop/combine";
-import { reorder } from "@atlaskit/pragmatic-drag-and-drop/reorder";
-import { attachClosestEdge, extractClosestEdge, type Edge } from "@atlaskit/pragmatic-drag-and-drop-hitbox/closest-edge";
 
 export const slideMeta: SlideMeta = {
-  screenId: "CCP-DSH-002",
-  title: "클러스터 대시보드 (위젯 편집)",
+  screenId: "CCP-DSH-001",
+  title: "클러스터 대시보드",
   section: "홈 대시보드",
 };
 
@@ -69,103 +65,22 @@ const sideMenuItems: SideMenuItem[] = [
   },
 ];
 
-// ─── Widget Wrapper ─────────────────────────────────────────────────────────
-// @atlaskit/pragmatic-drag-and-drop 기반 드래그앤드롭 지원
-
-type DragState = "idle" | "dragging" | "over";
+// ─── Widget Wrapper (정상 모드 – 편집 UI 없음) ────────────────────────────────
 
 function WidgetCard({
-  widgetId,
-  title,
   children,
   noPadding,
-  closestEdge,
+  className,
 }: {
-  widgetId: string;
-  title?: string;
   children: React.ReactNode;
   noPadding?: boolean;
-  closestEdge?: Edge | null;
+  className?: string;
 }) {
-  const containerRef = useRef<HTMLDivElement>(null);
-  const handleRef = useRef<HTMLDivElement>(null);
-  const [dragState, setDragState] = useState<DragState>("idle");
-
-  useEffect(() => {
-    const el = containerRef.current;
-    const handle = handleRef.current;
-    if (!el || !handle) return;
-
-    return combine(
-      draggable({
-        element: el,
-        dragHandle: handle,
-        getInitialData: () => ({ widgetId }),
-        onDragStart: () => setDragState("dragging"),
-        onDrop: () => setDragState("idle"),
-      }),
-      dropTargetForElements({
-        element: el,
-        getData: ({ input, element }) => {
-          return attachClosestEdge(
-            { widgetId },
-            { element, input, allowedEdges: ["top", "bottom"] },
-          );
-        },
-        onDragEnter: () => setDragState("over"),
-        onDragLeave: () => setDragState("idle"),
-        onDrop: () => setDragState("idle"),
-        canDrop: ({ source }) => source.data.widgetId !== widgetId,
-      }),
-    );
-  }, [widgetId]);
-
   return (
-    <div ref={containerRef} className="relative h-full" data-widget-id={widgetId}>
-      {/* ── 드롭 인디케이터 (상단) ── */}
-      {closestEdge === "top" && (
-        <div className="absolute -top-[3px] left-0 right-0 h-[3px] bg-[#4A90D9] rounded-full z-10" />
-      )}
-
-      <div
-        className={[
-          "bg-white rounded-lg shadow-[0px_0px_8px_#00000014] overflow-hidden transition-all duration-200 h-full flex flex-col",
-          dragState === "dragging" ? "opacity-40 scale-[0.98]" : "",
-          dragState === "over" ? "ring-2 ring-[#4A90D9]/30" : "",
-        ].join(" ")}
-      >
-        {/* ── Edit mode bar: drag handle + close ── */}
-        <div className="h-[32px] flex items-center justify-between px-2 bg-[#EBF3FB] border-b border-[#B8D4EE]">
-          {/* Drag handle */}
-          <div
-            ref={handleRef}
-            className="flex items-center gap-1 cursor-grab active:cursor-grabbing text-[#4A90D9]"
-          >
-            <GripVertical className="w-4 h-4" />
-            <span className="text-[11px] font-medium text-[#4A90D9] select-none">
-              {title ?? "위젯"}
-            </span>
-          </div>
-          {/* Close button */}
-          <button
-            type="button"
-            className="w-5 h-5 flex items-center justify-center rounded hover:bg-[#D6E8F7] text-[#4A90D9] transition-colors"
-            aria-label="위젯 제거"
-          >
-            <X className="w-3.5 h-3.5" />
-          </button>
-        </div>
-
-        {/* Content */}
-        <div className={`flex-1 ${noPadding ? "" : "p-5"}`}>
-          {children}
-        </div>
+    <div className={`bg-white rounded-lg shadow-[0px_0px_8px_#00000014] overflow-hidden h-full flex flex-col ${className ?? ""}`}>
+      <div className={`flex-1 ${noPadding ? "" : "p-5"}`}>
+        {children}
       </div>
-
-      {/* ── 드롭 인디케이터 (하단) ── */}
-      {closestEdge === "bottom" && (
-        <div className="absolute -bottom-[3px] left-0 right-0 h-[3px] bg-[#4A90D9] rounded-full z-10" />
-      )}
     </div>
   );
 }
@@ -174,18 +89,11 @@ function WidgetCard({
 
 function ContextMenuDropdown() {
   const menuItems = [
-    { id: "add-widget", label: "위젯 추가", icon: <Plus className="w-3.5 h-3.5" /> },
-    { id: "edit-widget", label: "위젯 편집", icon: <Pencil className="w-3.5 h-3.5" /> },
-    { id: "divider-1", divider: true },
-    { id: "save-layout", label: "레이아웃 저장", icon: <LayoutDashboard className="w-3.5 h-3.5" /> },
-    { id: "reset-layout", label: "레이아웃 초기화", icon: <History className="w-3.5 h-3.5" /> },
-    { id: "divider-2", divider: true },
     { id: "refresh", label: "새로고침", icon: <RefreshCw className="w-3.5 h-3.5" /> },
   ] as const;
 
   return (
-    <div className="absolute top-[36px] right-0 w-[180px] bg-white rounded-lg shadow-[0_4px_20px_rgba(0,0,0,0.15)] border border-[#e0e0e0] z-50 py-1 overflow-hidden">
-      {/* Pin button at top-right corner */}
+    <div className="absolute top-[36px] right-0 w-[160px] bg-white rounded-lg shadow-[0_4px_20px_rgba(0,0,0,0.15)] border border-[#e0e0e0] z-50 py-1 overflow-hidden">
       <div className="flex justify-end px-2 pt-1 pb-0.5">
         <button
           type="button"
@@ -196,20 +104,16 @@ function ContextMenuDropdown() {
           <Pin className="w-4 h-4" />
         </button>
       </div>
-      {menuItems.map((item) =>
-        "divider" in item && item.divider ? (
-          <div key={item.id} className="my-1 border-t border-[#eee]" />
-        ) : (
-          <button
-            key={item.id}
-            type="button"
-            className="flex items-center gap-2.5 w-full px-4 py-[7px] text-left hover:bg-[#f5f5f5] transition-colors cursor-pointer"
-          >
-            <span className="text-[#555]">{"icon" in item ? item.icon : null}</span>
-            <span className="text-[13px] text-[#333]">{"label" in item ? item.label : ""}</span>
-          </button>
-        )
-      )}
+      {menuItems.map((item) => (
+        <button
+          key={item.id}
+          type="button"
+          className="flex items-center gap-2.5 w-full px-4 py-[7px] text-left hover:bg-[#f5f5f5] transition-colors cursor-pointer"
+        >
+          <span className="text-[#555]">{item.icon}</span>
+          <span className="text-[13px] text-[#333]">{item.label}</span>
+        </button>
+      ))}
     </div>
   );
 }
@@ -390,7 +294,6 @@ function GitOpsDonutDetail({ row, onBack }: { row: WorkloadGitOpsRow; onBack: ()
       data: row.statuses[s] ?? 0,
     })),
   };
-  // 시리즈 순서에 맞춰 색상 배열 생성
   const pieColors = visibleStatuses.map((s) => gitopsStatusConfig[s].color);
 
   return (
@@ -408,7 +311,6 @@ function GitOpsDonutDetail({ row, onBack }: { row: WorkloadGitOpsRow; onBack: ()
         <span className="text-[12px] text-[#888]">총 {row.total}개</span>
       </div>
       <div className="flex items-center gap-0">
-        {/* 왼쪽: 도넛 차트 */}
         <div className="flex items-center justify-center flex-shrink-0 pr-4" style={{ width: 200, height: 200, overflow: "hidden" }}>
           {visibleStatuses.length > 0 ? (
             <div style={{ marginTop: -10 }}>
@@ -431,9 +333,7 @@ function GitOpsDonutDetail({ row, onBack }: { row: WorkloadGitOpsRow; onBack: ()
             <div className="text-[12px] text-[#aaa]">데이터 없음</div>
           )}
         </div>
-        {/* 구분선 */}
         <div className="w-px bg-[#e8e8e8] flex-shrink-0" style={{ alignSelf: "stretch" }} />
-        {/* 오른쪽: 리소스 표 */}
         <div className="flex-1 pl-4">
           <table className="w-full">
             <thead>
@@ -538,7 +438,6 @@ function GitOpsCardGroup({ data, showLegend = true, footerText }: { data: Worklo
                   </div>
                 );
               })}
-              {/* Arrow */}
               <div className="absolute left-1/2 -translate-x-1/2 top-full w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-t-[6px] border-t-[#1a1a2e]" />
             </div>
           </div>
@@ -565,239 +464,9 @@ function GitOpsStatusLegend() {
   );
 }
 
-// ─── Widget Definitions ─────────────────────────────────────────────────────
-
-interface WidgetDef {
-  id: string;
-  title: string;
-  noPadding?: boolean;
-  /** 같은 행에 여러 위젯을 나란히 배치할 때 사용. 같은 groupId를 가진 위젯끼리 grid-cols-2로 묶임 */
-  groupId?: string;
-  render: () => React.ReactNode;
-}
-
-const WIDGET_DEFS: WidgetDef[] = [
-  {
-    id: "cluster-summary",
-    title: "클러스터 요약",
-    render: () => (
-      <>
-        <div className="flex justify-between items-start mb-4">
-          <div>
-            <div className="text-[18px] font-bold text-[#1a1a2e]">dev-cluster</div>
-            <div className="text-[12px] text-[#888] mt-1">
-              마지막 상태 갱신 2026. 3. 9. 오후 1:24:00
-            </div>
-          </div>
-          <div className="flex gap-6 text-center">
-            <div className="text-[12px] text-[#666]">
-              <div>연결된 노드</div>
-              <div>
-                <span className="text-[22px] font-bold text-[#1a1a2e]">4</span>{" "}
-                <span className="text-[13px] text-[#888]">개</span>
-              </div>
-            </div>
-            <div className="text-[12px] text-[#666]">
-              <div>연결된 네임스페이스</div>
-              <div>
-                <span className="text-[22px] font-bold text-[#1a1a2e]">12</span>{" "}
-                <span className="text-[13px] text-[#888]">개</span>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div className="grid grid-cols-3 border-t border-[#eee] pt-4">
-          <div className="px-6 border-r border-[#eee] first:pl-0">
-            <div className="text-[12px] text-[#888] mb-1">전체 Pod</div>
-            <div className="text-[28px] font-bold text-[#1a1a2e]">
-              102 <span className="text-[14px] font-normal text-[#888]">/ 912 개</span>
-            </div>
-            <div className="text-[13px] text-[#f0ad4e] flex justify-between">
-              실행 중 <span className="text-[#333]">72</span>
-            </div>
-          </div>
-          <div className="px-6 border-r border-[#eee]">
-            <div className="text-[12px] text-[#888] mb-1">전체 CPU 사용량</div>
-            <div className="text-[28px] font-bold text-[#1a1a2e]">
-              6.85 <span className="text-[13px] font-normal text-[#888]">Core</span>
-            </div>
-          </div>
-          <div className="px-6">
-            <div className="text-[12px] text-[#888] mb-1">전체 메모리 사용량</div>
-            <div className="text-[28px] font-bold text-[#1a1a2e]">
-              12.47 <span className="text-[13px] font-normal text-[#888]">GiB</span>
-            </div>
-          </div>
-        </div>
-      </>
-    ),
-  },
-  {
-    id: "workload-gitops",
-    title: "워크로드 GitOps 상태",
-    groupId: "gitops-row",
-    render: () => (
-      <>
-        <div className="flex items-center gap-2 mb-3">
-          <GitBranch className="w-4 h-4 text-[#4A90D9]" />
-          <span className="text-[14px] font-semibold text-[#1a1a2e]">워크로드 GitOps 상태</span>
-        </div>
-        <GitOpsCardGroup data={workloadGitOpsData} showLegend footerText="* 워크로드 리소스 유형별 GitOps 동기화 상태" />
-      </>
-    ),
-  },
-  {
-    id: "app-gitops",
-    title: "애플리케이션 GitOps 상태",
-    groupId: "gitops-row",
-    render: () => (
-      <>
-        <div className="flex items-center gap-2 mb-3">
-          <Box className="w-4 h-4 text-[#4A90D9]" />
-          <span className="text-[14px] font-semibold text-[#1a1a2e]">애플리케이션 GitOps 상태</span>
-        </div>
-        <GitOpsCardGroup data={appGitOpsData} showLegend footerText="* 애플리케이션별 GitOps 동기화 상태" />
-      </>
-    ),
-  },
-  {
-    id: "usage-trend",
-    title: "리소스 사용량 추이",
-    render: () => (
-      <>
-        <div className="mb-4">
-          <div className="text-[14px] font-bold text-[#333]">리소스 사용량 추이</div>
-          <div className="text-[11px] text-[#aaa] mt-1">최근 24시간 시간대별 추이</div>
-        </div>
-        <UsageTrendChart />
-      </>
-    ),
-  },
-  {
-    id: "recent-events",
-    title: "최근 이벤트",
-    noPadding: true,
-    render: () => (
-      <>
-        <div className="px-6 py-4 border-b border-[#eee]">
-          <span className="text-[14px] font-bold text-[#333]">최근 중요 이벤트</span>
-        </div>
-        <table className="w-full border-collapse">
-          <thead>
-            <tr className="bg-[#f5f6f8] border-b border-[#ddd]">
-              <th className="text-left text-[#555] text-[12px] font-semibold px-4 py-2.5 pl-6">유형</th>
-              <th className="text-left text-[#555] text-[12px] font-semibold px-4 py-2.5">대상</th>
-              <th className="text-left text-[#555] text-[12px] font-semibold px-4 py-2.5">메시지</th>
-              <th className="text-right text-[#555] text-[12px] font-semibold px-4 py-2.5 pr-6">시간</th>
-            </tr>
-          </thead>
-          <tbody>
-            {events.map((ev, i) => (
-              <tr key={i} className="border-b border-[#f0f0f0] hover:bg-[#f8f9ff] transition-colors">
-                <td className="px-4 py-2.5 pl-6">
-                  <span className={`inline-block px-2.5 py-0.5 rounded-xl text-[11px] font-semibold ${typeStyles[ev.type]}`}>
-                    {ev.type}
-                  </span>
-                </td>
-                <td className="px-4 py-2.5">
-                  <div className="text-[13px] font-medium text-[#2c3e50]">{ev.name}</div>
-                  <div className="text-[11px] text-[#999]">{ev.kind}</div>
-                </td>
-                <td className="px-4 py-2.5 text-[13px] text-[#444]">{ev.msg}</td>
-                <td className="px-4 py-2.5 pr-6 text-right text-[12px] text-[#888] whitespace-nowrap">
-                  {formatTimeAgo(ev.minutesAgo)}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-        <div className="px-6 py-3 text-[11px] text-[#aaa] border-t border-[#f0f0f0]">
-          * 쿠버네티스 내 발생한 최근 중요 이벤트 10개 조회
-        </div>
-      </>
-    ),
-  },
-];
-
-const DEFAULT_WIDGET_ORDER = WIDGET_DEFS.map((w) => w.id);
-
 // ─── Slide ──────────────────────────────────────────────────────────────────
 
-export default function Slide01ClusterDashboard() {
-  const [widgetOrder, setWidgetOrder] = useState<string[]>(DEFAULT_WIDGET_ORDER);
-  const [dropTarget, setDropTarget] = useState<{ widgetId: string; edge: Edge } | null>(null);
-
-  // 드래그 모니터: 드롭 시 위젯 순서 변경
-  useEffect(() => {
-    return monitorForElements({
-      onDrag: ({ location }) => {
-        const target = location.current.dropTargets[0];
-        if (!target) {
-          setDropTarget(null);
-          return;
-        }
-        const edge = extractClosestEdge(target.data);
-        if (edge) {
-          setDropTarget({ widgetId: target.data.widgetId as string, edge });
-        }
-      },
-      onDragStart: () => setDropTarget(null),
-      onDrop: ({ source, location }) => {
-        setDropTarget(null);
-        const target = location.current.dropTargets[0];
-        if (!target) return;
-
-        const sourceId = source.data.widgetId as string;
-        const targetId = target.data.widgetId as string;
-        if (sourceId === targetId) return;
-
-        const edge = extractClosestEdge(target.data);
-        if (!edge) return;
-
-        setWidgetOrder((prev) => {
-          const startIndex = prev.indexOf(sourceId);
-          let finishIndex = prev.indexOf(targetId);
-          if (startIndex === -1 || finishIndex === -1) return prev;
-
-          // edge가 bottom이면 target 아래로, top이면 target 위로
-          if (edge === "bottom") {
-            finishIndex = startIndex < finishIndex ? finishIndex : finishIndex + 1;
-          } else {
-            finishIndex = startIndex > finishIndex ? finishIndex : finishIndex - 1;
-          }
-
-          return reorder({ list: prev, startIndex, finishIndex });
-        });
-      },
-    });
-  }, []);
-
-  const widgetMap = new Map(WIDGET_DEFS.map((w) => [w.id, w]));
-
-  // 위젯 순서를 그룹별로 묶어서 렌더링 단위 생성
-  // groupId가 같은 위젯끼리 연속으로 배치되면 하나의 행(grid-cols-2)으로 묶임
-  const renderUnits: Array<{ type: "single"; widget: WidgetDef } | { type: "group"; groupId: string; widgets: WidgetDef[] }> = [];
-  const processedIds = new Set<string>();
-
-  for (const id of widgetOrder) {
-    if (processedIds.has(id)) continue;
-    const widget = widgetMap.get(id);
-    if (!widget) continue;
-
-    if (widget.groupId) {
-      // 같은 groupId를 가진 모든 위젯을 widgetOrder 순서대로 모음
-      const groupWidgets = widgetOrder
-        .filter((wid) => !processedIds.has(wid) && widgetMap.get(wid)?.groupId === widget.groupId)
-        .map((wid) => widgetMap.get(wid)!)
-        .filter(Boolean);
-      groupWidgets.forEach((w) => processedIds.add(w.id));
-      renderUnits.push({ type: "group", groupId: widget.groupId, widgets: groupWidgets });
-    } else {
-      processedIds.add(id);
-      renderUnits.push({ type: "single", widget });
-    }
-  }
-
+export default function Slide02ClusterDashboardView() {
   return (
     <CcpDashboardLayout
       breadcrumbs={[
@@ -827,48 +496,131 @@ export default function Slide01ClusterDashboard() {
         </div>
       }
     >
-      {renderUnits.map((unit, idx) => {
-        const isLast = idx === renderUnits.length - 1;
-
-        if (unit.type === "single") {
-          const { widget } = unit;
-          const edge = dropTarget?.widgetId === widget.id ? dropTarget.edge : null;
-          return (
-            <ContentSection key={widget.id} spacing="sm" className={isLast ? "pb-6" : ""}>
-              <WidgetCard
-                widgetId={widget.id}
-                title={widget.title}
-                noPadding={widget.noPadding}
-                closestEdge={edge}
-              >
-                {widget.render()}
-              </WidgetCard>
-            </ContentSection>
-          );
-        }
-
-        // 그룹 위젯: grid-cols-2로 나란히 배치
-        return (
-          <ContentSection key={unit.groupId} spacing="sm" className={isLast ? "pb-6" : ""}>
-            <div className="grid grid-cols-2 gap-4">
-              {unit.widgets.map((widget) => {
-                const edge = dropTarget?.widgetId === widget.id ? dropTarget.edge : null;
-                return (
-                  <WidgetCard
-                    key={widget.id}
-                    widgetId={widget.id}
-                    title={widget.title}
-                    noPadding={widget.noPadding}
-                    closestEdge={edge}
-                  >
-                    {widget.render()}
-                  </WidgetCard>
-                );
-              })}
+      {/* ── 클러스터 요약 ── */}
+      <ContentSection spacing="sm">
+        <WidgetCard>
+          <div className="flex justify-between items-start mb-4">
+            <div>
+              <div className="text-[18px] font-bold text-[#1a1a2e]">dev-cluster</div>
+              <div className="text-[12px] text-[#888] mt-1">
+                마지막 상태 갱신 2026. 3. 9. 오후 1:24:00
+              </div>
             </div>
-          </ContentSection>
-        );
-      })}
+            <div className="flex gap-6 text-center">
+              <div className="text-[12px] text-[#666]">
+                <div>연결된 노드</div>
+                <div>
+                  <span className="text-[22px] font-bold text-[#1a1a2e]">4</span>{" "}
+                  <span className="text-[13px] text-[#888]">개</span>
+                </div>
+              </div>
+              <div className="text-[12px] text-[#666]">
+                <div>연결된 네임스페이스</div>
+                <div>
+                  <span className="text-[22px] font-bold text-[#1a1a2e]">12</span>{" "}
+                  <span className="text-[13px] text-[#888]">개</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div className="grid grid-cols-3 border-t border-[#eee] pt-4">
+            <div className="px-6 border-r border-[#eee] first:pl-0">
+              <div className="text-[12px] text-[#888] mb-1">전체 Pod</div>
+              <div className="text-[28px] font-bold text-[#1a1a2e]">
+                102 <span className="text-[14px] font-normal text-[#888]">/ 912 개</span>
+              </div>
+              <div className="text-[13px] text-[#f0ad4e] flex justify-between">
+                실행 중 <span className="text-[#333]">72</span>
+              </div>
+            </div>
+            <div className="px-6 border-r border-[#eee]">
+              <div className="text-[12px] text-[#888] mb-1">전체 CPU 사용량</div>
+              <div className="text-[28px] font-bold text-[#1a1a2e]">
+                6.85 <span className="text-[13px] font-normal text-[#888]">Core</span>
+              </div>
+            </div>
+            <div className="px-6">
+              <div className="text-[12px] text-[#888] mb-1">전체 메모리 사용량</div>
+              <div className="text-[28px] font-bold text-[#1a1a2e]">
+                12.47 <span className="text-[13px] font-normal text-[#888]">GiB</span>
+              </div>
+            </div>
+          </div>
+        </WidgetCard>
+      </ContentSection>
+
+      {/* ── 워크로드 GitOps 상태 + 애플리케이션 GitOps 상태 (반반) ── */}
+      <ContentSection spacing="sm">
+        <div className="grid grid-cols-2 gap-4">
+          <WidgetCard>
+            <div className="flex items-center gap-2 mb-3">
+              <GitBranch className="w-4 h-4 text-[#4A90D9]" />
+              <span className="text-[14px] font-semibold text-[#1a1a2e]">워크로드 GitOps 상태</span>
+            </div>
+            <GitOpsCardGroup data={workloadGitOpsData} showLegend footerText="* 워크로드 리소스 유형별 GitOps 동기화 상태" />
+          </WidgetCard>
+
+          <WidgetCard>
+            <div className="flex items-center gap-2 mb-3">
+              <Box className="w-4 h-4 text-[#4A90D9]" />
+              <span className="text-[14px] font-semibold text-[#1a1a2e]">애플리케이션 GitOps 상태</span>
+            </div>
+            <GitOpsCardGroup data={appGitOpsData} showLegend footerText="* 애플리케이션별 GitOps 동기화 상태" />
+          </WidgetCard>
+        </div>
+      </ContentSection>
+
+      {/* ── 리소스 사용량 추이 ── */}
+      <ContentSection spacing="sm">
+        <WidgetCard>
+          <div className="mb-4">
+            <div className="text-[14px] font-bold text-[#333]">리소스 사용량 추이</div>
+            <div className="text-[11px] text-[#aaa] mt-1">최근 24시간 시간대별 추이</div>
+          </div>
+          <UsageTrendChart />
+        </WidgetCard>
+      </ContentSection>
+
+      {/* ── 최근 중요 이벤트 ── */}
+      <ContentSection spacing="sm" className="pb-6">
+        <WidgetCard noPadding>
+          <div className="px-6 py-4 border-b border-[#eee]">
+            <span className="text-[14px] font-bold text-[#333]">최근 중요 이벤트</span>
+          </div>
+          <table className="w-full border-collapse">
+            <thead>
+              <tr className="bg-[#f5f6f8] border-b border-[#ddd]">
+                <th className="text-left text-[#555] text-[12px] font-semibold px-4 py-2.5 pl-6">유형</th>
+                <th className="text-left text-[#555] text-[12px] font-semibold px-4 py-2.5">대상</th>
+                <th className="text-left text-[#555] text-[12px] font-semibold px-4 py-2.5">메시지</th>
+                <th className="text-right text-[#555] text-[12px] font-semibold px-4 py-2.5 pr-6">시간</th>
+              </tr>
+            </thead>
+            <tbody>
+              {events.map((ev, i) => (
+                <tr key={i} className="border-b border-[#f0f0f0] hover:bg-[#f8f9ff] transition-colors">
+                  <td className="px-4 py-2.5 pl-6">
+                    <span className={`inline-block px-2.5 py-0.5 rounded-xl text-[11px] font-semibold ${typeStyles[ev.type]}`}>
+                      {ev.type}
+                    </span>
+                  </td>
+                  <td className="px-4 py-2.5">
+                    <div className="text-[13px] font-medium text-[#2c3e50]">{ev.name}</div>
+                    <div className="text-[11px] text-[#999]">{ev.kind}</div>
+                  </td>
+                  <td className="px-4 py-2.5 text-[13px] text-[#444]">{ev.msg}</td>
+                  <td className="px-4 py-2.5 pr-6 text-right text-[12px] text-[#888] whitespace-nowrap">
+                    {formatTimeAgo(ev.minutesAgo)}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          <div className="px-6 py-3 text-[11px] text-[#aaa] border-t border-[#f0f0f0]">
+            * 쿠버네티스 내 발생한 최근 중요 이벤트 10개 조회
+          </div>
+        </WidgetCard>
+      </ContentSection>
     </CcpDashboardLayout>
   );
 }

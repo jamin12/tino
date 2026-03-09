@@ -96,7 +96,7 @@ export default function Slide03RepositoryConnectGitops() {
               { id: "gitops", label: "GitOps", dividerBefore: true },
             ]}
             activeId="gitops"
-            className="mb-6"
+            className="mb-8"
           />
 
           <div className="space-y-5">
