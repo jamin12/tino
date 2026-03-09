@@ -73,6 +73,7 @@ export function SlidePresenter({ slides }: Props) {
   const currentAnnotations = slides[currentSlideIndex]?.meta.annotations;
   const currentMeta = slides[currentSlideIndex]?.meta;
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [collapsedSections, setCollapsedSections] = useState<Set<string>>(new Set());
 
   const handleCopyScreenId = useCallback(
     (e: MouseEvent, screenId: string) => {
@@ -238,27 +239,51 @@ export function SlidePresenter({ slides }: Props) {
           const section = slide.meta.section;
           const prevSection = index > 0 ? slides[index - 1].meta.section : undefined;
           const showSectionHeader = section && section !== prevSection;
+          const isCollapsed = section ? collapsedSections.has(section) : false;
+
+          if (!showSectionHeader && isCollapsed) return null;
 
           return (
             <div key={index}>
               {showSectionHeader && (
-                <div className={`px-1 py-1 text-[9px] font-semibold tracking-wide text-gray-400 uppercase ${index > 0 ? "mt-2 border-t border-gray-200 pt-2" : ""}`}>
-                  {section}
-                </div>
+                <button
+                  type="button"
+                  onClick={() =>
+                    setCollapsedSections((prev) => {
+                      const next = new Set(prev);
+                      if (next.has(section)) next.delete(section);
+                      else next.add(section);
+                      return next;
+                    })
+                  }
+                  className={`flex w-full items-center gap-1 px-1 py-1 text-[9px] font-semibold tracking-wide text-gray-400 uppercase cursor-pointer hover:text-gray-600 transition-colors ${index > 0 ? "mt-2 border-t border-gray-200 pt-2" : ""}`}
+                >
+                  <svg
+                    className={`h-2.5 w-2.5 shrink-0 transition-transform ${isCollapsed ? "-rotate-90" : ""}`}
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M19 9l-7 7-7-7" />
+                  </svg>
+                  <span className="truncate">{section}</span>
+                </button>
               )}
-              <button
-                onClick={() => setSlideIndex(index)}
-                className={`w-full rounded border px-2 py-1.5 text-left text-[10px] transition-colors ${
-                  index === currentSlideIndex
-                    ? "border-blue-500 bg-blue-50 text-blue-700"
-                    : "border-gray-200 bg-white text-gray-600 hover:border-gray-300"
-                }`}
-              >
-                {slide.meta.screenId && (
-                  <div className="font-mono text-[8px] text-gray-400 mb-0.5">{slide.meta.screenId}</div>
-                )}
-                <div className="font-medium truncate">{slide.meta.title ?? index + 1}</div>
-              </button>
+              {!isCollapsed && (
+                <button
+                  onClick={() => setSlideIndex(index)}
+                  className={`w-full rounded border px-2 py-1.5 text-left text-[10px] transition-colors ${
+                    index === currentSlideIndex
+                      ? "border-blue-500 bg-blue-50 text-blue-700"
+                      : "border-gray-200 bg-white text-gray-600 hover:border-gray-300"
+                  }`}
+                >
+                  {slide.meta.screenId && (
+                    <div className="font-mono text-[8px] text-gray-400 mb-0.5">{slide.meta.screenId}</div>
+                  )}
+                  <div className="font-medium truncate">{slide.meta.title ?? index + 1}</div>
+                </button>
+              )}
             </div>
           );
         })}
@@ -405,7 +430,7 @@ export function SlidePresenter({ slides }: Props) {
             Previous
           </button>
           <div className="flex flex-col items-center gap-0.5">
-            {currentMeta?.screenId && (
+            {currentMeta?.screenId ? (
               <button
                 type="button"
                 onClick={(e) =>
@@ -423,7 +448,11 @@ export function SlidePresenter({ slides }: Props) {
                   </span>
                 )}
               </button>
-            )}
+            ) : currentMeta?.title ? (
+              <span className="text-xs font-medium text-gray-500">
+                {currentMeta.title}
+              </span>
+            ) : null}
             <span className="text-xs text-gray-400">
               {currentSlideIndex + 1} / {slides.length}
             </span>
