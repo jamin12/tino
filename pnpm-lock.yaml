@@ -33,14 +33,14 @@ importers:
   apps/web:
     dependencies:
       '@nhn-cloud/ncui':
-        specifier: ^2.10.1
-        version: 2.23.1(@nhn-cloud/ncui-icons@2.23.1(react@18.3.1))(dayjs@1.11.19)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+        specifier: ^3.2.1
+        version: 3.2.1(@nhn-cloud/ncui-design-token@1.3.0)(@nhn-cloud/ncui-icons@3.2.1(react@18.3.1))(dayjs@1.11.19)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       '@nhn-cloud/ncui-chart':
         specifier: ^2.0.0
-        version: 2.0.0(@nhn-cloud/ncui-icons@2.23.1(react@18.3.1))(@nhn-cloud/ncui@2.23.1(@nhn-cloud/ncui-icons@2.23.1(react@18.3.1))(dayjs@1.11.19)(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(@types/react@18.3.28)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+        version: 2.0.0(@nhn-cloud/ncui-icons@3.2.1(react@18.3.1))(@nhn-cloud/ncui@3.2.1(@nhn-cloud/ncui-design-token@1.3.0)(@nhn-cloud/ncui-icons@3.2.1(react@18.3.1))(dayjs@1.11.19)(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(@types/react@18.3.28)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       '@nhn-cloud/ncui-icons':
-        specifier: ^2.10.1
-        version: 2.23.1(react@18.3.1)
+        specifier: ^3.2.1
+        version: 3.2.1(react@18.3.1)
       '@tanstack/react-query':
         specifier: ^5.0.0
         version: 5.90.21(react@18.3.1)
@@ -417,8 +417,8 @@ packages:
   '@floating-ui/core@1.7.5':
     resolution: {integrity: sha512-1Ih4WTWyw0+lKyFMcBHGbb5U5FtuHJuujoyyr5zTaWS5EYMeT6Jb2AuDeftsCsEuchO+mM2ij5+q9crhydzLhQ==}
 
-  '@floating-ui/dom@1.5.3':
-    resolution: {integrity: sha512-ClAbQnEqJAKCJOEbbLo5IUlZHkNszqhuxS4fHAVxRPXPya6Ysf2G8KypnYcOTpx6I8xcgF9bbHb6g/2KpbV8qA==}
+  '@floating-ui/dom@1.6.13':
+    resolution: {integrity: sha512-umqzocjDgNRGTuO7Q8CU32dkHkECqI8ZdMZ5Swb6QAM0t5rnlrN3lGo1hdpscRd3WS8T6DKYK4ephgIH9iRh3w==}
 
   '@floating-ui/dom@1.7.6':
     resolution: {integrity: sha512-9gZSAI5XM36880PPMm//9dfiEngYoC6Am2izES1FF406YFsjvyBMmeJ2g4SAju3xWwtuynNRFL2s9hgxpLI5SQ==}
@@ -429,20 +429,17 @@ packages:
       react: '>=16.8.0'
       react-dom: '>=16.8.0'
 
-  '@floating-ui/react@0.26.27':
-    resolution: {integrity: sha512-jLP72x0Kr2CgY6eTYi/ra3VA9LOkTo4C+DUTrbFgFOExKy3omYVmwMjNKqxAHdsnyLS96BIDLcO2SlnsNf8KUQ==}
-    peerDependencies:
-      react: '>=16.8.0'
-      react-dom: '>=16.8.0'
-
   '@floating-ui/react@0.26.28':
     resolution: {integrity: sha512-yORQuuAtVpiRjpMhdc0wJj06b9JFjrYF4qp96j++v2NBpbi6SEGF7donUJ3TMieerQ6qVkAv1tgr7L4r5roTqw==}
     peerDependencies:
       react: '>=16.8.0'
       react-dom: '>=16.8.0'
 
-  '@floating-ui/utils@0.1.6':
-    resolution: {integrity: sha512-OfX7E2oUDYxtBvsuS4e/jSn4Q9Qb6DzgeYtsAdkPZ47znpoNsMgZw0+tVijiv3uGNR6dgNlty6r9rzIzHjtd/A==}
+  '@floating-ui/react@0.27.3':
+    resolution: {integrity: sha512-CLHnes3ixIFFKVQDdICjel8muhFLOBdQH7fgtHNPY8UbCNqbeKZ262G7K66lGQOUQWWnYocf7ZbUsLJgGfsLHg==}
+    peerDependencies:
+      react: '>=17.0.0'
+      react-dom: '>=17.0.0'
 
   '@floating-ui/utils@0.2.11':
     resolution: {integrity: sha512-RiB/yIh78pcIxl6lLMG0CgBXAZ2Y0eVHqMPYugu+9U0AeT6YBeiJpf7lbdJNIugFP5SIjwNRgo4DhR1Qxi26Gg==}
@@ -494,18 +491,27 @@ packages:
       react: ^18.3.1 || ^19.0.0
       react-dom: ^18.3.1 || ^19.0.0
 
-  '@nhn-cloud/ncui-icons@2.23.1':
-    resolution: {integrity: sha512-srUGsWlRyqaan6DSlAZpDrvB8M99Uj4Ho0bB1vukZpthmu12r+1MO7fcNqH/zjdgNRBDi0QlV5BYbqiGEX4tjg==}
+  '@nhn-cloud/ncui-design-token-utils@1.0.0':
+    resolution: {integrity: sha512-ZFVPpqY7EYZt/v9/ou2WG+JH10X1Vq0JckDw/WHTSI4uDlTJ7MBIos/9GTujQUprBjlkMk914RPBnKG3cO0Y1g==}
     peerDependencies:
-      react: ^18.2.0
+      '@nhn-cloud/ncui-design-token': ^1.0.0
 
-  '@nhn-cloud/ncui@2.23.1':
-    resolution: {integrity: sha512-/e7ibjHA/QPGlTM4cYV+tUxU0mXihBbWs5s72W7jh8efM/TwJavUVn0v2pIVxd8KfqqMVlzPYN3sK5O+a157MA==}
+  '@nhn-cloud/ncui-design-token@1.3.0':
+    resolution: {integrity: sha512-OhouTQh90qHmZwzBpREeV9ij3jIdLopQt7tizHtAHzY4QkDSL/G2Ef5Az0ezD+WHiodcUGw5uKA0PoZ5Yl5ibg==}
+
+  '@nhn-cloud/ncui-icons@3.2.1':
+    resolution: {integrity: sha512-ujtHycl5y9UIAzJPg0ocYDX+1f+l3mBsEs2RsNqJGdzwL/F7YzNeue/TzKj/s2hySN0uTD3PzrmRFftPNy5D6g==}
     peerDependencies:
-      '@nhn-cloud/ncui-icons': ~2.23.1
-      dayjs: ^1.11.7
-      react: ^18.2.0
-      react-dom: ^18.2.0
+      react: ^18.3.1 || ^19.0.0
+
+  '@nhn-cloud/ncui@3.2.1':
+    resolution: {integrity: sha512-KFkuJVyLJ0xQ94aRP0qM8TeyjxSIHG19u40L3s7ZzXOJULYvivEYIWZ7Lk1NB5yAtUrY/WMP/xLNX1sbxZiRLg==}
+    peerDependencies:
+      '@nhn-cloud/ncui-design-token': ^1.2.0
+      '@nhn-cloud/ncui-icons': ~3.2.1
+      dayjs: ^1.11.13
+      react: ^18.3.1 || ^19.0.0
+      react-dom: ^18.3.1 || ^19.0.0
 
   '@rolldown/pluginutils@1.0.0-beta.27':
     resolution: {integrity: sha512-+d0F4MKMCbeVUJwG96uQ4SgAznZNSq93I3V+9NHA4OpvqG8mRCpGdKmK8l/dl02h2CCDHwW2FqilnTyDcAnqjA==}
@@ -1701,11 +1707,11 @@ packages:
     peerDependencies:
       react: ^18.3.1
 
-  react-hook-form@7.43.1:
-    resolution: {integrity: sha512-+s3+s8LLytRMriwwuSqeLStVjRXFGxgjjx2jED7Z+wz1J/88vpxieRQGvJVvzrzVxshZ0BRuocFERb779m2kNg==}
-    engines: {node: '>=12.22.0'}
+  react-hook-form@7.54.2:
+    resolution: {integrity: sha512-eHpAUgUjWbZocoQYUHposymRb4ZP6d0uwUnooL2uOybA9/3tPUvoAKqEWK1WaSiTxxOfTpffNZP7QwlnM3/gEg==}
+    engines: {node: '>=18.0.0'}
     peerDependencies:
-      react: ^16.8.0 || ^17 || ^18
+      react: ^16.8.0 || ^17 || ^18 || ^19
 
   react-is@16.13.1:
     resolution: {integrity: sha512-24e6ynE2H+OKt4kqsOvNd8kBpV65zoxbA4BVsEOB3ARVWQki/DHzaUoC5KuON/BiccDaCCTZBuOcfZs70kR8bQ==}
@@ -1713,8 +1719,8 @@ packages:
   react-is@17.0.2:
     resolution: {integrity: sha512-w2GsyukL62IJnlaff/nRegPQR94C/XXamvMWmSHRJ4y7Ts/4ocGRmTHvOs8PSE6pB3dWOrD/nueuU5sduBsQ4w==}
 
-  react-is@18.2.0:
-    resolution: {integrity: sha512-xWGDIW6x921xtzPkhiULtthJHoJvBbF3q26fzloPCK0hsvxtPVelvftw3zjbHWSkR2km9Z+4uxbDDK/6Zw9B8w==}
+  react-is@18.3.1:
+    resolution: {integrity: sha512-/LLMVyas0ljjAtoYiPqYiL8VWXzUUdThrmU5+n20DZv+a+ClRoevUzw5JxU+Ieh5/c87ytoTBV9G1FiKfNJdmg==}
 
   react-markdown@10.1.0:
     resolution: {integrity: sha512-qKxVopLT/TyA6BX3Ue5NwabOsAzm0Q7kAPwq6L+wWDwisYs7R8vZ0nRXqq6rkueboxpkjvLGU9fWifiX/ZZFxQ==}
@@ -2239,10 +2245,10 @@ snapshots:
     dependencies:
       '@floating-ui/utils': 0.2.11
 
-  '@floating-ui/dom@1.5.3':
+  '@floating-ui/dom@1.6.13':
     dependencies:
       '@floating-ui/core': 1.7.5
-      '@floating-ui/utils': 0.1.6
+      '@floating-ui/utils': 0.2.11
 
   '@floating-ui/dom@1.7.6':
     dependencies:
@@ -2255,14 +2261,6 @@ snapshots:
       react: 18.3.1
       react-dom: 18.3.1(react@18.3.1)
 
-  '@floating-ui/react@0.26.27(react-dom@18.3.1(react@18.3.1))(react@18.3.1)':
-    dependencies:
-      '@floating-ui/react-dom': 2.1.8(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
-      '@floating-ui/utils': 0.2.11
-      react: 18.3.1
-      react-dom: 18.3.1(react@18.3.1)
-      tabbable: 6.4.0
-
   '@floating-ui/react@0.26.28(react-dom@18.3.1(react@18.3.1))(react@18.3.1)':
     dependencies:
       '@floating-ui/react-dom': 2.1.8(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
@@ -2271,15 +2269,21 @@ snapshots:
       react-dom: 18.3.1(react@18.3.1)
       tabbable: 6.4.0
 
-  '@floating-ui/utils@0.1.6': {}
+  '@floating-ui/react@0.27.3(react-dom@18.3.1(react@18.3.1))(react@18.3.1)':
+    dependencies:
+      '@floating-ui/react-dom': 2.1.8(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      '@floating-ui/utils': 0.2.11
+      react: 18.3.1
+      react-dom: 18.3.1(react@18.3.1)
+      tabbable: 6.4.0
 
   '@floating-ui/utils@0.2.11': {}
 
-  '@hookform/error-message@2.0.1(react-dom@18.3.1(react@18.3.1))(react-hook-form@7.43.1(react@18.3.1))(react@18.3.1)':
+  '@hookform/error-message@2.0.1(react-dom@18.3.1(react@18.3.1))(react-hook-form@7.54.2(react@18.3.1))(react@18.3.1)':
     dependencies:
       react: 18.3.1
       react-dom: 18.3.1(react@18.3.1)
-      react-hook-form: 7.43.1(react@18.3.1)
+      react-hook-form: 7.54.2(react@18.3.1)
 
   '@humanfs/core@0.19.1': {}
 
@@ -2311,11 +2315,11 @@ snapshots:
       '@jridgewell/resolve-uri': 3.1.2
       '@jridgewell/sourcemap-codec': 1.5.5
 
-  '@nhn-cloud/ncui-chart@2.0.0(@nhn-cloud/ncui-icons@2.23.1(react@18.3.1))(@nhn-cloud/ncui@2.23.1(@nhn-cloud/ncui-icons@2.23.1(react@18.3.1))(dayjs@1.11.19)(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(@types/react@18.3.28)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)':
+  '@nhn-cloud/ncui-chart@2.0.0(@nhn-cloud/ncui-icons@3.2.1(react@18.3.1))(@nhn-cloud/ncui@3.2.1(@nhn-cloud/ncui-design-token@1.3.0)(@nhn-cloud/ncui-icons@3.2.1(react@18.3.1))(dayjs@1.11.19)(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(@types/react@18.3.28)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)':
     dependencies:
       '@floating-ui/react': 0.26.28(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
-      '@nhn-cloud/ncui': 2.23.1(@nhn-cloud/ncui-icons@2.23.1(react@18.3.1))(dayjs@1.11.19)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
-      '@nhn-cloud/ncui-icons': 2.23.1(react@18.3.1)
+      '@nhn-cloud/ncui': 3.2.1(@nhn-cloud/ncui-design-token@1.3.0)(@nhn-cloud/ncui-icons@3.2.1(react@18.3.1))(dayjs@1.11.19)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      '@nhn-cloud/ncui-icons': 3.2.1(react@18.3.1)
       clsx: 1.2.1
       dayjs: 1.11.19
       html2canvas: 1.4.1
@@ -2326,30 +2330,37 @@ snapshots:
       - '@types/react'
       - immer
 
-  '@nhn-cloud/ncui-icons@2.23.1(react@18.3.1)':
+  '@nhn-cloud/ncui-design-token-utils@1.0.0(@nhn-cloud/ncui-design-token@1.3.0)':
     dependencies:
-      clsx: 1.2.1
+      '@nhn-cloud/ncui-design-token': 1.3.0
+
+  '@nhn-cloud/ncui-design-token@1.3.0': {}
+
+  '@nhn-cloud/ncui-icons@3.2.1(react@18.3.1)':
+    dependencies:
+      clsx: 2.1.1
       react: 18.3.1
 
-  '@nhn-cloud/ncui@2.23.1(@nhn-cloud/ncui-icons@2.23.1(react@18.3.1))(dayjs@1.11.19)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)':
+  '@nhn-cloud/ncui@3.2.1(@nhn-cloud/ncui-design-token@1.3.0)(@nhn-cloud/ncui-icons@3.2.1(react@18.3.1))(dayjs@1.11.19)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)':
     dependencies:
       '@atlaskit/pragmatic-drag-and-drop': 1.7.9
       '@atlaskit/pragmatic-drag-and-drop-hitbox': 1.1.0
-      '@floating-ui/dom': 1.5.3
-      '@floating-ui/react': 0.26.27(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
-      '@hookform/error-message': 2.0.1(react-dom@18.3.1(react@18.3.1))(react-hook-form@7.43.1(react@18.3.1))(react@18.3.1)
-      '@nhn-cloud/ncui-icons': 2.23.1(react@18.3.1)
+      '@floating-ui/dom': 1.6.13
+      '@floating-ui/react': 0.27.3(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      '@hookform/error-message': 2.0.1(react-dom@18.3.1(react@18.3.1))(react-hook-form@7.54.2(react@18.3.1))(react@18.3.1)
+      '@nhn-cloud/ncui-design-token': 1.3.0
+      '@nhn-cloud/ncui-design-token-utils': 1.0.0(@nhn-cloud/ncui-design-token@1.3.0)
+      '@nhn-cloud/ncui-icons': 3.2.1(react@18.3.1)
       '@tanstack/react-virtual': 3.13.21(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
-      clsx: 1.2.1
+      clsx: 2.1.1
       dayjs: 1.11.19
       downshift: 7.2.0(react@18.3.1)
       overlayscrollbars: 2.1.1
       overlayscrollbars-react: 0.5.0(overlayscrollbars@2.1.1)(react@18.3.1)
-      prop-types: 15.8.1
       react: 18.3.1
       react-dom: 18.3.1(react@18.3.1)
-      react-hook-form: 7.43.1(react@18.3.1)
-      react-is: 18.2.0
+      react-hook-form: 7.54.2(react@18.3.1)
+      react-is: 18.3.1
 
   '@rolldown/pluginutils@1.0.0-beta.27': {}
 
@@ -3663,7 +3674,7 @@ snapshots:
       react: 18.3.1
       scheduler: 0.23.2
 
-  react-hook-form@7.43.1(react@18.3.1):
+  react-hook-form@7.54.2(react@18.3.1):
     dependencies:
       react: 18.3.1
 
@@ -3671,7 +3682,7 @@ snapshots:
 
   react-is@17.0.2: {}
 
-  react-is@18.2.0: {}
+  react-is@18.3.1: {}
 
   react-markdown@10.1.0(@types/react@18.3.28)(react@18.3.1):
     dependencies:
