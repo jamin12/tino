@@ -6,6 +6,7 @@ interface CollapsibleSectionProps extends React.HTMLAttributes<HTMLElement> {
   expanded: boolean;
   onToggle: () => void;
   children: React.ReactNode;
+  variant?: "default" | "subtle";
 }
 
 export function CollapsibleSection({
@@ -13,9 +14,38 @@ export function CollapsibleSection({
   expanded,
   onToggle,
   children,
+  variant = "default",
   className,
   ...props
 }: CollapsibleSectionProps) {
+  if (variant === "subtle") {
+    return (
+      <section className={cn("flex flex-col items-start gap-4 w-full", className)} {...props}>
+        <button
+          type="button"
+          className="flex items-center gap-1.5"
+          onClick={onToggle}
+          aria-expanded={expanded}
+        >
+          <span className="text-[13px] font-medium text-[#333333] tracking-[-0.13px] leading-5">
+            {title}
+          </span>
+          <ChevronDown
+            className={cn(
+              "w-3.5 h-3.5 text-[#999999] transition-transform",
+              !expanded && "-rotate-90",
+            )}
+          />
+        </button>
+        {expanded && (
+          <div className="flex flex-col items-start gap-4 w-full">
+            {children}
+          </div>
+        )}
+      </section>
+    );
+  }
+
   return (
     <section className={cn("flex flex-col items-start gap-3", className)} {...props}>
       <button

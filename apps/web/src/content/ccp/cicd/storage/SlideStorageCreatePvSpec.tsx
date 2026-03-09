@@ -4,12 +4,9 @@ import {
   Tabs,
   Toggle,
   TextInput,
-  Button,
+  Select,
   InfoRow,
-  Tooltip,
-  CollapsibleSection,
-  KeyValueEditor,
-  FormBanner,
+  Checkbox,
   FormActions,
   SnippetCard,
   SidebarDashboardIcon,
@@ -23,7 +20,7 @@ import type { SideMenuItem } from "../../_components";
 import type { SlideMeta } from "@entities/document";
 
 export const slideMeta: SlideMeta = {
-  title: "PV 생성",
+  title: "PV 생성 - Spec",
   section: "CI/CD 저장소",
 };
 
@@ -97,7 +94,7 @@ const sideMenuItems: SideMenuItem[] = [
 
 // ─── Slide ──────────────────────────────────────────────────────────────────
 
-export default function SlidePvCreate() {
+export default function SlideStorageCreatePvSpec() {
   return (
     <CcpDashboardLayout
       breadcrumbs={[
@@ -110,19 +107,7 @@ export default function SlidePvCreate() {
       sideMenuItems={sideMenuItems}
     >
       <ContentSection>
-        <FormBanner
-          title="PersistentVolume 생성을 쉽고 빠르게!"
-          lines={[
-            "기본 설정만 입력하면 바로 시작할 수 있어요.",
-            "고급 설정을 원하시면 'YAML 모드'를 ON 해보세요.",
-          ]}
-        />
-      </ContentSection>
-
-      <ContentSection>
-        {/* ─── Form + Snippet Split ─────────────────────────────────── */}
         <div className="flex gap-6">
-          {/* ─── Left: Form Area ──────────────────────────────────── */}
           <div className="flex-1 min-w-0">
             {/* Tab bar + toggles */}
             <div className="flex items-center justify-between mb-4">
@@ -131,7 +116,7 @@ export default function SlidePvCreate() {
                   { id: "basic", label: "기본정보" },
                   { id: "spec", label: "Spec" },
                 ]}
-                activeId="basic"
+                activeId="spec"
               />
               <div className="flex items-center gap-4">
                 <Toggle label="스니펫 추천" checked />
@@ -139,58 +124,102 @@ export default function SlidePvCreate() {
               </div>
             </div>
 
-            {/* Form fields — 클러스터 스코프 (네임스페이스 없음) */}
-            <div className="flex flex-col gap-4 bg-white rounded-lg border border-[#f0f0f0] shadow-[0px_0px_8px_#00000014] p-6">
-              {/* 이름 */}
-              <InfoRow label="이름" labelWidth="86px">
-                <div className="relative flex items-center gap-2 flex-1">
-                  <TextInput
-                    placeholder="영문 소문자(a-z), 숫자(0-9), 하이픈(-)만 사용 가능하며, 최대 63자까지 입력할 수 있습니다."
-                    defaultValue="nfs-pv-data-01"
-                    className="flex-1"
+            {/* Spec tab content */}
+            <div className="flex flex-col gap-5 bg-white rounded-lg border border-[#f0f0f0] shadow-[0px_0px_8px_#00000014] p-6">
+              <InfoRow label="Capacity" labelWidth="130px">
+                <div className="flex items-center gap-2">
+                  <TextInput defaultValue="50" className="w-24" />
+                  <Select
+                    label="Gi"
+                    options={[
+                      { value: "Gi", label: "Gi" },
+                      { value: "Mi", label: "Mi" },
+                      { value: "Ti", label: "Ti" },
+                    ]}
+                    minWidth="80px"
                   />
-                  <Button variant="blue-solid" size="md">
-                    중복검사
-                  </Button>
-                  <Tooltip className="absolute -bottom-8 left-0 z-10">
-                    영문 소문자(a-z), 숫자(0-9), 하이픈(-)만 사용해
-                    <br />
-                    최대 63자까지 입력할 수 있습니다.
-                  </Tooltip>
                 </div>
               </InfoRow>
 
-              {/* 설명 */}
-              <InfoRow label="설명" labelWidth="86px">
+              <InfoRow label="Access Modes" labelWidth="130px">
+                <div className="flex items-center gap-4">
+                  <Checkbox label="ReadWriteOnce" checked />
+                  <Checkbox label="ReadOnlyMany" />
+                  <Checkbox label="ReadWriteMany" />
+                </div>
+              </InfoRow>
+
+              <InfoRow label="Reclaim Policy" labelWidth="130px">
+                <Select
+                  label="Retain"
+                  options={[
+                    { value: "Retain", label: "Retain" },
+                    { value: "Recycle", label: "Recycle" },
+                    { value: "Delete", label: "Delete" },
+                  ]}
+                  minWidth="200px"
+                />
+              </InfoRow>
+
+              <InfoRow label="StorageClass" labelWidth="130px">
+                <Select
+                  label="ceph-rbd-sc"
+                  options={[
+                    { value: "ceph-rbd-sc", label: "ceph-rbd-sc" },
+                    { value: "nfs-sc", label: "nfs-sc" },
+                    { value: "local-path", label: "local-path" },
+                    { value: "", label: "(없음)" },
+                  ]}
+                  minWidth="200px"
+                />
+              </InfoRow>
+
+              <InfoRow label="Volume Mode" labelWidth="130px">
+                <Select
+                  label="Filesystem"
+                  options={[
+                    { value: "Filesystem", label: "Filesystem" },
+                    { value: "Block", label: "Block" },
+                  ]}
+                  minWidth="200px"
+                />
+              </InfoRow>
+
+              <InfoRow label="Source Type" labelWidth="130px">
+                <Select
+                  label="NFS"
+                  options={[
+                    { value: "nfs", label: "NFS" },
+                    { value: "hostPath", label: "HostPath" },
+                    { value: "csi", label: "CSI" },
+                    { value: "iscsi", label: "iSCSI" },
+                    { value: "local", label: "Local" },
+                  ]}
+                  minWidth="200px"
+                />
+              </InfoRow>
+
+              <InfoRow label="NFS Server" labelWidth="130px">
                 <TextInput
-                  placeholder="PV에 대한 설명을 입력하세요."
-                  defaultValue="NFS 기반 데이터 스토리지 볼륨"
+                  defaultValue="10.0.0.100"
+                  placeholder="NFS 서버 주소"
                   className="flex-1"
                 />
               </InfoRow>
 
-              {/* 메타데이터 (Collapsible) */}
-              <CollapsibleSection
-                title="메타데이터"
-                expanded
-                onToggle={() => {}}
-              >
-                <KeyValueEditor
-                  label="Labels"
-                  pairs={[{ key: "", value: "" }]}
+              <InfoRow label="NFS Path" labelWidth="130px">
+                <TextInput
+                  defaultValue="/exports/data"
+                  placeholder="NFS 마운트 경로"
+                  className="flex-1"
                 />
-                <KeyValueEditor
-                  label="Annotations"
-                  pairs={[{ key: "", value: "" }]}
-                />
-              </CollapsibleSection>
+              </InfoRow>
             </div>
 
-            {/* Bottom Actions */}
             <FormActions />
           </div>
 
-          {/* ─── Right: Snippet Panel ────────────────────────────── */}
+          {/* Snippet Panel */}
           <div className="w-[280px] shrink-0">
             <div className="flex items-center gap-2 mb-3">
               <span className="text-sm font-bold text-[#333333]">

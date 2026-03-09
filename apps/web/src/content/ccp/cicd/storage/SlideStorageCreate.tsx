@@ -23,7 +23,7 @@ import type { SideMenuItem } from "../../_components";
 import type { SlideMeta } from "@entities/document";
 
 export const slideMeta: SlideMeta = {
-  title: "Secrets 생성",
+  title: "리소스 생성 (공통)",
   section: "CI/CD 저장소",
 };
 
@@ -62,8 +62,8 @@ const sideMenuItems: SideMenuItem[] = [
           { label: "StorageClasses" },
           { label: "PV" },
           { label: "PVC" },
-          { label: "ConfigMaps" },
-          { label: "Secrets", active: true, bold: true },
+          { label: "ConfigMaps", active: true, bold: true },
+          { label: "Secrets" },
         ],
       },
       {
@@ -97,21 +97,21 @@ const sideMenuItems: SideMenuItem[] = [
 
 // ─── Slide ──────────────────────────────────────────────────────────────────
 
-export default function SlideSecretsCreate() {
+export default function SlideStorageCreate() {
   return (
     <CcpDashboardLayout
       breadcrumbs={[
         { label: "CI/CD" },
         { label: "저장소" },
-        { label: "Secrets" },
-        { label: "Secrets 생성", isBold: true },
+        { label: "ConfigMaps" },
+        { label: "ConfigMaps 생성", isBold: true },
       ]}
-      title="Secrets 생성"
+      title="ConfigMaps 생성"
       sideMenuItems={sideMenuItems}
     >
       <ContentSection>
         <FormBanner
-          title="Secrets 생성을 쉽고 빠르게!"
+          title="리소스 생성을 쉽고 빠르게!"
           lines={[
             "기본 설정만 입력하면 바로 시작할 수 있어요.",
             "고급 설정을 원하시면 'YAML 모드'를 ON 해보세요.",
@@ -129,7 +129,6 @@ export default function SlideSecretsCreate() {
               <Tabs
                 items={[
                   { id: "basic", label: "기본정보" },
-                  { id: "type", label: "Type" },
                   { id: "data", label: "Data" },
                 ]}
                 activeId="basic"
@@ -147,7 +146,7 @@ export default function SlideSecretsCreate() {
                 <div className="relative flex items-center gap-2 flex-1">
                   <TextInput
                     placeholder="영문 소문자(a-z), 숫자(0-9), 하이픈(-)만 사용 가능하며, 최대 63자까지 입력할 수 있습니다."
-                    defaultValue="app-tls-secret"
+                    defaultValue="app-config"
                     className="flex-1"
                   />
                   <Button variant="blue-solid" size="md">
@@ -164,8 +163,8 @@ export default function SlideSecretsCreate() {
               {/* 설명 */}
               <InfoRow label="설명" labelWidth="86px">
                 <TextInput
-                  placeholder="Secret에 대한 설명을 입력하세요."
-                  defaultValue="TLS 인증서 시크릿"
+                  placeholder="리소스에 대한 설명을 입력하세요."
+                  defaultValue="애플리케이션 공통 설정"
                   className="flex-1"
                 />
               </InfoRow>
@@ -182,6 +181,7 @@ export default function SlideSecretsCreate() {
               {/* 메타데이터 (Collapsible) */}
               <CollapsibleSection
                 title="메타데이터"
+                variant="subtle"
                 expanded
                 onToggle={() => {}}
               >
@@ -210,17 +210,17 @@ export default function SlideSecretsCreate() {
             </div>
             <div className="flex flex-col gap-3">
               <SnippetCard
-                title="TLS Secret 템플릿"
-                description="kubernetes.io/tls 타입 인증서 Secret 스니펫"
+                title="기본 리소스 템플릿"
+                description="기본 리소스 설정 스니펫"
                 variant="blue"
               />
               <SnippetCard
-                title="Docker Registry Secret"
-                description="컨테이너 레지스트리 인증 Secret 스니펫"
+                title="공통 메타데이터 설정"
+                description="표준 Labels/Annotations 스니펫"
               />
               <SnippetCard
-                title="Opaque Secret 일괄 등록"
-                description="멀티 키-값 Opaque Secret 등록 스니펫"
+                title="리소스 정리 정책"
+                description="빌드 리소스 정리 정책 Task 추가 스니펫"
                 variant="red"
               />
             </div>
