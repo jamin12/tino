@@ -4,12 +4,10 @@ import {
   Tabs,
   Toggle,
   TextInput,
-  Button,
+  Select,
   InfoRow,
-  Tooltip,
-  CollapsibleSection,
+  Checkbox,
   KeyValueEditor,
-  FormBanner,
   FormActions,
   SnippetCard,
   SidebarDashboardIcon,
@@ -23,7 +21,7 @@ import type { SideMenuItem } from "../../_components";
 import type { SlideMeta } from "@entities/document";
 
 export const slideMeta: SlideMeta = {
-  title: "ConfigMaps 생성",
+  title: "StorageClasses 생성 - Provisioner",
   section: "CI/CD 저장소",
 };
 
@@ -59,10 +57,10 @@ const sideMenuItems: SideMenuItem[] = [
       {
         label: "저장소",
         items: [
-          { label: "StorageClasses" },
+          { label: "StorageClasses", active: true, bold: true },
           { label: "PV" },
           { label: "PVC" },
-          { label: "ConfigMaps", active: true, bold: true },
+          { label: "ConfigMaps" },
           { label: "Secrets" },
         ],
       },
@@ -97,41 +95,30 @@ const sideMenuItems: SideMenuItem[] = [
 
 // ─── Slide ──────────────────────────────────────────────────────────────────
 
-export default function SlideConfigMapsCreate() {
+export default function SlideStorageCreateProvisioner() {
   return (
     <CcpDashboardLayout
       breadcrumbs={[
         { label: "CI/CD" },
         { label: "저장소" },
-        { label: "ConfigMaps" },
-        { label: "ConfigMaps 생성", isBold: true },
+        { label: "StorageClasses" },
+        { label: "StorageClasses 생성", isBold: true },
       ]}
-      title="ConfigMaps 생성"
+      title="StorageClasses 생성"
       sideMenuItems={sideMenuItems}
     >
       <ContentSection>
-        <FormBanner
-          title="ConfigMaps 생성을 쉽고 빠르게!"
-          lines={[
-            "기본 설정만 입력하면 바로 시작할 수 있어요.",
-            "고급 설정을 원하시면 'YAML 모드'를 ON 해보세요.",
-          ]}
-        />
-      </ContentSection>
-
-      <ContentSection>
-        {/* ─── Form + Snippet Split ─────────────────────────────────── */}
         <div className="flex gap-6">
-          {/* ─── Left: Form Area ──────────────────────────────────── */}
           <div className="flex-1 min-w-0">
             {/* Tab bar + toggles */}
             <div className="flex items-center justify-between mb-4">
               <Tabs
                 items={[
                   { id: "basic", label: "기본정보" },
-                  { id: "data", label: "Data" },
+                  { id: "provisioner", label: "Provisioner" },
+                  { id: "parameters", label: "Parameters" },
                 ]}
-                activeId="basic"
+                activeId="provisioner"
               />
               <div className="flex items-center gap-4">
                 <Toggle label="스니펫 추천" checked />
@@ -139,67 +126,65 @@ export default function SlideConfigMapsCreate() {
               </div>
             </div>
 
-            {/* Form fields */}
-            <div className="flex flex-col gap-4 bg-white rounded-lg border border-[#f0f0f0] shadow-[0px_0px_8px_#00000014] p-6">
-              {/* 이름 */}
-              <InfoRow label="이름" labelWidth="86px">
-                <div className="relative flex items-center gap-2 flex-1">
-                  <TextInput
-                    placeholder="영문 소문자(a-z), 숫자(0-9), 하이픈(-)만 사용 가능하며, 최대 63자까지 입력할 수 있습니다."
-                    defaultValue="app-config"
-                    className="flex-1"
-                  />
-                  <Button variant="blue-solid" size="md">
-                    중복검사
-                  </Button>
-                  <Tooltip className="absolute -bottom-8 left-0 z-10">
-                    영문 소문자(a-z), 숫자(0-9), 하이픈(-)만 사용해
-                    <br />
-                    최대 63자까지 입력할 수 있습니다.
-                  </Tooltip>
-                </div>
-              </InfoRow>
-
-              {/* 설명 */}
-              <InfoRow label="설명" labelWidth="86px">
+            {/* Provisioner tab content */}
+            <div className="flex flex-col gap-5 bg-white rounded-lg border border-[#f0f0f0] shadow-[0px_0px_8px_#00000014] p-6">
+              <InfoRow label="Provisioner" labelWidth="160px">
                 <TextInput
-                  placeholder="ConfigMaps에 대한 설명을 입력하세요."
-                  defaultValue="애플리케이션 공통 설정 ConfigMap"
+                  defaultValue="rbd.csi.ceph.com"
+                  placeholder="Provisioner 이름을 입력하세요"
                   className="flex-1"
                 />
               </InfoRow>
 
-              {/* 네임스페이스 */}
-              <InfoRow label="네임스페이스" labelWidth="86px">
+              <InfoRow label="Reclaim Policy" labelWidth="160px">
+                <Select
+                  label="Delete"
+                  options={[
+                    { value: "Delete", label: "Delete" },
+                    { value: "Retain", label: "Retain" },
+                  ]}
+                  minWidth="200px"
+                />
+              </InfoRow>
+
+              <InfoRow label="Volume Binding Mode" labelWidth="160px">
+                <Select
+                  label="Immediate"
+                  options={[
+                    { value: "Immediate", label: "Immediate" },
+                    { value: "WaitForFirstConsumer", label: "WaitForFirstConsumer" },
+                  ]}
+                  minWidth="260px"
+                />
+              </InfoRow>
+
+              <InfoRow label="Volume Expansion" labelWidth="160px">
+                <Checkbox label="AllowVolumeExpansion" checked />
+              </InfoRow>
+
+              <InfoRow label="Mount Options" labelWidth="160px">
                 <TextInput
-                  defaultValue="app-backend"
-                  readOnly
+                  defaultValue="hard,nfsvers=4.1"
+                  placeholder="쉼표로 구분하여 입력 (선택)"
                   className="flex-1"
                 />
               </InfoRow>
 
-              {/* 메타데이터 (Collapsible) */}
-              <CollapsibleSection
-                title="메타데이터"
-                expanded
-                onToggle={() => {}}
-              >
-                <KeyValueEditor
-                  label="Labels"
-                  pairs={[{ key: "", value: "" }]}
-                />
-                <KeyValueEditor
-                  label="Annotations"
-                  pairs={[{ key: "", value: "" }]}
-                />
-              </CollapsibleSection>
+              {/* Parameters */}
+              <KeyValueEditor
+                label="Parameters"
+                pairs={[
+                  { key: "clusterID", value: "ceph-cluster-01" },
+                  { key: "pool", value: "kubernetes" },
+                  { key: "csi.storage.k8s.io/fstype", value: "ext4" },
+                ]}
+              />
             </div>
 
-            {/* Bottom Actions */}
             <FormActions />
           </div>
 
-          {/* ─── Right: Snippet Panel ────────────────────────────── */}
+          {/* Snippet Panel */}
           <div className="w-[280px] shrink-0">
             <div className="flex items-center gap-2 mb-3">
               <span className="text-sm font-bold text-[#333333]">
@@ -209,17 +194,17 @@ export default function SlideConfigMapsCreate() {
             </div>
             <div className="flex flex-col gap-3">
               <SnippetCard
-                title="Spring Boot 설정 템플릿"
-                description="Spring Boot 애플리케이션 기본 설정 ConfigMap 스니펫"
+                title="Ceph RBD StorageClass"
+                description="Ceph RBD Provisioner 기반 StorageClass 스니펫"
                 variant="blue"
               />
               <SnippetCard
-                title="Nginx 설정 템플릿"
-                description="기본 Nginx 리버스 프록시 설정 스니펫"
+                title="NFS Provisioner 템플릿"
+                description="NFS 외부 Provisioner StorageClass 스니펫"
               />
               <SnippetCard
-                title="환경변수 일괄 등록"
-                description="멀티 환경변수 ConfigMap 일괄 등록 스니펫"
+                title="Local Path StorageClass"
+                description="로컬 경로 기반 StorageClass 고급 설정 스니펫"
                 variant="red"
               />
             </div>
