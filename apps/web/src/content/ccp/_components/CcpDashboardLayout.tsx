@@ -83,15 +83,15 @@ const defaultSideMenuItems: SideMenuItem[] = [
     ],
   },
   {
-    id: "settings",
-    label: "설정/권한",
-    icon: <SidebarSettingsIcon className="w-5 h-5" />,
-    expandIcon: "plus",
-  },
-  {
     id: "gitops",
     label: "GitOps",
     icon: <SidebarGitopsIcon className="w-5 h-5" />,
+    expandIcon: "plus",
+  },
+  {
+    id: "settings",
+    label: "설정/권한",
+    icon: <SidebarSettingsIcon className="w-5 h-5" />,
     expandIcon: "plus",
   },
 ];
@@ -125,7 +125,7 @@ interface CcpDashboardLayoutProps {
   /** PageHeader breadcrumbs */
   breadcrumbs: BreadcrumbItem[];
   /** PageHeader title */
-  title: string;
+  title: ReactNode;
   /** Main content area */
   children: ReactNode;
   /** Override default SideMenu logo */

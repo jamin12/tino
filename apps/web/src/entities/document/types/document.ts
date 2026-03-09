@@ -17,6 +17,8 @@ export interface SlideMeta {
   title?: string;
   section?: string;
   annotations?: SlideAnnotation[];
+  /** 화면 고유 식별자 (예: "CCP-GIT-001") */
+  screenId?: string;
 }
 
 export interface SlideWithMeta {

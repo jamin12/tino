@@ -7,9 +7,9 @@ interface BreadcrumbItem {
   isBold?: boolean;
 }
 
-interface PageHeaderProps extends React.HTMLAttributes<HTMLElement> {
+interface PageHeaderProps extends Omit<React.HTMLAttributes<HTMLElement>, "title"> {
   breadcrumbs: BreadcrumbItem[];
-  title: string;
+  title: ReactNode;
   actions?: ReactNode;
 }
 

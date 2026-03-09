@@ -4,6 +4,8 @@ interface TabItem {
   id: string;
   label: string;
   count?: number;
+  /** true 이면 이 탭 앞에 세로 구분선(|)을 렌더링합니다. */
+  dividerBefore?: boolean;
 }
 
 interface TabsProps extends React.HTMLAttributes<HTMLElement> {
@@ -31,6 +33,15 @@ export function Tabs({
       {items.map((tab) => {
         const isActive = tab.id === activeId;
         return (
+          <span key={tab.id} className="contents">
+          {tab.dividerBefore && (
+            <span
+              className="self-center text-[13px] text-[#ccc] select-none"
+              aria-hidden="true"
+            >
+              |
+            </span>
+          )}
           <button
             key={tab.id}
             role="tab"
@@ -65,6 +76,7 @@ export function Tabs({
               </span>
             )}
           </button>
+          </span>
         );
       })}
     </nav>

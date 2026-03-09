@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState, type MouseEvent } from "react";
 import {
   useSlideViewerStore,
   useSlideNavigation,
@@ -71,6 +71,19 @@ export function SlidePresenter({ slides }: Props) {
 
   const CurrentSlide = slides[currentSlideIndex]?.component;
   const currentAnnotations = slides[currentSlideIndex]?.meta.annotations;
+  const currentMeta = slides[currentSlideIndex]?.meta;
+  const [copiedId, setCopiedId] = useState<string | null>(null);
+
+  const handleCopyScreenId = useCallback(
+    (e: MouseEvent, screenId: string) => {
+      e.stopPropagation();
+      navigator.clipboard.writeText(screenId).then(() => {
+        setCopiedId(screenId);
+        setTimeout(() => setCopiedId(null), 1500);
+      });
+    },
+    [],
+  );
 
   useSlideNavigation({ totalSlides: slides.length });
 
@@ -241,6 +254,9 @@ export function SlidePresenter({ slides }: Props) {
                     : "border-gray-200 bg-white text-gray-600 hover:border-gray-300"
                 }`}
               >
+                {slide.meta.screenId && (
+                  <div className="font-mono text-[8px] text-gray-400 mb-0.5">{slide.meta.screenId}</div>
+                )}
                 <div className="font-medium truncate">{slide.meta.title ?? index + 1}</div>
               </button>
             </div>
@@ -344,27 +360,25 @@ export function SlidePresenter({ slides }: Props) {
             >
               <div
                 ref={captureRef}
-                className="flex"
+                className="relative rounded-lg border border-gray-200 bg-white shadow-sm"
               >
-                <div
-                  ref={slideContentRef}
-                  className="rounded-lg border border-gray-200 bg-white shadow-sm relative"
-                  style={{ cursor: ctrlHeld ? "crosshair" : undefined }}
-                  onMouseMove={handleMouseMove}
-                  onMouseLeave={handleMouseLeave}
-                  onClick={handleClick}
-                >
-                  <CurrentSlide />
-                  {/* Annotation markers */}
-                  {showAnnotations && currentAnnotations && (
-                    <AnnotationMarkers annotations={currentAnnotations} />
-                  )}
-                </div>
-
-                {/* Annotation side panel */}
-                {showAnnotations && currentAnnotations && currentAnnotations.length > 0 && (
-                  <AnnotationSidePanel annotations={currentAnnotations} />
+                {currentMeta?.screenId && (
+                  <button
+                    type="button"
+                    onClick={(e) =>
+                      handleCopyScreenId(e, currentMeta.screenId!)
+                    }
+                    className="absolute top-3 left-3 z-50 flex items-center gap-1.5 rounded bg-[#1b2c3f] px-2.5 py-1 shadow-md cursor-pointer hover:bg-[#263c54] active:scale-95 transition-all"
+                    title="클릭하여 화면 ID 복사"
+                  >
+                    <span className="text-[11px] font-mono font-semibold text-white tracking-wide">
+                      {copiedId === currentMeta.screenId
+                        ? "Copied!"
+                        : currentMeta.screenId}
+                    </span>
+                  </button>
                 )}
+                <CurrentSlide />
               </div>
 
               {/* Highlight overlay */}
@@ -390,9 +404,30 @@ export function SlidePresenter({ slides }: Props) {
           >
             Previous
           </button>
-          <span className="text-sm text-gray-500">
-            {currentSlideIndex + 1} / {slides.length}
-          </span>
+          <div className="flex flex-col items-center gap-0.5">
+            {currentMeta?.screenId && (
+              <button
+                type="button"
+                onClick={(e) =>
+                  handleCopyScreenId(e, currentMeta.screenId!)
+                }
+                className="inline-flex items-center gap-1.5 rounded bg-gray-100 px-2 py-0.5 font-mono text-xs font-semibold text-gray-700 hover:bg-gray-200 active:bg-gray-300 cursor-pointer transition-colors"
+                title="클릭하여 화면 ID 복사"
+              >
+                {copiedId === currentMeta.screenId
+                  ? "Copied!"
+                  : currentMeta.screenId}
+                {currentMeta.title && (
+                  <span className="font-sans font-normal text-gray-400">
+                    {currentMeta.title}
+                  </span>
+                )}
+              </button>
+            )}
+            <span className="text-xs text-gray-400">
+              {currentSlideIndex + 1} / {slides.length}
+            </span>
+          </div>
           <button
             onClick={() => nextSlide(slides.length)}
             disabled={currentSlideIndex === slides.length - 1}
