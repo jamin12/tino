@@ -62,6 +62,11 @@ export { SeeMoreMenu } from "./SeeMoreMenu";
 export type { SeeMoreMenuItem } from "./SeeMoreMenu";
 export { CodeEditor } from "./CodeEditor";
 
+// Detail
+export { ListDetailLayout } from "./ListDetailLayout";
+export { ResourceDetailPanel } from "./ResourceDetailPanel";
+export { ValueField } from "./ValueField";
+
 // Patterns
 export { DataTable } from "./DataTable";
 export type { DataTableColumn, DataTableProps } from "./DataTable";

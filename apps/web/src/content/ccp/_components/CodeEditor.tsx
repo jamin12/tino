@@ -16,7 +16,7 @@ interface CodeEditorProps extends React.HTMLAttributes<HTMLDivElement> {
   onLineNumbersChange?: (show: boolean) => void;
 }
 
-function highlightSyntax(line: string, theme: "light" | "dark") {
+function highlightJson(line: string, theme: "light" | "dark") {
   const keyColor = theme === "light" ? "text-[#0077ff]" : "text-[#5cb3ff]";
   const valueColor = theme === "light" ? "text-[#e8720c]" : "text-[#ffa657]";
   const stringColor = theme === "light" ? "text-[#009d32]" : "text-[#7ee787]";
@@ -54,6 +54,82 @@ function highlightSyntax(line: string, theme: "light" | "dark") {
   }
 
   return parts;
+}
+
+function highlightYaml(line: string, theme: "light" | "dark") {
+  const keyColor = theme === "light" ? "text-[#0077ff]" : "text-[#5cb3ff]";
+  const stringColor = theme === "light" ? "text-[#009d32]" : "text-[#7ee787]";
+  const numberColor = theme === "light" ? "text-[#da1e28]" : "text-[#ff7b72]";
+  const commentColor = theme === "light" ? "text-[#6a737d]" : "text-[#8b949e]";
+  const boolColor = theme === "light" ? "text-[#e8720c]" : "text-[#ffa657]";
+  const baseColor = theme === "light" ? "text-[#333]" : "text-[#e6edf3]";
+
+  type Part = { text: string; className: string };
+
+  // Comment
+  if (/^\s*#/.test(line)) return [{ text: line, className: commentColor }];
+
+  // Document separator
+  if (/^---/.test(line) || /^\.\.\./.test(line)) return [{ text: line, className: commentColor }];
+
+  // Key: value pattern
+  const kvMatch = line.match(/^(\s*-?\s*)([\w./-]+)(:)(\s?)(.*)/);
+  if (kvMatch) {
+    const [, indent, key, colon, space, rest] = kvMatch;
+    const parts: Part[] = [
+      { text: indent, className: baseColor },
+      { text: key, className: keyColor },
+      { text: colon, className: baseColor },
+    ];
+    if (space) parts.push({ text: space, className: baseColor });
+    const trimmed = rest.trim();
+    if (trimmed) {
+      // Inline comment
+      const commentIdx = trimmed.indexOf(" #");
+      const value = commentIdx >= 0 ? trimmed.slice(0, commentIdx) : trimmed;
+      const comment = commentIdx >= 0 ? trimmed.slice(commentIdx) : "";
+
+      if (/^['"]/.test(value)) {
+        parts.push({ text: value, className: stringColor });
+      } else if (/^-?\d+(\.\d+)?$/.test(value)) {
+        parts.push({ text: value, className: numberColor });
+      } else if (/^(true|false|null|~|yes|no)$/i.test(value)) {
+        parts.push({ text: value, className: boolColor });
+      } else if (value.startsWith("|") || value.startsWith(">")) {
+        parts.push({ text: value, className: baseColor });
+      } else {
+        parts.push({ text: value, className: stringColor });
+      }
+      if (comment) {
+        parts.push({ text: comment, className: commentColor });
+      }
+    }
+    return parts;
+  }
+
+  // Array item: - value
+  const arrMatch = line.match(/^(\s*)(-)(\s+)(.*)/);
+  if (arrMatch) {
+    const [, indent, dash, space, value] = arrMatch;
+    const parts: Part[] = [
+      { text: indent, className: baseColor },
+      { text: dash, className: baseColor },
+      { text: space, className: baseColor },
+    ];
+    if (/^['"]/.test(value)) {
+      parts.push({ text: value, className: stringColor });
+    } else {
+      parts.push({ text: value, className: stringColor });
+    }
+    return parts;
+  }
+
+  return [{ text: line, className: baseColor }];
+}
+
+function highlightSyntax(line: string, theme: "light" | "dark", language: string) {
+  if (language === "yaml") return highlightYaml(line, theme);
+  return highlightJson(line, theme);
 }
 
 export function CodeEditor({
@@ -193,8 +269,8 @@ export function CodeEditor({
                 </span>
               )}
               <span className="flex-1">
-                {language === "json"
-                  ? highlightSyntax(line, theme).map((part, j) => (
+                {(language === "json" || language === "yaml")
+                  ? highlightSyntax(line, theme, language).map((part, j) => (
                       <span key={j} className={part.className}>
                         {part.text}
                       </span>

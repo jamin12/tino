@@ -29,7 +29,7 @@ export function CollapsibleSection({
         </h2>
         <div
           className={cn(
-            "flex items-center justify-center w-4 h-4 rounded-sm bg-[#3d61f3] shrink-0 transition-transform",
+            "flex items-center justify-center w-4 h-4 rounded-sm bg-[#8b8e91] shrink-0 transition-transform",
             !expanded && "-rotate-90",
           )}
         >

@@ -17,7 +17,7 @@ export function InfoRow({
   return (
     <div
       className={cn(
-        "flex h-8 items-center gap-3 w-full rounded-md",
+        "flex min-h-8 items-center gap-3 w-full rounded-md",
         className,
       )}
       {...props}
@@ -30,7 +30,7 @@ export function InfoRow({
           {label}
         </span>
       </div>
-      <div className="flex items-center gap-3 flex-1 min-w-0">
+      <div className="flex items-center gap-3 flex-1 min-w-0 flex-wrap">
         {children}
       </div>
     </div>
