@@ -38,31 +38,9 @@ import type {
 import type { SlideMeta } from "@entities/document";
 
 export const slideMeta: SlideMeta = {
-  title: "Secrets 목록",
+  screenId: "CCP-STR-004",
+  title: "ConfigMaps 목록",
   section: "CI/CD 저장소",
-  annotations: [
-    {
-      id: 1,
-      label: "GitOps 현황",
-      description: "리소스의 GitOps 동기화 상태를 한눈에 요약. Stable/Mismatch/Updating/Missing/Broken/Orphaned 6가지 상태로 분류.",
-      x: 1860,
-      y: 195,
-    },
-    {
-      id: 2,
-      label: "필터 & 검색",
-      description: "타입별, 네임스페이스별 필터링과 이름 검색을 지원. 생성/동기화 버튼은 우측에 배치.",
-      x: 1860,
-      y: 390,
-    },
-    {
-      id: 3,
-      label: "Secret 목록 테이블",
-      description: "GitOps 상태 도트, 이름, 네임스페이스, 타입(Badge), Data 개수, 생성일을 표시. 행 우측 더보기 버튼으로 컨텍스트 메뉴 접근.",
-      x: 1860,
-      y: 500,
-    },
-  ],
 };
 
 // ─── Side Menu Data ─────────────────────────────────────────────────────────
@@ -100,8 +78,8 @@ const sideMenuItems: SideMenuItem[] = [
           { label: "StorageClasses" },
           { label: "PV" },
           { label: "PVC" },
-          { label: "ConfigMaps" },
-          { label: "Secrets", active: true, bold: true },
+          { label: "ConfigMaps", active: true, bold: true },
+          { label: "Secrets" },
         ],
       },
       {
@@ -120,97 +98,82 @@ const sideMenuItems: SideMenuItem[] = [
     ],
   },
   {
-    id: "settings",
-    label: "설정/권한",
-    icon: <SidebarSettingsIcon className="w-5 h-5" />,
-    expandIcon: "plus",
-  },
-  {
     id: "gitops",
     label: "GitOps",
     icon: <SidebarGitopsIcon className="w-5 h-5" />,
+    expandIcon: "plus",
+  },
+  {
+    id: "settings",
+    label: "설정/권한",
+    icon: <SidebarSettingsIcon className="w-5 h-5" />,
     expandIcon: "plus",
   },
 ];
 
 // ─── Table Data ─────────────────────────────────────────────────────────────
 
-interface SecretRow {
+interface ConfigMapRow {
   id: string;
   gitopsColor: string;
   name: string;
   namespace: string;
-  type: string;
   data: number;
   age: string;
 }
 
-const tableData: SecretRow[] = [
+const tableData: ConfigMapRow[] = [
   {
     id: "1",
     gitopsColor: "#00b30e",
-    name: "db-credentials",
-    namespace: "app-database",
-    type: "Opaque",
-    data: 3,
-    age: "5d",
+    name: "app-config",
+    namespace: "app-backend",
+    data: 5,
+    age: "10d",
   },
   {
     id: "2",
     gitopsColor: "#00b30e",
-    name: "api-tls-cert",
-    namespace: "app-backend",
-    type: "kubernetes.io/tls",
+    name: "nginx-config",
+    namespace: "app-frontend",
     data: 2,
-    age: "10d",
+    age: "12d",
   },
   {
     id: "3",
     gitopsColor: "#00b30e",
-    name: "registry-auth",
-    namespace: "app-cicd",
-    type: "kubernetes.io/dockerconfigjson",
-    data: 1,
-    age: "30d",
+    name: "redis-config",
+    namespace: "app-database",
+    data: 3,
+    age: "5d",
   },
   {
     id: "4",
     gitopsColor: "#6366f1",
-    name: "oauth2-client",
-    namespace: "app-backend",
-    type: "Opaque",
-    data: 4,
-    age: "8d",
+    name: "fluentd-config",
+    namespace: "monitoring",
+    data: 8,
+    age: "20d",
   },
   {
     id: "5",
     gitopsColor: "#00b30e",
-    name: "grafana-admin",
+    name: "prometheus-rules",
     namespace: "monitoring",
-    type: "Opaque",
-    data: 2,
+    data: 12,
     age: "15d",
   },
   {
     id: "6",
     gitopsColor: "#00b30e",
-    name: "sa-token-default",
-    namespace: "kube-system",
-    type: "kubernetes.io/service-account-token",
-    data: 3,
-    age: "90d",
+    name: "grafana-dashboards",
+    namespace: "monitoring",
+    data: 6,
+    age: "15d",
   },
 ];
 
-const typeVariant: Record<string, "success" | "warning" | "info" | "neutral"> =
-  {
-    Opaque: "neutral",
-    "kubernetes.io/tls": "success",
-    "kubernetes.io/dockerconfigjson": "info" as "success",
-    "kubernetes.io/service-account-token": "warning",
-  };
-
-const columns: DataTableColumn<SecretRow>[] = [
+const columns: DataTableColumn<ConfigMapRow>[] = [
   {
     id: "gitops",
     header: "GitOps",
@@ -221,7 +184,7 @@ const columns: DataTableColumn<SecretRow>[] = [
   {
     id: "name",
     header: "이름",
-    width: "220px",
+    width: "260px",
     render: (row) => (
       <TextCell bold color="#111111" className="px-4">
         {row.name}
@@ -231,18 +194,9 @@ const columns: DataTableColumn<SecretRow>[] = [
   {
     id: "namespace",
     header: "네임스페이스",
-    width: "140px",
+    width: "160px",
     align: "center",
     render: (row) => <TextCell color="#555555">{row.namespace}</TextCell>,
-  },
-  {
-    id: "type",
-    header: "타입",
-    width: "280px",
-    align: "center",
-    render: (row) => (
-      <Badge variant={typeVariant[row.type] ?? "neutral"}>{row.type}</Badge>
-    ),
   },
   {
     id: "data",
@@ -282,6 +236,7 @@ const actionMenuItems: ActionMenuEntry[] = [
     label: "요약",
     icon: <FileText className="w-[14px] h-[14px] text-[#0077ff]" />,
   },
+  { type: "divider" },
   { key: "yaml", label: "YAML", icon: <FileCode className={iconClass} /> },
   {
     key: "delete",
@@ -292,11 +247,11 @@ const actionMenuItems: ActionMenuEntry[] = [
 
 // ─── Slide ──────────────────────────────────────────────────────────────────
 
-export default function SlideSecretsList() {
+export default function Slide04ConfigMapsList() {
   return (
     <CcpDashboardLayout
-      breadcrumbs={[{ label: "저장소" }, { label: "Secrets", isBold: true }]}
-      title="Secrets"
+      breadcrumbs={[{ label: "저장소" }, { label: "ConfigMaps", isBold: true }]}
+      title="ConfigMaps"
       sideMenuItems={sideMenuItems}
     >
       <ContentSection card>
@@ -305,8 +260,8 @@ export default function SlideSecretsList() {
           activeTabId="gitops"
           cards={[
             { label: "Stable", count: 5, color: "#00b30e" },
-            { label: "Mismatch", count: 1, color: "#da1e28" },
-            { label: "Updating", count: 0, color: "#00b30e" },
+            { label: "Mismatch", count: 0, color: "#da1e28" },
+            { label: "Updating", count: 1, color: "#00b30e" },
             { label: "Missing", count: 0, color: "#dea600" },
             { label: "Broken", count: 0, color: "#da1e28" },
             { label: "Orphaned", count: 0, color: "#6366f1" },
@@ -317,24 +272,13 @@ export default function SlideSecretsList() {
       <ContentSection relative>
         <FilterBar className="gap-2">
           <Select
-            label="타입"
-            options={[
-              { value: "", label: "전체" },
-              { value: "opaque", label: "Opaque" },
-              { value: "tls", label: "kubernetes.io/tls" },
-              { value: "docker", label: "dockerconfigjson" },
-              { value: "sa-token", label: "service-account-token" },
-            ]}
-          />
-          <Select
             label="네임스페이스"
             options={[
               { value: "", label: "전체" },
-              { value: "app-database", label: "app-database" },
               { value: "app-backend", label: "app-backend" },
-              { value: "app-cicd", label: "app-cicd" },
+              { value: "app-frontend", label: "app-frontend" },
+              { value: "app-database", label: "app-database" },
               { value: "monitoring", label: "monitoring" },
-              { value: "kube-system", label: "kube-system" },
             ]}
           />
           <SearchInput placeholder="이름 검색" className="mr-1" />
@@ -361,8 +305,8 @@ export default function SlideSecretsList() {
 
         <Pagination
           currentPage={1}
-          totalPages={4}
-          visiblePages={[1, 2, 3, 4]}
+          totalPages={3}
+          visiblePages={[1, 2, 3]}
           className="mt-5 pb-10"
         />
       </ContentSection>

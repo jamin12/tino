@@ -38,7 +38,8 @@ import type {
 import type { SlideMeta } from "@entities/document";
 
 export const slideMeta: SlideMeta = {
-  title: "StorageClasses 목록",
+  screenId: "CCP-STR-005",
+  title: "Secrets 목록",
   section: "CI/CD 저장소",
 };
 
@@ -74,11 +75,11 @@ const sideMenuItems: SideMenuItem[] = [
       {
         label: "저장소",
         items: [
-          { label: "StorageClasses", active: true, bold: true },
+          { label: "StorageClasses" },
           { label: "PV" },
           { label: "PVC" },
           { label: "ConfigMaps" },
-          { label: "Secrets" },
+          { label: "Secrets", active: true, bold: true },
         ],
       },
       {
@@ -97,74 +98,97 @@ const sideMenuItems: SideMenuItem[] = [
     ],
   },
   {
-    id: "settings",
-    label: "설정/권한",
-    icon: <SidebarSettingsIcon className="w-5 h-5" />,
-    expandIcon: "plus",
-  },
-  {
     id: "gitops",
     label: "GitOps",
     icon: <SidebarGitopsIcon className="w-5 h-5" />,
+    expandIcon: "plus",
+  },
+  {
+    id: "settings",
+    label: "설정/권한",
+    icon: <SidebarSettingsIcon className="w-5 h-5" />,
     expandIcon: "plus",
   },
 ];
 
 // ─── Table Data ─────────────────────────────────────────────────────────────
 
-interface StorageClassRow {
+interface SecretRow {
   id: string;
   gitopsColor: string;
   name: string;
-  provisioner: string;
-  isDefault: boolean;
+  namespace: string;
+  type: string;
+  data: number;
   age: string;
 }
 
-const tableData: StorageClassRow[] = [
+const tableData: SecretRow[] = [
   {
     id: "1",
     gitopsColor: "#00b30e",
-    name: "standard",
-    provisioner: "kubernetes.io/no-provisioner",
-    isDefault: true,
-    age: "90d",
+    name: "db-credentials",
+    namespace: "app-database",
+    type: "Opaque",
+    data: 3,
+    age: "5d",
   },
   {
     id: "2",
     gitopsColor: "#00b30e",
-    name: "local-storage",
-    provisioner: "kubernetes.io/no-provisioner",
-    isDefault: false,
-    age: "90d",
+    name: "api-tls-cert",
+    namespace: "app-backend",
+    type: "kubernetes.io/tls",
+    data: 2,
+    age: "10d",
   },
   {
     id: "3",
     gitopsColor: "#00b30e",
-    name: "nfs-client",
-    provisioner: "nfs-subdir-external-provisioner",
-    isDefault: false,
-    age: "45d",
+    name: "registry-auth",
+    namespace: "app-cicd",
+    type: "kubernetes.io/dockerconfigjson",
+    data: 1,
+    age: "30d",
   },
   {
     id: "4",
     gitopsColor: "#6366f1",
-    name: "ceph-block",
-    provisioner: "rook-ceph.rbd.csi.ceph.com",
-    isDefault: false,
-    age: "30d",
+    name: "oauth2-client",
+    namespace: "app-backend",
+    type: "Opaque",
+    data: 4,
+    age: "8d",
   },
   {
     id: "5",
     gitopsColor: "#00b30e",
-    name: "ceph-filesystem",
-    provisioner: "rook-ceph.cephfs.csi.ceph.com",
-    isDefault: false,
-    age: "30d",
+    name: "grafana-admin",
+    namespace: "monitoring",
+    type: "Opaque",
+    data: 2,
+    age: "15d",
+  },
+  {
+    id: "6",
+    gitopsColor: "#00b30e",
+    name: "sa-token-default",
+    namespace: "kube-system",
+    type: "kubernetes.io/service-account-token",
+    data: 3,
+    age: "90d",
   },
 ];
 
-const columns: DataTableColumn<StorageClassRow>[] = [
+const typeVariant: Record<string, "success" | "warning" | "info" | "neutral"> =
+  {
+    Opaque: "neutral",
+    "kubernetes.io/tls": "success",
+    "kubernetes.io/dockerconfigjson": "info" as "success",
+    "kubernetes.io/service-account-token": "warning",
+  };
+
+const columns: DataTableColumn<SecretRow>[] = [
   {
     id: "gitops",
     header: "GitOps",
@@ -175,29 +199,35 @@ const columns: DataTableColumn<StorageClassRow>[] = [
   {
     id: "name",
     header: "이름",
-    width: "240px",
+    width: "220px",
     render: (row) => (
       <TextCell bold color="#111111" className="px-4">
-        {row.isDefault ? `${row.name} (default)` : row.name}
+        {row.name}
       </TextCell>
     ),
   },
   {
-    id: "provisioner",
-    header: "프로비저너",
-    width: "300px",
-    render: (row) => <Badge variant="neutral">{row.provisioner}</Badge>,
+    id: "namespace",
+    header: "네임스페이스",
+    width: "140px",
+    align: "center",
+    render: (row) => <TextCell color="#555555">{row.namespace}</TextCell>,
   },
   {
-    id: "default",
-    header: "기본 여부",
-    width: "120px",
+    id: "type",
+    header: "타입",
+    width: "280px",
     align: "center",
     render: (row) => (
-      <Badge variant={row.isDefault ? "success" : "neutral"}>
-        {row.isDefault ? "Default" : "-"}
-      </Badge>
+      <Badge variant={typeVariant[row.type] ?? "neutral"}>{row.type}</Badge>
     ),
+  },
+  {
+    id: "data",
+    header: "Data",
+    width: "100px",
+    align: "center",
+    render: (row) => <Badge variant="neutral">{row.data}</Badge>,
   },
   {
     id: "age",
@@ -230,6 +260,7 @@ const actionMenuItems: ActionMenuEntry[] = [
     label: "요약",
     icon: <FileText className="w-[14px] h-[14px] text-[#0077ff]" />,
   },
+  { type: "divider" },
   { key: "yaml", label: "YAML", icon: <FileCode className={iconClass} /> },
   {
     key: "delete",
@@ -240,24 +271,21 @@ const actionMenuItems: ActionMenuEntry[] = [
 
 // ─── Slide ──────────────────────────────────────────────────────────────────
 
-export default function SlideStorageClassesList() {
+export default function Slide05SecretsList() {
   return (
     <CcpDashboardLayout
-      breadcrumbs={[
-        { label: "저장소" },
-        { label: "StorageClasses", isBold: true },
-      ]}
-      title="Storage Classes"
+      breadcrumbs={[{ label: "저장소" }, { label: "Secrets", isBold: true }]}
+      title="Secrets"
       sideMenuItems={sideMenuItems}
     >
       <ContentSection card>
         <StatusSummary
-          tabs={[{ id: "gitops", label: "GitOps 현황", count: 5 }]}
+          tabs={[{ id: "gitops", label: "GitOps 현황", count: 6 }]}
           activeTabId="gitops"
           cards={[
-            { label: "Stable", count: 4, color: "#00b30e" },
-            { label: "Mismatch", count: 0, color: "#da1e28" },
-            { label: "Updating", count: 1, color: "#00b30e" },
+            { label: "Stable", count: 5, color: "#00b30e" },
+            { label: "Mismatch", count: 1, color: "#da1e28" },
+            { label: "Updating", count: 0, color: "#00b30e" },
             { label: "Missing", count: 0, color: "#dea600" },
             { label: "Broken", count: 0, color: "#da1e28" },
             { label: "Orphaned", count: 0, color: "#6366f1" },
@@ -268,13 +296,24 @@ export default function SlideStorageClassesList() {
       <ContentSection relative>
         <FilterBar className="gap-2">
           <Select
-            label="프로비저너"
+            label="타입"
             options={[
               { value: "", label: "전체" },
-              { value: "no-provisioner", label: "no-provisioner" },
-              { value: "nfs", label: "nfs-subdir" },
-              { value: "ceph-rbd", label: "rook-ceph (RBD)" },
-              { value: "ceph-fs", label: "rook-ceph (CephFS)" },
+              { value: "opaque", label: "Opaque" },
+              { value: "tls", label: "kubernetes.io/tls" },
+              { value: "docker", label: "dockerconfigjson" },
+              { value: "sa-token", label: "service-account-token" },
+            ]}
+          />
+          <Select
+            label="네임스페이스"
+            options={[
+              { value: "", label: "전체" },
+              { value: "app-database", label: "app-database" },
+              { value: "app-backend", label: "app-backend" },
+              { value: "app-cicd", label: "app-cicd" },
+              { value: "monitoring", label: "monitoring" },
+              { value: "kube-system", label: "kube-system" },
             ]}
           />
           <SearchInput placeholder="이름 검색" className="mr-1" />
@@ -301,8 +340,8 @@ export default function SlideStorageClassesList() {
 
         <Pagination
           currentPage={1}
-          totalPages={1}
-          visiblePages={[1]}
+          totalPages={4}
+          visiblePages={[1, 2, 3, 4]}
           className="mt-5 pb-10"
         />
       </ContentSection>

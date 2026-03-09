@@ -38,6 +38,7 @@ import type {
 import type { SlideMeta } from "@entities/document";
 
 export const slideMeta: SlideMeta = {
+  screenId: "CCP-STR-003",
   title: "PVC 목록",
   section: "CI/CD 저장소",
 };
@@ -97,15 +98,15 @@ const sideMenuItems: SideMenuItem[] = [
     ],
   },
   {
-    id: "settings",
-    label: "설정/권한",
-    icon: <SidebarSettingsIcon className="w-5 h-5" />,
-    expandIcon: "plus",
-  },
-  {
     id: "gitops",
     label: "GitOps",
     icon: <SidebarGitopsIcon className="w-5 h-5" />,
+    expandIcon: "plus",
+  },
+  {
+    id: "settings",
+    label: "설정/권한",
+    icon: <SidebarSettingsIcon className="w-5 h-5" />,
     expandIcon: "plus",
   },
 ];
@@ -294,6 +295,7 @@ const actionMenuItems: ActionMenuEntry[] = [
     label: "요약",
     icon: <FileText className="w-[14px] h-[14px] text-[#0077ff]" />,
   },
+  { type: "divider" },
   { key: "yaml", label: "YAML", icon: <FileCode className={iconClass} /> },
   {
     key: "delete",
@@ -304,7 +306,7 @@ const actionMenuItems: ActionMenuEntry[] = [
 
 // ─── Slide ──────────────────────────────────────────────────────────────────
 
-export default function SlidePvcList() {
+export default function Slide03PvcList() {
   return (
     <CcpDashboardLayout
       breadcrumbs={[{ label: "저장소" }, { label: "PVC", isBold: true }]}
