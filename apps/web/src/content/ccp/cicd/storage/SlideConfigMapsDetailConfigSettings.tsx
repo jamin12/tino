@@ -47,8 +47,15 @@ import type {
 import type { SlideMeta } from "@entities/document";
 
 export const slideMeta: SlideMeta = {
+  screenId: "CCP-STR-004-D4",
   title: "ConfigMaps 구성 - 설정",
   section: "CI/CD 저장소",
+  links: [
+    { targetScreenId: "CCP-STR-004-D1", type: "tab", label: "요약 탭" },
+    { targetScreenId: "CCP-STR-004-D2", type: "tab", label: "기본정보 탭" },
+    { targetScreenId: "CCP-STR-004-D3", type: "tab", label: "Data 탭" },
+    { targetScreenId: "CCP-STR-004-D5", type: "tab", label: "YAML 탭" },
+  ],
 };
 
 // ─── Side Menu Data ─────────────────────────────────────────────────────────

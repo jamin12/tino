@@ -41,6 +41,10 @@ export const slideMeta: SlideMeta = {
   screenId: "CCP-STR-003",
   title: "PVC 목록",
   section: "CI/CD 저장소",
+  links: [
+    { targetScreenId: "CCP-STR-003-D1", type: "navigate", label: "행 클릭 → 상세(Spec)" },
+    { targetScreenId: "CCP-STR-C00", type: "modal", label: "생성 버튼 → 생성 다이얼로그" },
+  ],
 };
 
 // ─── Side Menu Data ─────────────────────────────────────────────────────────

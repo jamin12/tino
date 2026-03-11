@@ -46,8 +46,12 @@ import type {
 import type { SlideMeta } from "@entities/document";
 
 export const slideMeta: SlideMeta = {
+  screenId: "CCP-STR-003-D1",
   title: "PVC 구성 - Spec",
   section: "CI/CD 저장소",
+  links: [
+    { targetScreenId: "CCP-STR-003-D2", type: "tab", label: "Status 탭" },
+  ],
 };
 
 // ─── Side Menu Data ─────────────────────────────────────────────────────────

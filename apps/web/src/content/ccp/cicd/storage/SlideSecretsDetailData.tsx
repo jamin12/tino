@@ -47,8 +47,12 @@ import type {
 import type { SlideMeta } from "@entities/document";
 
 export const slideMeta: SlideMeta = {
+  screenId: "CCP-STR-005-D2",
   title: "Secrets 구성 - Data Keys",
   section: "CI/CD 저장소",
+  links: [
+    { targetScreenId: "CCP-STR-005-D1", type: "tab", label: "타입 정보 탭" },
+  ],
 };
 
 // ─── Side Menu Data ─────────────────────────────────────────────────────────

@@ -1,1 +1,1 @@
-export { useDocuments, useDocument } from "./queries";
+export { useDocuments, useDocument, useScreenLinks } from "./queries";

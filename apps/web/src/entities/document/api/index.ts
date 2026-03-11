@@ -1,1 +1,1 @@
-export { getDocuments, getDocument } from "./content-api";
+export { getDocuments, getDocument, buildScreenLinkMap } from "./content-api";

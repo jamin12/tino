@@ -16,6 +16,7 @@ interface ActionMenuItemConfig {
   icon?: ReactNode;
   onClick?: () => void;
   disabled?: boolean;
+  annotationId?: number;
 }
 
 interface ActionMenuDivider {
@@ -210,6 +211,7 @@ export function ActionMenu({
             type="button"
             role="menuitem"
             disabled={entry.disabled}
+            {...(entry.annotationId != null && { "data-annotation-id": String(entry.annotationId) })}
             className={cn(
               "flex items-center gap-2 w-full px-3 py-1.5 border-none bg-transparent cursor-pointer text-left text-[13px] leading-5",
               isHighlighted ? "text-[#0077ff]" : "text-[#393c40]",

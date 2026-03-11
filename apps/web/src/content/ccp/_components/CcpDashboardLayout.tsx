@@ -140,6 +140,8 @@ interface CcpDashboardLayoutProps {
   actionButton?: { label: string; onClick?: () => void };
   /** Additional actions in PageHeader */
   headerActions?: ReactNode;
+  /** Full-screen overlay (modal, backdrop) rendered outside scroll area */
+  overlay?: ReactNode;
 }
 
 export function CcpDashboardLayout({
@@ -152,6 +154,7 @@ export function CcpDashboardLayout({
   userName = "홍길동",
   actionButton = { label: "Yaml 가져오기" },
   headerActions,
+  overlay,
 }: CcpDashboardLayoutProps) {
   return (
     <div className="relative w-[1920px] h-[1050px] flex bg-[#f6f8fa] overflow-hidden">
@@ -173,6 +176,8 @@ export function CcpDashboardLayout({
           {children}
         </div>
       </div>
+
+      {overlay}
     </div>
   );
 }

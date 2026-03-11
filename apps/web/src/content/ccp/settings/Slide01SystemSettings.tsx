@@ -41,6 +41,7 @@ export const slideMeta: SlideMeta = {
   screenId: "CCP-SET-001",
   title: "시스템 설정",
   section: "설정/권한",
+  links: [],
 };
 
 // ─── Side Menu ──────────────────────────────────────────────────────────────

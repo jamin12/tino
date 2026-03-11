@@ -1,7 +1,9 @@
 import { useCallback, useEffect, useRef, useState, type MouseEvent } from "react";
+import { useSearchParams } from "react-router";
 import {
   useSlideViewerStore,
   useSlideNavigation,
+  useSlideUrlSync,
 } from "@features/slide-viewer";
 import { CopyToFigmaButton } from "@features/export-to-figma";
 import { domToFigmaSvg } from "@shared/lib";
@@ -67,7 +69,25 @@ export function SlidePresenter({ slides }: Props) {
   const [hoveredEl, setHoveredEl] = useState<HTMLElement | null>(null);
   const [selectedEl, setSelectedEl] = useState<HTMLElement | null>(null);
   const [copyStatus, setCopyStatus] = useState<"idle" | "copying" | "copied" | "error">("idle");
-  const [showAnnotations, setShowAnnotations] = useState(false);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const showAnnotations = searchParams.get("spec") === "1";
+  const setShowAnnotations = useCallback(
+    (value: boolean | ((prev: boolean) => boolean)) => {
+      setSearchParams(
+        (prev) => {
+          const next = typeof value === "function" ? value(prev.get("spec") === "1") : value;
+          if (next) {
+            prev.set("spec", "1");
+          } else {
+            prev.delete("spec");
+          }
+          return prev;
+        },
+        { replace: true },
+      );
+    },
+    [setSearchParams],
+  );
 
   const CurrentSlide = slides[currentSlideIndex]?.component;
   const currentAnnotations = slides[currentSlideIndex]?.meta.annotations;
@@ -87,10 +107,7 @@ export function SlidePresenter({ slides }: Props) {
   );
 
   useSlideNavigation({ totalSlides: slides.length });
-
-  useEffect(() => {
-    setSlideIndex(0);
-  }, [slides, setSlideIndex]);
+  useSlideUrlSync(slides.length);
 
   const updateScale = useCallback(() => {
     const container = containerRef.current;
@@ -372,50 +389,66 @@ export function SlidePresenter({ slides }: Props) {
           </div>
         )}
 
-        {/* Slide content */}
-        <div className="flex-1 overflow-hidden bg-gray-100 p-4">
-          <div ref={containerRef} className="relative h-full w-full">
-            <div
-              ref={wrapperRef}
-              className="absolute left-1/2 top-1/2"
-              style={{
-                transform: `translate(-50%, -50%) scale(${scale})`,
-                transformOrigin: "center center",
-              }}
-            >
+        {/* Slide content + annotation side panel */}
+        <div className="flex flex-1 overflow-hidden">
+          <div className="flex-1 overflow-hidden bg-gray-100 p-4">
+            <div ref={containerRef} className="relative h-full w-full">
               <div
-                ref={captureRef}
-                className="relative rounded-lg border border-gray-200 bg-white shadow-sm"
+                ref={wrapperRef}
+                className="absolute left-1/2 top-1/2"
+                style={{
+                  transform: `translate(-50%, -50%) scale(${scale})`,
+                  transformOrigin: "center center",
+                }}
               >
-                {currentMeta?.screenId && (
-                  <button
-                    type="button"
-                    onClick={(e) =>
-                      handleCopyScreenId(e, currentMeta.screenId!)
-                    }
-                    className="absolute top-3 left-3 z-50 flex items-center gap-1.5 rounded bg-[#1b2c3f] px-2.5 py-1 shadow-md cursor-pointer hover:bg-[#263c54] active:scale-95 transition-all"
-                    title="클릭하여 화면 ID 복사"
-                  >
-                    <span className="text-[11px] font-mono font-semibold text-white tracking-wide">
-                      {copiedId === currentMeta.screenId
-                        ? "Copied!"
-                        : currentMeta.screenId}
-                    </span>
-                  </button>
-                )}
-                <CurrentSlide />
-              </div>
+                <div
+                  ref={captureRef}
+                  className="flex"
+                >
+                  <div ref={slideContentRef} className="relative rounded-lg border border-gray-200 bg-white shadow-sm">
+                    {currentMeta?.screenId && (
+                      <button
+                        type="button"
+                        onClick={(e) =>
+                          handleCopyScreenId(e, currentMeta.screenId!)
+                        }
+                        className="absolute top-3 left-3 z-50 flex items-center gap-1.5 rounded bg-[#1b2c3f] px-2.5 py-1 shadow-md cursor-pointer hover:bg-[#263c54] active:scale-95 transition-all"
+                        title="클릭하여 화면 ID 복사"
+                      >
+                        <span className="text-[11px] font-mono font-semibold text-white tracking-wide">
+                          {copiedId === currentMeta.screenId
+                            ? "Copied!"
+                            : currentMeta.screenId}
+                        </span>
+                      </button>
+                    )}
+                    <CurrentSlide />
+                    {showAnnotations && currentAnnotations && currentAnnotations.length > 0 && (
+                      <AnnotationMarkers
+                        annotations={currentAnnotations}
+                        containerEl={slideContentRef.current}
+                        scale={scale}
+                      />
+                    )}
+                  </div>
 
-              {/* Highlight overlay */}
-              {highlightEl && slideContentRef.current && (
-                <HighlightOverlay
-                  target={highlightEl}
-                  container={slideContentRef.current}
-                  isSelected={highlightEl === selectedEl}
-                  name={getComponentName(highlightEl)}
-                  scale={scale}
-                />
-              )}
+                  {/* Annotation side panel (inside captureRef for Figma export) */}
+                  {showAnnotations && currentAnnotations && currentAnnotations.length > 0 && (
+                    <AnnotationSidePanel annotations={currentAnnotations} />
+                  )}
+                </div>
+
+                {/* Highlight overlay */}
+                {highlightEl && slideContentRef.current && (
+                  <HighlightOverlay
+                    target={highlightEl}
+                    container={slideContentRef.current}
+                    isSelected={highlightEl === selectedEl}
+                    name={getComponentName(highlightEl)}
+                    scale={scale}
+                  />
+                )}
+              </div>
             </div>
           </div>
         </div>
@@ -518,22 +551,72 @@ function HighlightOverlay({
 
 // ─── Annotation Components ──────────────────────────────────────────────────
 
-function AnnotationMarkers({ annotations }: { annotations: SlideAnnotation[] }) {
+function AnnotationMarkers({
+  annotations,
+  containerEl,
+  scale,
+}: {
+  annotations: SlideAnnotation[];
+  containerEl: HTMLDivElement | null;
+  scale: number;
+}) {
+  const [positions, setPositions] = useState<Map<number, { x: number; y: number }>>(new Map());
+
+  useEffect(() => {
+    if (!containerEl) return;
+
+    const compute = () => {
+      const containerRect = containerEl.getBoundingClientRect();
+      const next = new Map<number, { x: number; y: number }>();
+
+      for (const a of annotations) {
+        const target = containerEl.querySelector<HTMLElement>(
+          `[data-annotation-id="${a.id}"]`,
+        );
+        if (target) {
+          const targetRect = target.getBoundingClientRect();
+          // 타겟 요소의 우상단에서 왼쪽으로 오프셋하여 마커 배치 (스케일 보정)
+          next.set(a.id, {
+            x: (targetRect.right - containerRect.left) / scale - 25,
+            y: (targetRect.top - containerRect.top) / scale + 5,
+          });
+        } else if (a.x != null && a.y != null) {
+          // data-annotation-id가 없으면 명시적 x/y 폴백
+          next.set(a.id, { x: a.x, y: a.y });
+        }
+      }
+
+      setPositions(next);
+    };
+
+    // DOM 렌더링 완료 후 위치 계산
+    requestAnimationFrame(compute);
+
+    // 리사이즈 시 재계산
+    const ro = new ResizeObserver(compute);
+    ro.observe(containerEl);
+    return () => ro.disconnect();
+  }, [annotations, containerEl, scale]);
+
   return (
     <>
-      {annotations.map((a) => (
-        <div
-          key={a.id}
-          className="absolute pointer-events-none"
-          style={{ left: a.x, top: a.y }}
-        >
-          <div className="relative -translate-x-1/2 -translate-y-1/2">
-            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-amber-500 text-[16px] font-bold text-white shadow-md ring-3 ring-white">
-              {a.id}
+      {annotations.map((a) => {
+        const pos = positions.get(a.id);
+        if (!pos) return null;
+        return (
+          <div
+            key={a.id}
+            className="absolute pointer-events-none"
+            style={{ left: pos.x, top: pos.y }}
+          >
+            <div className="relative -translate-x-1/2 -translate-y-1/2">
+              <div className="flex h-6 w-6 items-center justify-center rounded-full bg-amber-500 text-[11px] font-bold text-white shadow-md ring-2 ring-white">
+                {a.id}
+              </div>
             </div>
           </div>
-        </div>
-      ))}
+        );
+      })}
     </>
   );
 }

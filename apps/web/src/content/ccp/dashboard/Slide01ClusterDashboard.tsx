@@ -25,6 +25,7 @@ export const slideMeta: SlideMeta = {
   screenId: "CCP-DSH-002",
   title: "클러스터 대시보드 (위젯 편집)",
   section: "홈 대시보드",
+  links: [],
 };
 
 // ─── Side Menu (대시보드 active) ──────────────────────────────────────────────

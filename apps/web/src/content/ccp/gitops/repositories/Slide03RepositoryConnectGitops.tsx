@@ -21,6 +21,9 @@ export const slideMeta: SlideMeta = {
   screenId: "CCP-GIT-003",
   title: "리포지토리 연결 (GitOps 연결)",
   section: "GitOps Repositories",
+  links: [
+    { targetScreenId: "CCP-GIT-002", type: "tab", label: "기본정보 탭" },
+  ],
 };
 
 // ─── Side Menu Data ─────────────────────────────────────────────────────────

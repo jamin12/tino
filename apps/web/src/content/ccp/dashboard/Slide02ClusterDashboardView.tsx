@@ -21,6 +21,9 @@ export const slideMeta: SlideMeta = {
   screenId: "CCP-DSH-001",
   title: "클러스터 대시보드",
   section: "홈 대시보드",
+  links: [
+    { targetScreenId: "CCP-DSH-002", type: "navigate", label: "위젯 편집 모드" },
+  ],
 };
 
 // ─── Side Menu (대시보드 active) ──────────────────────────────────────────────

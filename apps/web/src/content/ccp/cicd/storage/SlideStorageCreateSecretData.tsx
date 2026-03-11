@@ -19,8 +19,13 @@ import type { SideMenuItem } from "../../_components";
 import type { SlideMeta } from "@entities/document";
 
 export const slideMeta: SlideMeta = {
+  screenId: "CCP-STR-005-C2",
   title: "Secrets 생성 - Data",
   section: "CI/CD 저장소",
+  links: [
+    { targetScreenId: "CCP-STR-C00", type: "tab", label: "공통 탭" },
+    { targetScreenId: "CCP-STR-005-C1", type: "tab", label: "Type 탭" },
+  ],
 };
 
 // ─── Side Menu Data ─────────────────────────────────────────────────────────

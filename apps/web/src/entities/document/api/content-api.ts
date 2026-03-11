@@ -4,6 +4,7 @@ import type {
   DiscoveredDocument,
   SlideMeta,
   SlideWithMeta,
+  ScreenLinkMap,
 } from "../types";
 
 // Eagerly import all meta.ts files from content directories
@@ -79,4 +80,37 @@ export async function getDocument(
     meta: metaMod.default,
     slides,
   };
+}
+
+/** 슬라이드 배열에서 화면 연결 맵을 생성 (outgoing + incoming 역추적) */
+export function buildScreenLinkMap(slides: SlideWithMeta[]): ScreenLinkMap {
+  const map: ScreenLinkMap = {};
+
+  // 1) 모든 screenId를 가진 슬라이드로 노드 초기화
+  for (const slide of slides) {
+    const { screenId, title, section, links } = slide.meta;
+    if (!screenId) continue;
+    map[screenId] = {
+      screenId,
+      title,
+      section,
+      outgoing: links ?? [],
+      incoming: [],
+    };
+  }
+
+  // 2) outgoing 링크를 순회하며 incoming(역방향) 자동 생성
+  for (const [fromId, node] of Object.entries(map)) {
+    for (const link of node.outgoing) {
+      const target = map[link.targetScreenId];
+      if (!target) continue;
+      target.incoming.push({
+        fromScreenId: fromId,
+        type: link.type,
+        label: link.label,
+      });
+    }
+  }
+
+  return map;
 }

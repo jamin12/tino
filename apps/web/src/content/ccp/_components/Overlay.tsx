@@ -1,10 +1,11 @@
-import type { ReactNode } from "react";
+import type { ComponentPropsWithoutRef, ReactNode } from "react";
 
-interface OverlayProps {
+interface OverlayProps extends Omit<ComponentPropsWithoutRef<"div">, "style"> {
   top?: number | string;
   left?: number | string;
   right?: number | string;
   bottom?: number | string;
+  position?: "absolute" | "fixed";
   children: ReactNode;
 }
 
@@ -13,16 +14,17 @@ function toPx(value: number | string | undefined): string | undefined {
   return typeof value === "number" ? `${value}px` : value;
 }
 
-export function Overlay({ top, left, right, bottom, children }: OverlayProps) {
+export function Overlay({ top, left, right, bottom, position = "absolute", children, className, ...rest }: OverlayProps) {
   return (
     <div
-      className="absolute"
+      className={`${position} ${className ?? ""}`}
       style={{
         top: toPx(top),
         left: toPx(left),
         right: toPx(right),
         bottom: toPx(bottom),
       }}
+      {...rest}
     >
       {children}
     </div>

@@ -34,6 +34,10 @@ export const slideMeta: SlideMeta = {
   screenId: "CCP-GIT-006",
   title: "리포지토리 상세 (코드 편집)",
   section: "GitOps Repositories",
+  links: [
+    { targetScreenId: "CCP-GIT-004", type: "tab", label: "기본정보 탭" },
+    { targetScreenId: "CCP-GIT-005", type: "tab", label: "코드 보기 탭" },
+  ],
 };
 
 // ─── Side Menu Data ─────────────────────────────────────────────────────────

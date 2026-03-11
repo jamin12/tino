@@ -19,6 +19,7 @@ interface DataTableProps<T extends { id: string }> {
   selectedIds?: Set<string>;
   onSelectionChange?: (ids: Set<string>) => void;
   className?: string;
+  [key: `data-${string}`]: string | undefined;
 }
 
 // ─── Component ──────────────────────────────────────────────────────────────
@@ -29,6 +30,7 @@ export function DataTable<T extends { id: string }>({
   selectedIds,
   onSelectionChange,
   className,
+  ...rest
 }: DataTableProps<T>) {
   const selectable = !!onSelectionChange;
   const allSelected = data.length > 0 && selectedIds?.size === data.length;
@@ -54,7 +56,7 @@ export function DataTable<T extends { id: string }>({
   };
 
   return (
-    <div data-name="DataTable" className={cn("flex flex-col items-start gap-2 w-full", className)}>
+    <div data-name="DataTable" className={cn("flex flex-col items-start gap-2 w-full", className)} {...rest}>
       {/* Header */}
       <header className="flex items-start w-full bg-[#e7edf3] rounded min-w-0">
         {selectable && (

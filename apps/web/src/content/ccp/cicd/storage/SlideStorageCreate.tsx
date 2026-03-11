@@ -23,8 +23,16 @@ import type { SideMenuItem } from "../../_components";
 import type { SlideMeta } from "@entities/document";
 
 export const slideMeta: SlideMeta = {
+  screenId: "CCP-STR-C00",
   title: "리소스 생성 (공통)",
   section: "CI/CD 저장소",
+  links: [
+    { targetScreenId: "CCP-STR-001-C2", type: "tab", label: "SC Provisioner 탭" },
+    { targetScreenId: "CCP-STR-001-C3", type: "tab", label: "SC Parameters 탭" },
+{ targetScreenId: "CCP-STR-003-C2", type: "tab", label: "PVC Spec 탭" },
+    { targetScreenId: "CCP-STR-004-C1", type: "tab", label: "ConfigMaps Data 탭" },
+    { targetScreenId: "CCP-STR-005-C1", type: "tab", label: "Secrets Type 탭" },
+  ],
 };
 
 // ─── Side Menu Data ─────────────────────────────────────────────────────────
