@@ -28,7 +28,18 @@
       "mcp__ClaudeTalkToFigma__join_channel",
       "mcp__ClaudeTalkToFigma__get_node_info",
       "mcp__ClaudeTalkToFigma__export_node_as_image",
-      "mcp__ClaudeTalkToFigma__get_nodes_info"
+      "mcp__ClaudeTalkToFigma__get_nodes_info",
+      "Bash(curl:*)",
+      "Bash(git pull:*)",
+      "Bash(git:*)",
+      "Bash(grep:*)",
+      "Bash(npm list:*)",
+      "mcp__dooray-mcp__get-project-list",
+      "mcp__dooray-mcp__get-task-list",
+      "mcp__dooray-mcp__get-task",
+      "mcp__dooray-mcp__update-task",
+      "Bash(do echo:*)",
+      "Bash(read f:*)"
     ]
   }
 }

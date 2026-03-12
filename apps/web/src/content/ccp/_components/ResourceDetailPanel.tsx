@@ -34,6 +34,7 @@ export function ResourceDetailPanel({
 }: ResourceDetailPanelProps) {
   return (
     <div
+      data-name="ResourceDetailPanel"
       className={cn("flex flex-col h-full bg-white", className)}
       {...props}
     >

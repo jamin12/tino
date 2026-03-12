@@ -405,7 +405,13 @@ export function SlidePresenter({ slides }: Props) {
                   ref={captureRef}
                   className="flex"
                 >
-                  <div ref={slideContentRef} className="relative rounded-lg border border-gray-200 bg-white shadow-sm">
+                  <div
+                    ref={slideContentRef}
+                    className="relative rounded-lg border border-gray-200 bg-white shadow-sm"
+                    onMouseMove={handleMouseMove}
+                    onMouseLeave={handleMouseLeave}
+                    onClick={handleClick}
+                  >
                     {currentMeta?.screenId && (
                       <button
                         type="button"
