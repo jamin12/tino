@@ -1,4 +1,3 @@
-import { Plus } from "lucide-react";
 import {
   Badge,
   Button,
@@ -28,8 +27,7 @@ export const slideMeta: SlideMeta = {
   annotations: [
     { id: 1, label: "NS 이름 입력", description: "sample-cicd/ 템플릿 폴더 내 모든 파일에서 'sample'을 입력한 이름으로 치환합니다. 영문 소문자, 숫자, 하이픈만 사용 가능합니다. 중복검사로 k8s-cicd-init 레포에 동일 이름의 폴더가 이미 존재하는지 확인합니다." },
     { id: 2, label: "배포 환경 선택", description: "기존 환경(dev/stg/prd) 중 생성할 환경을 체크합니다. 선택한 환경별로 k8s-app-init 레포의 overlays/{env}/sample-{env}/ 폴더를 복제하여 overlays/{env}/{ns}-{env}/ 폴더가 생성되고, 내부 파일의 'sample'이 입력한 NS 이름으로 치환됩니다. 해당 환경의 kustomization.yaml resources에도 자동으로 참조가 추가됩니다." },
-    { id: 3, label: "새 환경 추가", description: "기존 환경 외에 qa, perf, canary 등 커스텀 환경을 추가할 수 있습니다. 입력한 이름으로 새 overlay 환경 폴더가 생성됩니다." },
-    { id: 4, label: "생성 미리보기", description: "입력한 이름과 선택한 환경에 따라 Gitea API가 두 레포에 생성할 파일 경로입니다. 생성되는 파일 목록은 sample 템플릿의 내용에 따라 달라지며, 공통적으로 k8s-cicd-init에는 {ns}-cicd/ 폴더(sample-cicd/ 복제), 루트 kustomization.yaml 참조 추가, clusterrolebinding.yaml 권한 추가가 반영되고, k8s-app-init에는 환경별 overlays/{env}/{ns}-{env}/ 폴더(sample-{env}/ 복제)와 환경 kustomization.yaml 참조 추가가 반영됩니다." },
+    { id: 3, label: "생성 미리보기", description: "입력한 이름과 선택한 환경에 따라 Gitea API가 두 레포에 생성할 파일 경로입니다. 생성되는 파일 목록은 sample 템플릿의 내용에 따라 달라지며, 공통적으로 k8s-cicd-init에는 {ns}-cicd/ 폴더(sample-cicd/ 복제), 루트 kustomization.yaml 참조 추가, clusterrolebinding.yaml 권한 추가가 반영되고, k8s-app-init에는 환경별 overlays/{env}/{ns}-{env}/ 폴더(sample-{env}/ 복제)와 환경 kustomization.yaml 참조 추가가 반영됩니다." },
   ],
 };
 
@@ -174,28 +172,10 @@ export default function SlideNamespaceCreate() {
                 </div>
               </div>
 
-              {/* 새 환경 추가 */}
-              <div className="flex flex-col gap-2 pt-2 border-t border-[#f0f0f0]" data-annotation-id="3">
-                <TextCell bold color="#111" className="text-[13px]">
-                  새 환경 추가
-                </TextCell>
-                <InfoRow label="환경 이름" labelWidth="86px">
-                  <div className="flex items-center gap-2 flex-1">
-                    <TextInput
-                      placeholder="예: qa, perf, canary"
-                      className="flex-1"
-                    />
-                    <Button variant="secondary" size="md">
-                      <Plus className="w-4 h-4 mr-1" />
-                      추가
-                    </Button>
-                  </div>
-                </InfoRow>
-              </div>
             </div>
 
             {/* ── 생성 미리보기 ── */}
-            <div className="flex flex-col gap-2 pt-4 border-t border-[#f0f0f0]" data-annotation-id="4">
+            <div className="flex flex-col gap-2 pt-4 border-t border-[#f0f0f0]" data-annotation-id="3">
               <TextCell bold color="#111" className="text-[13px]">
                 생성될 리소스 미리보기
               </TextCell>

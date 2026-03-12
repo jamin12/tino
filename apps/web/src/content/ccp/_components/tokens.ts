@@ -11,7 +11,7 @@ export const colors = {
     semi: "#0077ff80",
   },
   success: {
-    DEFAULT: "#00b30e",
+    DEFAULT: "#00b30f",
     muted: "#009d32",
     light: "#009d3214",
     bright: "#00ba06",
@@ -21,7 +21,7 @@ export const colors = {
     light: "#da1e2814",
   },
   warning: {
-    DEFAULT: "#dea600",
+    DEFAULT: "#8b8b00",
   },
   info: {
     DEFAULT: "#6366f1",
@@ -44,8 +44,10 @@ export const colors = {
     100: "#f6f8fa",
     150: "#f0f0f0",
     200: "#eef0f2",
-    250: "#e7edf3",
+    250: "#e8eef3",
+    275: "#e3e6e8",
     300: "#e0e0e0",
+    325: "#e5e5e5",
     350: "#edeff1",
     400: "#dddddd",
     450: "#d2d2d2",
@@ -53,7 +55,7 @@ export const colors = {
     550: "#bac0c6",
     600: "#b1b1b1",
     650: "#999999",
-    700: "#6d6f72",
+    700: "#6d7073",
     750: "#5e5e5e",
     800: "#555555",
     850: "#3d3e40",
@@ -74,6 +76,7 @@ export const fontFamily = {
 export const fontSize = {
   "2xs": "10px",
   xs: "11px",
+  "xs-lg": "12px",
   sm: "13px",
   base: "14px",
   md: "16px",
@@ -92,6 +95,7 @@ export const fontWeight = {
 export const lineHeight = {
   "2xs": "14px",
   xs: "14.3px",
+  "xs-lg": "18px",
   sm: "18px",
   "sm-tight": "18.2px",
   base: "20px",
@@ -105,6 +109,7 @@ export const lineHeight = {
 export const letterSpacing = {
   "2xs": "-0.10px",
   xs: "-0.11px",
+  "xs-lg": "-0.12px",
   sm: "-0.13px",
   base: "-0.14px",
   md: "-0.16px",
@@ -164,6 +169,8 @@ export const textStyle = {
   "body-bold": "text-[13px] font-bold leading-5 tracking-[-0.13px]",
   "body-sm": "text-sm font-medium leading-5 tracking-[-0.14px]",
   "body-sm-bold": "text-sm font-bold leading-5 tracking-[-0.14px]",
+  "body-xs": "text-[12px] font-medium leading-[18px] tracking-[-0.12px]",
+  "body-xs-bold": "text-[12px] font-bold leading-[18px] tracking-[-0.12px]",
   "label-xs": "text-xs font-normal leading-[18px] tracking-[-0.12px]",
   "label-2xs": "text-[10px] font-bold leading-[14px] tracking-[-0.10px]",
   "caption": "text-[11px] font-normal leading-[14.3px] tracking-[-0.11px]",
