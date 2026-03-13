@@ -56,6 +56,19 @@ export const slideMeta: SlideMeta = {
     { targetScreenId: "CCP-STR-004-D4", type: "tab", label: "설정 탭" },
     { targetScreenId: "CCP-STR-004-D5", type: "tab", label: "YAML 탭" },
   ],
+  annotations: [
+    { id: 1, label: "GitOps 현황 요약", description: "ConfigMap 리소스의 GitOps 동기화 상태를 카드로 요약합니다. Stable, Mismatch, Updating 등 상태별 수량을 한눈에 파악할 수 있습니다." },
+    { id: 2, label: "네임스페이스 필터", description: "특정 네임스페이스에 속한 ConfigMap만 표시하도록 필터링합니다." },
+    { id: 3, label: "이름 검색", description: "ConfigMap 이름을 기준으로 키워드 검색을 수행합니다." },
+    { id: 4, label: "ConfigMap 생성", description: "새 ConfigMap 리소스를 생성합니다. 클릭 시 생성 다이얼로그가 열립니다." },
+    { id: 5, label: "동기화", description: "클러스터의 ConfigMap 상태를 GitOps 소스와 동기화합니다." },
+    { id: 6, label: "ConfigMap 목록 테이블", description: "등록된 ConfigMap을 GitOps 상태, 이름, 네임스페이스, Data 수, 생성일 순으로 표시합니다." },
+    { id: 7, label: "행 컨텍스트 메뉴", description: "각 ConfigMap에 대한 편집, 복제, 요약 보기, 구성, YAML 확인, 삭제 등의 추가 작업을 수행할 수 있는 컨텍스트 메뉴입니다." },
+    { id: 8, label: "페이지네이션", description: "ConfigMap 목록이 한 페이지에 표시할 수 있는 수를 초과할 경우 페이지 단위로 탐색합니다." },
+    { id: 9, label: "상세 패널", description: "선택한 ConfigMap(app-config)의 상세 정보를 표시하는 사이드 패널입니다. 상태, 구성, YAML 탭으로 전환할 수 있습니다." },
+    { id: 10, label: "구성 탭 전환", description: "기본정보, 설정, Data 하위 탭으로 구성 정보를 분류하여 탐색합니다. 현재 Data 탭이 활성화되어 있습니다." },
+    { id: 11, label: "Data 키-값 목록", description: "ConfigMap에 저장된 키-값 쌍(DATABASE_HOST, DATABASE_PORT 등)을 이름, 타입, 값으로 구분하여 표시합니다. 각 항목은 구분선으로 분리됩니다." },
+  ],
 };
 
 // ─── Side Menu Data ─────────────────────────────────────────────────────────
@@ -238,6 +251,7 @@ export default function SlideConfigMapsDetailConfigData() {
       <ListDetailLayout
         detail={
           <ResourceDetailPanel
+            data-annotation-id="9"
             title="app-config"
             statusColor="#00b30e"
             iconNavItems={detailIconNavItems}
@@ -252,12 +266,12 @@ export default function SlideConfigMapsDetailConfigData() {
             </div>
 
             {/* Sub Tabs */}
-            <div className="px-5">
+            <div className="px-5" data-annotation-id="10">
               <Tabs items={configTabs} activeId="data" />
             </div>
 
             {/* Content */}
-            <div className="flex-1 px-4 pt-4 pb-4">
+            <div className="flex-1 px-4 pt-4 pb-4" data-annotation-id="11">
               <div className="bg-white rounded-sm border border-[#f0f0f0] shadow-[0px_0px_8px_#00000014] px-5 py-4 flex flex-col gap-3">
                 {/* Item 1 */}
                 <InfoRow label="이름">
@@ -320,7 +334,7 @@ export default function SlideConfigMapsDetailConfigData() {
         detailWidth="480px"
       >
         {/* Main List Content */}
-        <ContentSection card>
+        <ContentSection card data-annotation-id="1">
           <StatusSummary
             tabs={[{ id: "gitops", label: "GitOps 현황", count: 5 }]}
             activeTabId="gitops"
@@ -335,6 +349,7 @@ export default function SlideConfigMapsDetailConfigData() {
 
         <ContentSection relative>
           <FilterBar className="gap-2">
+            <div data-annotation-id="2">
             <Select
               label="네임스페이스"
               options={[
@@ -344,25 +359,29 @@ export default function SlideConfigMapsDetailConfigData() {
                 { value: "monitoring", label: "monitoring" },
               ]}
             />
+            </div>
+            <div data-annotation-id="3">
             <SearchInput placeholder="이름 검색" className="mr-1" />
-            <Button variant="primary" size="md">
+            </div>
+            <Button data-annotation-id="4" variant="primary" size="md">
               <Plus className="w-4 h-4 mr-1.5" />
               생성
             </Button>
-            <Button variant="secondary" size="md">
+            <Button data-annotation-id="5" variant="secondary" size="md">
               <RefreshCw className="w-3.5 h-3.5 mr-1.5" />
               동기화
             </Button>
           </FilterBar>
 
           <DataTable
+            data-annotation-id="6"
             columns={columns}
             data={tableData}
             selectedIds={new Set()}
             onSelectionChange={() => {}}
           />
 
-          <Overlay top={90} right={0}>
+          <Overlay data-annotation-id="7" top={90} right={0}>
             <ActionMenu
               items={actionMenuItems}
               highlightedKeys={["config"]}
@@ -371,12 +390,14 @@ export default function SlideConfigMapsDetailConfigData() {
             />
           </Overlay>
 
+          <div data-annotation-id="8">
           <Pagination
             currentPage={1}
             totalPages={3}
             visiblePages={[1, 2, 3]}
             className="mt-3 pb-6"
           />
+          </div>
         </ContentSection>
       </ListDetailLayout>
     </CcpDashboardLayout>

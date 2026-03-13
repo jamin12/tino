@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { ChevronDown } from "lucide-react";
 import { cn } from "../cn";
 
@@ -7,7 +8,7 @@ interface SelectOption {
 }
 
 interface SelectProps extends React.HTMLAttributes<HTMLDivElement> {
-  label: string;
+  label?: string;
   options: SelectOption[];
   value?: string;
   onValueChange?: (value: string) => void;
@@ -17,12 +18,26 @@ interface SelectProps extends React.HTMLAttributes<HTMLDivElement> {
 export function Select({
   label,
   options,
-  value,
+  value: controlledValue,
   onValueChange,
   minWidth = "150px",
   className,
   ...props
 }: SelectProps) {
+  const [internalValue, setInternalValue] = useState(controlledValue ?? options[0]?.value ?? "");
+  const isControlled = controlledValue !== undefined;
+  const currentValue = isControlled ? controlledValue : internalValue;
+
+  const displayLabel = options.find((o) => o.value === currentValue)?.label ?? label ?? options[0]?.label ?? "";
+
+  const handleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const newValue = e.target.value;
+    if (!isControlled) {
+      setInternalValue(newValue);
+    }
+    onValueChange?.(newValue);
+  };
+
   return (
     <div
       className={cn(
@@ -33,13 +48,13 @@ export function Select({
       {...props}
     >
       <span className="flex-1 text-[13px] font-normal tracking-[-0.13px] leading-5 text-[#333333]">
-        {label}
+        {displayLabel}
       </span>
       <select
         className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-        value={value}
-        onChange={(e) => onValueChange?.(e.target.value)}
-        aria-label={label}
+        value={currentValue}
+        onChange={handleChange}
+        aria-label={label ?? displayLabel}
       >
         {options.map((opt) => (
           <option key={opt.value} value={opt.value}>

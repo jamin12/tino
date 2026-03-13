@@ -1,3 +1,8 @@
+import {
+  ChevronDown,
+  Upload,
+  TerminalSquare,
+} from "lucide-react";
 import { ChevronDown, Upload, ChevronRight } from "lucide-react";
 import { cn } from "../cn";
 
@@ -14,12 +19,18 @@ interface GlobalNavProps extends React.HTMLAttributes<HTMLElement> {
     label: string;
     onClick?: () => void;
   };
+  /** Web terminal toggle state */
+  terminalOpen?: boolean;
+  /** Web terminal toggle callback */
+  onTerminalToggle?: () => void;
 }
 
 export function GlobalNav({
   selectors,
   userName,
   actionButton,
+  terminalOpen,
+  onTerminalToggle,
   className,
   ...props
 }: GlobalNavProps) {
@@ -59,8 +70,32 @@ export function GlobalNav({
         ))}
       </div>
 
-      {/* Right: Actions + User */}
+      {/* Right: Terminal + Action + User */}
       <div className="flex items-center gap-2.5 pr-8">
+        {/* Web Terminal toggle */}
+        {onTerminalToggle && (
+          <div className="relative group/terminal">
+            <button
+              type="button"
+              onClick={onTerminalToggle}
+              className={cn(
+                "flex items-center justify-center w-[34px] h-[34px] rounded-md border transition-all duration-200 cursor-pointer",
+                terminalOpen
+                  ? "bg-[#1b2c3f] border-[#1b2c3f] text-[#4fc3f7] shadow-[0_1px_6px_rgba(27,44,63,0.4)]"
+                  : "bg-white border-[#d5d9df] text-[#555] hover:border-[#1b2c3f] hover:bg-[#1b2c3f] hover:text-[#4fc3f7] hover:shadow-[0_1px_6px_rgba(27,44,63,0.3)]",
+              )}
+              aria-label="Kubectl 셸 열기"
+            >
+              <TerminalSquare className="w-[16px] h-[16px]" strokeWidth={2.2} />
+            </button>
+            {/* Tooltip */}
+            <span className="pointer-events-none absolute top-full left-1/2 -translate-x-1/2 mt-2.5 z-50 hidden group-hover/terminal:flex items-center gap-1.5 px-3 py-1.5 bg-[#1b2c3f] rounded-md shadow-lg whitespace-nowrap">
+              <span className="text-white text-[11px] font-medium">Kubectl 셸</span>
+              <kbd className="text-[10px] text-[#7eacc7] bg-[#263a4f] px-1.5 py-0.5 rounded font-mono">Ctrl+`</kbd>
+            </span>
+          </div>
+        )}
+
         {actionButton && (
           <button
             type="button"

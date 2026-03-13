@@ -52,6 +52,19 @@ export const slideMeta: SlideMeta = {
   links: [
     { targetScreenId: "CCP-STR-001-D1", type: "tab", label: "프로비저너 탭" },
   ],
+  annotations: [
+    { id: 1, label: "GitOps 현황 요약", description: "StorageClass 리소스의 GitOps 동기화 상태를 카드로 요약합니다. Stable, Mismatch, Updating 등 상태별 수량을 한눈에 파악할 수 있습니다." },
+    { id: 2, label: "프로비저너 필터", description: "프로비저너 유형별로 StorageClass 목록을 필터링합니다. '전체'를 선택하면 모든 프로비저너의 항목이 표시됩니다." },
+    { id: 3, label: "이름 검색", description: "StorageClass 이름을 기준으로 키워드 검색을 수행합니다. 입력 즉시 목록이 필터링됩니다." },
+    { id: 4, label: "StorageClass 생성", description: "새 StorageClass 리소스를 생성합니다. 클릭 시 생성 다이얼로그가 열립니다." },
+    { id: 5, label: "동기화", description: "클러스터의 StorageClass 상태를 GitOps 소스와 동기화합니다. 최신 상태를 반영하기 위해 사용합니다." },
+    { id: 6, label: "StorageClass 목록 테이블", description: "등록된 StorageClass를 GitOps 상태, 이름, 프로비저너, 기본 여부, 생성일 순으로 표시합니다. 행 클릭 시 해당 리소스의 상세 화면으로 이동합니다." },
+    { id: 7, label: "행 컨텍스트 메뉴", description: "각 StorageClass에 대한 편집, 복제, 요약 보기, 구성, YAML 확인, 삭제 등의 추가 작업을 수행할 수 있는 컨텍스트 메뉴입니다." },
+    { id: 8, label: "페이지네이션", description: "StorageClass 목록이 한 페이지에 표시할 수 있는 수를 초과할 경우 페이지 단위로 탐색합니다." },
+    { id: 9, label: "상세 패널", description: "선택한 StorageClass(standard)의 상세 정보를 표시하는 사이드 패널입니다. 상태, 구성, YAML 탭으로 전환할 수 있습니다." },
+    { id: 10, label: "구성 탭 전환", description: "기본정보, 프로비저너, Parameters 하위 탭으로 구성 정보를 분류하여 탐색합니다. 현재 Parameters 탭이 활성화되어 있습니다." },
+    { id: 11, label: "Parameters 속성", description: "StorageClass에 설정된 파라미터(type: local)를 키-값 형태로 표시합니다. 프로비저너 동작에 필요한 세부 설정값입니다." },
+  ],
 };
 
 // ─── Side Menu Data ─────────────────────────────────────────────────────────
@@ -283,6 +296,7 @@ export default function SlideStorageClassesDetailParams() {
       <ListDetailLayout
         detail={
           <ResourceDetailPanel
+            data-annotation-id="9"
             title="standard"
             statusColor="#00b30e"
             iconNavItems={detailIconNavItems}
@@ -297,12 +311,12 @@ export default function SlideStorageClassesDetailParams() {
             </div>
 
             {/* Sub Tabs */}
-            <div className="px-5">
+            <div className="px-5" data-annotation-id="10">
               <Tabs items={configTabs} activeId="params" />
             </div>
 
             {/* Content */}
-            <div className="flex-1 px-4 pt-4 pb-4">
+            <div className="flex-1 px-4 pt-4 pb-4" data-annotation-id="11">
               <div className="bg-white rounded-sm border border-[#f0f0f0] shadow-[0px_0px_8px_#00000014] px-5 py-4 flex flex-col gap-3">
                 <InfoRow label="type">
                   <TextCell color="#6d7073" className="text-[13px]">local</TextCell>
@@ -314,7 +328,7 @@ export default function SlideStorageClassesDetailParams() {
         detailWidth="480px"
       >
         {/* Main List Content */}
-        <ContentSection card>
+        <ContentSection card data-annotation-id="1">
           <StatusSummary
             tabs={[{ id: "gitops", label: "GitOps 현황", count: 5 }]}
             activeTabId="gitops"
@@ -331,6 +345,7 @@ export default function SlideStorageClassesDetailParams() {
 
         <ContentSection relative>
           <FilterBar className="gap-2">
+            <div data-annotation-id="2">
             <Select
               label="프로비저너"
               options={[
@@ -341,25 +356,29 @@ export default function SlideStorageClassesDetailParams() {
                 { value: "ceph-fs", label: "rook-ceph (CephFS)" },
               ]}
             />
+            </div>
+            <div data-annotation-id="3">
             <SearchInput placeholder="이름 검색" className="mr-1" />
-            <Button variant="primary" size="md">
+            </div>
+            <Button data-annotation-id="4" variant="primary" size="md">
               <Plus className="w-4 h-4 mr-1.5" />
               생성
             </Button>
-            <Button variant="secondary" size="md">
+            <Button data-annotation-id="5" variant="secondary" size="md">
               <RefreshCw className="w-3.5 h-3.5 mr-1.5" />
               동기화
             </Button>
           </FilterBar>
 
           <DataTable
+            data-annotation-id="6"
             columns={columns}
             data={tableData}
             selectedIds={new Set()}
             onSelectionChange={() => {}}
           />
 
-          <Overlay top={133} right={0}>
+          <Overlay data-annotation-id="7" top={133} right={0}>
             <ActionMenu
               items={actionMenuItems}
               highlightedKeys={["config"]}
@@ -368,12 +387,14 @@ export default function SlideStorageClassesDetailParams() {
             />
           </Overlay>
 
+          <div data-annotation-id="8">
           <Pagination
             currentPage={1}
             totalPages={1}
             visiblePages={[1]}
             className="mt-5 pb-10"
           />
+          </div>
         </ContentSection>
       </ListDetailLayout>
     </CcpDashboardLayout>

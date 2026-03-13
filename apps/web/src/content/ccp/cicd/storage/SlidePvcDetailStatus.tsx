@@ -52,6 +52,20 @@ export const slideMeta: SlideMeta = {
   links: [
     { targetScreenId: "CCP-STR-003-D1", type: "tab", label: "Spec 탭" },
   ],
+  annotations: [
+    { id: 1, label: "리소스 상태 현황", description: "PVC 리소스의 상태(Bound, Pending, Lost)와 GitOps 동기화 상태를 탭으로 전환하여 카드 요약으로 확인합니다." },
+    { id: 2, label: "상태 필터", description: "PVC의 바인딩 상태(Bound, Pending, Lost)별로 목록을 필터링합니다." },
+    { id: 3, label: "네임스페이스 필터", description: "특정 네임스페이스에 속한 PVC만 표시하도록 필터링합니다." },
+    { id: 4, label: "이름 검색", description: "PVC 이름 또는 레이블을 기준으로 키워드 검색을 수행합니다." },
+    { id: 5, label: "PVC 생성", description: "새 PersistentVolumeClaim 리소스를 생성합니다. 클릭 시 생성 다이얼로그가 열립니다." },
+    { id: 6, label: "동기화", description: "클러스터의 PVC 상태를 GitOps 소스와 동기화합니다." },
+    { id: 7, label: "PVC 목록 테이블", description: "등록된 PVC를 GitOps 상태, 이름, 네임스페이스, 상태, 볼륨, 용량, Access Modes, Storage Class, 생성일 순으로 표시합니다." },
+    { id: 8, label: "행 컨텍스트 메뉴", description: "각 PVC에 대한 편집, 복제, 요약 보기, YAML 확인, 삭제 등의 추가 작업을 수행할 수 있는 컨텍스트 메뉴입니다." },
+    { id: 9, label: "페이지네이션", description: "PVC 목록이 한 페이지에 표시할 수 있는 수를 초과할 경우 페이지 단위로 탐색합니다." },
+    { id: 10, label: "상세 패널", description: "선택한 PVC(data-db-mongodb-0)의 상세 정보를 표시하는 사이드 패널입니다. 상태, 구성, YAML 탭으로 전환할 수 있습니다." },
+    { id: 11, label: "구성 탭 전환", description: "기본정보, Spec, Status 하위 탭으로 구성 정보를 분류하여 탐색합니다. 현재 Status 탭이 활성화되어 있습니다." },
+    { id: 12, label: "Status 정보", description: "PVC의 현재 Phase(Bound), 바인딩된 볼륨, 실제 할당 용량, Access Modes 등 런타임 상태 정보를 표시합니다." },
+  ],
 };
 
 // ─── Side Menu Data ─────────────────────────────────────────────────────────
@@ -342,6 +356,7 @@ export default function SlidePvcDetailStatus() {
       <ListDetailLayout
         detail={
           <ResourceDetailPanel
+            data-annotation-id="10"
             title="data-db-mongodb-0"
             statusColor="#00b30e"
             iconNavItems={detailIconNavItems}
@@ -356,12 +371,12 @@ export default function SlidePvcDetailStatus() {
             </div>
 
             {/* Sub Tabs */}
-            <div className="px-5">
+            <div className="px-5" data-annotation-id="11">
               <Tabs items={configTabs} activeId="status" />
             </div>
 
             {/* Content */}
-            <div className="flex-1 px-4 pt-4 pb-4">
+            <div className="flex-1 px-4 pt-4 pb-4" data-annotation-id="12">
               <div className="bg-white rounded-sm border border-[#f0f0f0] shadow-[0px_0px_8px_#00000014] px-5 py-4 flex flex-col gap-3">
                 <InfoRow label="Phase">
                   <Badge variant="success" size="sm">Bound</Badge>
@@ -382,7 +397,7 @@ export default function SlidePvcDetailStatus() {
         detailWidth="480px"
       >
         {/* Main List Content */}
-        <ContentSection card>
+        <ContentSection card data-annotation-id="1">
           <StatusSummary
             tabs={[
               { id: "status", label: "리소스 상태 현황", count: 25 },
@@ -410,6 +425,7 @@ export default function SlidePvcDetailStatus() {
 
         <ContentSection relative>
           <FilterBar className="gap-2">
+            <div data-annotation-id="2">
             <Select
               label="상태"
               options={[
@@ -419,29 +435,35 @@ export default function SlidePvcDetailStatus() {
                 { value: "lost", label: "Lost" },
               ]}
             />
+            </div>
+            <div data-annotation-id="3">
             <Select
               label="네임스페이스"
               options={[{ value: "", label: "전체" }]}
             />
+            </div>
+            <div data-annotation-id="4">
             <SearchInput placeholder="이름 또는 레이블 검색" className="mr-1" />
-            <Button variant="primary" size="md">
+            </div>
+            <Button data-annotation-id="5" variant="primary" size="md">
               <Plus className="w-4 h-4 mr-1.5" />
               생성
             </Button>
-            <Button variant="secondary" size="md">
+            <Button data-annotation-id="6" variant="secondary" size="md">
               <RefreshCw className="w-3.5 h-3.5 mr-1.5" />
               동기화
             </Button>
           </FilterBar>
 
           <DataTable
+            data-annotation-id="7"
             columns={columns}
             data={tableData}
             selectedIds={new Set()}
             onSelectionChange={() => {}}
           />
 
-          <Overlay top={133} right={0}>
+          <Overlay data-annotation-id="8" top={133} right={0}>
             <ActionMenu
               items={actionMenuItems}
               highlightedKeys={["summary"]}
@@ -450,12 +472,14 @@ export default function SlidePvcDetailStatus() {
             />
           </Overlay>
 
+          <div data-annotation-id="9">
           <Pagination
             currentPage={1}
             totalPages={3}
             visiblePages={[1, 2, 3]}
             className="mt-5 pb-10"
           />
+          </div>
         </ContentSection>
       </ListDetailLayout>
     </CcpDashboardLayout>

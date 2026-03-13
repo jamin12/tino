@@ -26,6 +26,18 @@ export const slideMeta: SlideMeta = {
   links: [
     { targetScreenId: "CCP-STR-C00", type: "tab", label: "공통 탭" },
   ],
+  annotations: [
+    { id: 1, label: "생성 폼 탭", description: "기본정보와 Spec 탭을 전환합니다. Spec 탭이 활성 상태로, PVC의 스토리지 사양을 설정합니다." },
+    { id: 2, label: "스니펫 추천 토글", description: "ON 시 우측에 스니펫 추천 패널을 표시합니다. 자주 사용하는 PVC 설정을 빠르게 적용할 수 있습니다." },
+    { id: 3, label: "YAML 모드 토글", description: "ON 시 폼 입력 대신 YAML 에디터로 전환하여 직접 매니페스트를 편집할 수 있습니다." },
+    { id: 4, label: "StorageClass 선택", description: "PVC가 바인딩할 StorageClass를 선택합니다. 선택한 클래스에 따라 프로비저너와 스토리지 특성이 결정됩니다." },
+    { id: 5, label: "Access Modes 선택", description: "볼륨의 접근 모드를 지정합니다. ReadWriteOnce는 단일 노드, ReadOnlyMany/ReadWriteMany는 다중 노드 접근을 허용합니다." },
+    { id: 6, label: "Volume Mode 선택", description: "볼륨을 Filesystem으로 마운트할지 Block 디바이스로 직접 사용할지 결정합니다." },
+    { id: 7, label: "Storage 요청 입력", description: "요청할 스토리지 용량과 단위를 설정합니다. 실제 프로비저닝되는 볼륨의 최소 크기를 지정합니다." },
+    { id: 8, label: "Volume Name 입력", description: "특정 PV에 수동으로 바인딩하려면 PV 이름을 입력합니다. 비워두면 StorageClass의 Provisioner가 자동으로 PV를 생성합니다." },
+    { id: 9, label: "폼 액션 버튼", description: "생성/취소 등 폼 제출 액션을 제공합니다. 모든 필수 필드가 채워졌을 때 생성 버튼이 활성화됩니다." },
+    { id: 10, label: "스니펫 추천 패널", description: "PVC 유형에 맞는 추천 스니펫을 표시합니다. 클릭 시 해당 스니펫의 Spec 설정이 폼에 자동 반영됩니다." },
+  ],
 };
 
 // ─── Side Menu Data ─────────────────────────────────────────────────────────
@@ -115,83 +127,99 @@ export default function SlideStorageCreatePvcSpec() {
           <div className="flex-1 min-w-0">
             {/* Tab bar + toggles */}
             <div className="flex items-center justify-between mb-4">
-              <Tabs
-                items={[
-                  { id: "basic", label: "기본정보" },
-                  { id: "spec", label: "Spec" },
-                ]}
-                activeId="spec"
-              />
+              <div data-annotation-id="1">
+                <Tabs
+                  items={[
+                    { id: "basic", label: "기본정보" },
+                    { id: "spec", label: "Spec" },
+                  ]}
+                  activeId="spec"
+                />
+              </div>
               <div className="flex items-center gap-4">
-                <Toggle label="스니펫 추천" checked />
-                <Toggle label="YAML 모드" />
+                <div data-annotation-id="2">
+                  <Toggle label="스니펫 추천" checked />
+                </div>
+                <div data-annotation-id="3">
+                  <Toggle label="YAML 모드" />
+                </div>
               </div>
             </div>
 
             {/* Spec tab content */}
             <div className="flex flex-col gap-5 bg-white rounded-lg border border-[#f0f0f0] shadow-[0px_0px_8px_#00000014] p-6">
-              <InfoRow label="StorageClass" labelWidth="120px">
-                <Select
-                  label="ceph-rbd-sc"
-                  options={[
-                    { value: "ceph-rbd-sc", label: "ceph-rbd-sc" },
-                    { value: "nfs-sc", label: "nfs-sc" },
-                    { value: "local-path", label: "local-path" },
-                  ]}
-                  minWidth="280px"
-                />
-              </InfoRow>
-
-              <InfoRow label="Access Modes" labelWidth="120px">
-                <div className="flex items-center gap-4">
-                  <Checkbox label="ReadWriteOnce" checked />
-                  <Checkbox label="ReadOnlyMany" />
-                  <Checkbox label="ReadWriteMany" />
-                </div>
-              </InfoRow>
-
-              <InfoRow label="Volume Mode" labelWidth="120px">
-                <Select
-                  label="Filesystem"
-                  options={[
-                    { value: "Filesystem", label: "Filesystem" },
-                    { value: "Block", label: "Block" },
-                  ]}
-                  minWidth="200px"
-                />
-              </InfoRow>
-
-              <InfoRow label="Storage 요청" labelWidth="120px">
-                <div className="flex items-center gap-2">
-                  <TextInput
-                    defaultValue="10"
-                    className="w-24"
-                  />
+              <div data-annotation-id="4">
+                <InfoRow label="StorageClass" labelWidth="120px">
                   <Select
-                    label="Gi"
+                    label="ceph-rbd-sc"
                     options={[
-                      { value: "Gi", label: "Gi" },
-                      { value: "Mi", label: "Mi" },
-                      { value: "Ti", label: "Ti" },
+                      { value: "ceph-rbd-sc", label: "ceph-rbd-sc" },
+                      { value: "nfs-sc", label: "nfs-sc" },
+                      { value: "local-path", label: "local-path" },
                     ]}
-                    minWidth="80px"
+                    minWidth="280px"
                   />
-                </div>
-              </InfoRow>
+                </InfoRow>
+              </div>
 
-              <InfoRow label="Volume Name" labelWidth="120px">
-                <TextInput
-                  placeholder="특정 PV에 바인딩하려면 이름을 입력하세요 (선택)"
-                  className="flex-1"
-                />
-              </InfoRow>
+              <div data-annotation-id="5">
+                <InfoRow label="Access Modes" labelWidth="120px">
+                  <div className="flex items-center gap-4">
+                    <Checkbox label="ReadWriteOnce" checked />
+                    <Checkbox label="ReadOnlyMany" />
+                    <Checkbox label="ReadWriteMany" />
+                  </div>
+                </InfoRow>
+              </div>
+
+              <div data-annotation-id="6">
+                <InfoRow label="Volume Mode" labelWidth="120px">
+                  <Select
+                    label="Filesystem"
+                    options={[
+                      { value: "Filesystem", label: "Filesystem" },
+                      { value: "Block", label: "Block" },
+                    ]}
+                    minWidth="200px"
+                  />
+                </InfoRow>
+              </div>
+
+              <div data-annotation-id="7">
+                <InfoRow label="Storage 요청" labelWidth="120px">
+                  <div className="flex items-center gap-2">
+                    <TextInput
+                      defaultValue="10"
+                      className="w-24"
+                    />
+                    <Select
+                      label="Gi"
+                      options={[
+                        { value: "Gi", label: "Gi" },
+                        { value: "Mi", label: "Mi" },
+                        { value: "Ti", label: "Ti" },
+                      ]}
+                      minWidth="80px"
+                    />
+                  </div>
+                </InfoRow>
+              </div>
+
+              <div data-annotation-id="8">
+                <InfoRow label="Volume Name" labelWidth="120px">
+                  <TextInput
+                    placeholder="특정 PV에 바인딩하려면 이름을 입력하세요 (선택)"
+                    className="flex-1"
+                  />
+                </InfoRow>
+              </div>
             </div>
 
-            <FormActions />
+            <FormActions data-annotation-id="9" />
           </div>
 
           {/* Snippet Panel */}
-          <div className="w-[280px] shrink-0">
+          <div className="w-[280px] shrink-0" data-annotation-id="10">
             <div className="flex items-center gap-2 mb-3">
               <span className="text-sm font-bold text-[#333333]">
                 스니펫 추천

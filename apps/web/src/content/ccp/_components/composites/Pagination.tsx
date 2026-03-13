@@ -25,7 +25,7 @@ export function Pagination({
   return (
     <nav
       data-name="Pagination"
-      className={cn("flex items-center justify-center gap-2", className)}
+      className={cn("relative flex items-center justify-center gap-2", className)}
       aria-label="Pagination"
       {...props}
     >
@@ -94,7 +94,7 @@ export function Pagination({
       </button>
 
       {onItemsPerPageChange && (
-        <div className="ml-auto">
+        <div className="absolute right-0">
           <div className="relative w-[62px] h-8 bg-white rounded-sm border border-[#dddddd]">
             <select
               className="absolute inset-0 w-full h-full px-2 text-[13px] font-normal text-[#333333] tracking-[-0.13px] leading-5 bg-transparent border-none appearance-none cursor-pointer"

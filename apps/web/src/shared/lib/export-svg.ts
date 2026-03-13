@@ -373,6 +373,24 @@ function renderCheckbox(
   return `<rect x="${cx}" y="${cy}" width="${size}" height="${size}" fill="white" stroke="#d1d5db" stroke-width="1.5" rx="3" ry="3" />`;
 }
 
+function renderRadio(
+  el: HTMLInputElement,
+  x: number, y: number, w: number, h: number,
+): string {
+  const size = Math.min(w, h, 16);
+  const cx = x + w / 2;
+  const cy = y + h / 2;
+  const r = size / 2;
+
+  if (el.checked) {
+    return (
+      `<circle cx="${cx}" cy="${cy}" r="${r}" fill="#3b82f6" stroke="#3b82f6" stroke-width="1.5" />` +
+      `<circle cx="${cx}" cy="${cy}" r="${r * 0.4}" fill="white" />`
+    );
+  }
+  return `<circle cx="${cx}" cy="${cy}" r="${r}" fill="white" stroke="#d1d5db" stroke-width="1.5" />`;
+}
+
 function renderInputPlaceholder(
   el: HTMLInputElement | HTMLTextAreaElement,
   style: CSSStyleDeclaration,
@@ -540,6 +558,8 @@ export async function domToFigmaSvg(
 
     if (el.tagName === "INPUT" && (el as HTMLInputElement).type === "checkbox") {
       inner += renderCheckbox(el as HTMLInputElement, x, y, w, h);
+    } else if (el.tagName === "INPUT" && (el as HTMLInputElement).type === "radio") {
+      inner += renderRadio(el as HTMLInputElement, x, y, w, h);
     } else if (el.tagName === "INPUT" || el.tagName === "TEXTAREA") {
       inner += renderInputPlaceholder(el as HTMLInputElement, style, x, y, rootRect);
     } else if (el.tagName === "SELECT") {

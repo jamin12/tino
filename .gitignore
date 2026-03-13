@@ -8,4 +8,6 @@ build
 .DS_Store
 
 .omc
-.docs/plans
+
+# Terminal Paste Image folder
+.cp-images/

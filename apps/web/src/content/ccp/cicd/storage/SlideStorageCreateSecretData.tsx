@@ -26,6 +26,16 @@ export const slideMeta: SlideMeta = {
     { targetScreenId: "CCP-STR-C00", type: "tab", label: "공통 탭" },
     { targetScreenId: "CCP-STR-005-C1", type: "tab", label: "Type 탭" },
   ],
+  annotations: [
+    { id: 1, label: "생성 폼 탭", description: "기본정보, Type, Data 탭을 전환합니다. Data 탭이 활성 상태로, Secret에 저장할 민감 데이터를 편집합니다." },
+    { id: 2, label: "스니펫 추천 토글", description: "ON 시 우측에 스니펫 추천 패널을 표시합니다. 자주 사용하는 Secret 템플릿을 빠르게 적용할 수 있습니다." },
+    { id: 3, label: "YAML 모드 토글", description: "ON 시 폼 입력 대신 YAML 에디터로 전환하여 직접 매니페스트를 편집할 수 있습니다." },
+    { id: 4, label: "Data 헤더 및 추가 버튼", description: "Secret의 key-value 데이터 목록의 헤더입니다. + 버튼으로 새로운 시크릿 데이터 행을 추가합니다." },
+    { id: 5, label: "Secret 데이터 행", description: "각 행은 key와 마스킹된 value로 구성됩니다. 눈 아이콘으로 값을 표시/숨김 전환하고, X 버튼으로 행을 삭제합니다." },
+    { id: 6, label: "파일에서 추가", description: "로컬 파일을 선택하여 Secret 데이터로 일괄 등록합니다. 인증서나 설정 파일을 직접 업로드할 때 사용합니다." },
+    { id: 7, label: "폼 액션 버튼", description: "생성/취소 등 폼 제출 액션을 제공합니다. 모든 필수 필드가 채워졌을 때 생성 버튼이 활성화됩니다." },
+    { id: 8, label: "스니펫 추천 패널", description: "Secret 유형에 맞는 추천 스니펫을 표시합니다. 클릭 시 해당 스니펫의 key-value 데이터가 폼에 자동 반영됩니다." },
+  ],
 };
 
 // ─── Side Menu Data ─────────────────────────────────────────────────────────
@@ -154,24 +164,30 @@ export default function SlideStorageCreateSecretData() {
           <div className="flex-1 min-w-0">
             {/* Tab bar + toggles */}
             <div className="flex items-center justify-between mb-4">
-              <Tabs
-                items={[
-                  { id: "basic", label: "기본정보" },
-                  { id: "type", label: "Type" },
-                  { id: "data", label: "Data" },
-                ]}
-                activeId="data"
-              />
+              <div data-annotation-id="1">
+                <Tabs
+                  items={[
+                    { id: "basic", label: "기본정보" },
+                    { id: "type", label: "Type" },
+                    { id: "data", label: "Data" },
+                  ]}
+                  activeId="data"
+                />
+              </div>
               <div className="flex items-center gap-4">
-                <Toggle label="스니펫 추천" checked />
-                <Toggle label="YAML 모드" />
+                <div data-annotation-id="2">
+                  <Toggle label="스니펫 추천" checked />
+                </div>
+                <div data-annotation-id="3">
+                  <Toggle label="YAML 모드" />
+                </div>
               </div>
             </div>
 
             {/* Data tab content */}
             <div className="flex flex-col gap-4 bg-white rounded-lg border border-[#f0f0f0] shadow-[0px_0px_8px_#00000014] p-6">
               {/* Header */}
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between" data-annotation-id="4">
                 <span className="text-[13px] font-semibold text-[#333333] tracking-[-0.13px] leading-5">
                   Data
                 </span>
@@ -181,12 +197,14 @@ export default function SlideStorageCreateSecretData() {
               </div>
 
               {/* Secret data rows with masking */}
-              <SecretDataRow keyName="DB_PASSWORD" value="s3cur3P@ss!" masked />
-              <SecretDataRow keyName="API_KEY" value="ak_live_12345abcdef" masked />
-              <SecretDataRow keyName="JWT_SECRET" value="myJwtSecretKey2025" masked={false} />
+              <div className="flex flex-col gap-4" data-annotation-id="5">
+                <SecretDataRow keyName="DB_PASSWORD" value="s3cur3P@ss!" masked />
+                <SecretDataRow keyName="API_KEY" value="ak_live_12345abcdef" masked />
+                <SecretDataRow keyName="JWT_SECRET" value="myJwtSecretKey2025" masked={false} />
+              </div>
 
               {/* 파일에서 추가 */}
-              <div className="flex items-center gap-2 pt-2 border-t border-[#f0f0f0]">
+              <div className="flex items-center gap-2 pt-2 border-t border-[#f0f0f0]" data-annotation-id="6">
                 <Button variant="ghost" size="md">
                   파일에서 추가
                 </Button>
@@ -198,11 +216,11 @@ export default function SlideStorageCreateSecretData() {
               </div>
             </div>
 
-            <FormActions />
+            <FormActions data-annotation-id="7" />
           </div>
 
           {/* Snippet Panel */}
-          <div className="w-[280px] shrink-0">
+          <div className="w-[280px] shrink-0" data-annotation-id="8">
             <div className="flex items-center gap-2 mb-3">
               <span className="text-sm font-bold text-[#333333]">
                 스니펫 추천

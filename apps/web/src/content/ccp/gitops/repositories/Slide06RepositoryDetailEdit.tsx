@@ -12,6 +12,9 @@ import {
   Copy,
   MoreHorizontal,
   Pencil,
+  Link2,
+  Unlink,
+  Trash2,
   Eye,
   Minus,
   Lock,
@@ -20,25 +23,93 @@ import {
   Badge,
   Button,
   CcpDashboardLayout,
+  ContextMenu,
   ContentSection,
   CodeEditor,
+  Overlay,
   SplitPanel,
   Tabs,
-  Checkbox,
   Toggle,
 } from "../../_components";
-import type { SideMenuItem } from "../../_components";
+import type { SideMenuItem, ContextMenuEntry } from "../../_components";
 import type { SlideMeta } from "@entities/document";
 
 export const slideMeta: SlideMeta = {
   screenId: "CCP-GIT-006",
-  title: "리포지토리 상세 (코드 편집)",
-  section: "GitOps Repositories",
-  links: [
-    { targetScreenId: "CCP-GIT-004", type: "tab", label: "기본정보 탭" },
-    { targetScreenId: "CCP-GIT-005", type: "tab", label: "코드 보기 탭" },
+  title: "배포 저장소 상세 (코드 편집)",
+  section: "GitOps 배포 저장소",
+  annotations: [
+    {
+      id: 1,
+      label: "파일 편집 / 변경내용 미리보기",
+      description:
+        "현재 '파일 편집' 모드가 활성화되어 코드를 직접 수정할 수 있습니다. '변경내용 미리보기' 클릭 시 편집 전후의 Diff를 확인하는 미리보기(CCP-GIT-006b) 화면으로 전환됩니다.",
+    },
+    {
+      id: 2,
+      label: "코드 에디터",
+      description:
+        "선택된 파일을 웹 에디터에서 직접 편집합니다. 구문 강조, 줄 번호, 미니맵, 자동 줄바꿈 등의 편의 기능을 제공합니다.",
+    },
+    {
+      id: 3,
+      label: "커밋 메시지 입력",
+      description:
+        "커밋 제목과 선택적 확장 설명을 입력합니다. 제목은 필수이며, 변경 사항을 간결하게 요약합니다.",
+    },
+    {
+      id: 4,
+      label: "브랜치 직접 커밋",
+      description:
+        "현재 선택된 브랜치(main)에 직접 커밋합니다. 별도의 리뷰 과정 없이 즉시 반영됩니다.",
+    },
+    {
+      id: 5,
+      label: "새 브랜치 + 끌어오기 요청",
+      description:
+        "이 커밋에 대한 새로운 브랜치를 만들고 끌어오기 요청(Pull Request)을 시작합니다. 브랜치 이름을 직접 입력할 수 있으며, 기본값은 'devopsadmin-patch-1' 형식입니다.",
+    },
+    {
+      id: 6,
+      label: "커밋 / 취소",
+      description:
+        "'변경 내용을 커밋' 버튼 클릭 시 CCP 관리자 계정(cicdmanager)으로 커밋이 수행됩니다. '취소' 클릭 시 편집 화면에서 파일 뷰어(CCP-GIT-005) 화면으로 전환됩니다.",
+    },
+    {
+      id: 7,
+      label: "더보기 메뉴",
+      description:
+        "배포 저장소에 대한 추가 작업을 수행할 수 있는 컨텍스트 메뉴를 표시합니다.",
+    },
+    {
+      id: 8,
+      label: "컨텍스트 메뉴",
+      description:
+        "더보기 아이콘 클릭 시 표시되는 팝업 메뉴입니다.\n• 애플리케이션 생성: 연결된 앱을 만듭니다.\n• 설정: 해당 저장소의 상세 화면 설정 탭으로 이동합니다.\n• 연결: GitOps 연결을 설정합니다.\n• 연결해제: GitOps 연결을 해제합니다.\n• 삭제: 저장소를 삭제합니다.",
+    },
   ],
 };
+
+// ─── Context Menu Data ──────────────────────────────────────────────────────
+
+const repoGroupContextMenu: ContextMenuEntry[] = [
+  { id: "create-app", label: "애플리케이션 생성", icon: <Link2 className="w-4 h-4" /> },
+  { id: "settings", label: "설정", icon: <Settings className="w-4 h-4" /> },
+  { id: "connect", label: "연결", icon: <Link2 className="w-4 h-4" /> },
+  {
+    id: "disconnect",
+    label: "연결해제",
+    icon: <Unlink className="w-4 h-4" />,
+    textColor: "text-[#da1e28]",
+  },
+  { id: "divider", type: "divider" },
+  {
+    id: "delete",
+    label: "삭제",
+    icon: <Trash2 className="w-4 h-4" />,
+    textColor: "text-[#da1e28]",
+  },
+];
 
 // ─── Side Menu Data ─────────────────────────────────────────────────────────
 
@@ -77,8 +148,10 @@ const sideMenuItems: SideMenuItem[] = [
       {
         label: "",
         items: [
-          { label: "Applications" },
-          { label: "Repositories", active: true, bold: true },
+          { label: "배포 애플리케이션" },
+          { label: "배포 저장소", active: true, bold: true },
+          { label: "소스 저장소" },
+          { label: "저장소 그룹" },
         ],
       },
     ],
@@ -147,9 +220,9 @@ export default function Slide06RepositoryDetailEdit() {
   return (
     <CcpDashboardLayout
       breadcrumbs={[
+        { label: "홈" },
         { label: "GitOps" },
-        { label: "Repositories" },
-        { label: "app1-maven-pipeline", isBold: true },
+        { label: "배포 저장소", isBold: true },
       ]}
       title={
         <span className="group relative inline-flex items-center gap-2">
@@ -176,16 +249,30 @@ export default function Slide06RepositoryDetailEdit() {
         </span>
       }
       sideMenuItems={sideMenuItems}
+      headerActions={
+        <button
+          data-annotation-id="7"
+          type="button"
+          className="flex items-center justify-center w-8 h-8 rounded hover:bg-[#f0f0f0] text-[#666]"
+        >
+          <MoreHorizontal className="w-5 h-5" />
+        </button>
+      }
+      overlay={
+        <Overlay data-annotation-id="8" top={100} right={80}>
+          <ContextMenu items={repoGroupContextMenu} className="w-[200px]" />
+        </Overlay>
+      }
     >
       <ContentSection>
         <Tabs
           items={[
             { id: "basic", label: "기본정보" },
             { id: "code", label: "파일" },
-            { id: "branches", label: "브랜치" },
+            { id: "branches", label: "브랜치/태그" },
             { id: "commits", label: "커밋 이력" },
-            { id: "tags", label: "태그/릴리스" },
-            { id: "gitops", label: "GitOps", dividerBefore: true },
+            { id: "settings", label: "설정" },
+              { id: "gitops", label: "GitOps", dividerBefore: true },
           ]}
           activeId="code"
           className="mb-0"
@@ -214,7 +301,7 @@ export default function Slide06RepositoryDetailEdit() {
           </div>
 
           {/* New file */}
-          <Button variant="primary" size="md" className="!bg-[#00b30e] hover:!bg-[#009a0c]">
+          <Button variant="primary" size="md">
             <Plus className="w-4 h-4 mr-1" />
             새 파일
           </Button>
@@ -282,7 +369,7 @@ export default function Slide06RepositoryDetailEdit() {
             </div>
           }
           right={
-            <div className="flex flex-col h-full">
+            <div data-annotation-id="2" className="flex flex-col h-full">
               {/* File path header */}
               <div className="flex items-center justify-between px-3 py-2 bg-[#f6f8fa] border border-[#e0e0e0] rounded-t">
                 <div className="flex items-center gap-1 text-[13px]">
@@ -290,8 +377,8 @@ export default function Slide06RepositoryDetailEdit() {
                   <span className="text-[#999]">/</span>
                   <span className="font-semibold text-[#333]">build-pr.yaml</span>
                 </div>
-                <div className="flex items-center gap-2">
-                  <Button variant="ghost" size="sm" className="!h-7 !text-[12px]">
+                <div data-annotation-id="1" className="flex items-center gap-2">
+                  <Button variant="primary" size="sm" className="!h-7 !text-[12px]">
                     <Pencil className="w-3 h-3 mr-1" />
                     파일 편집
                   </Button>
@@ -374,6 +461,7 @@ export default function Slide06RepositoryDetailEdit() {
           </h3>
 
           {/* Commit message */}
+          <div data-annotation-id="3">
           <input
             type="text"
             className="w-full h-[36px] border border-[#ddd] rounded px-3 text-[13px] text-[#333] mb-2"
@@ -385,39 +473,44 @@ export default function Slide06RepositoryDetailEdit() {
             placeholder="선택적 확장 설명 추가..."
             readOnly
           />
+          </div>
 
           {/* Options */}
           <div className="space-y-2 mb-4">
-            <Checkbox label="Add a Signed-off-by trailer by the committer at the end of the commit log message." />
-            <div className="flex items-center gap-2">
-              <input type="radio" name="commitType" checked readOnly className="accent-[#0077ff]" />
+            <div data-annotation-id="4" className="flex items-center gap-2">
+              <input type="radio" name="commitType" readOnly className="accent-[#0077ff]" />
               <span className="text-[13px] text-[#333]">
                 <span className="text-[#0077ff] font-semibold">&apos;main&apos;</span> 브랜치에서 직접 커밋해주세요.
               </span>
             </div>
-            <div className="flex items-center gap-2">
-              <input type="radio" name="commitType" readOnly className="accent-[#0077ff]" />
+            <div data-annotation-id="5" className="flex items-center gap-2">
+              <input type="radio" name="commitType" checked readOnly className="accent-[#0077ff]" />
               <span className="text-[13px] text-[#333]">
-                이 커밋에 대한 <span className="font-semibold">새로운 브랜치</span>를 만들고 풀어오기 요청을 시작합니다.
+                이 커밋에 대한 <span className="font-semibold">새로운 브랜치</span>를 만들고 끌어오기 요청을 시작합니다.
               </span>
+            </div>
+            <div className="ml-6 mt-1">
+              <input
+                type="text"
+                className="w-[260px] h-[34px] border border-[#ddd] rounded px-3 text-[13px] text-[#333]"
+                defaultValue="devopsadmin-patch-1"
+                readOnly
+              />
             </div>
           </div>
 
-          {/* Buttons */}
-          <div className="flex justify-end gap-2">
-            <Button variant="ghost" size="md">
-              취소
-            </Button>
-            <Button
-              variant="primary"
-              size="md"
-              className="!bg-[#00b30e] hover:!bg-[#009a0c]"
-            >
-              변경 내용을 커밋
-            </Button>
-          </div>
         </div>
       </ContentSection>
+
+      {/* Bottom fixed action bar */}
+      <div data-annotation-id="6" className="sticky bottom-0 left-0 right-0 px-8 py-3 flex justify-end gap-2">
+        <Button variant="ghost" size="md">
+          취소
+        </Button>
+        <Button variant="primary" size="md">
+          변경 내용을 커밋
+        </Button>
+      </div>
     </CcpDashboardLayout>
   );
 }

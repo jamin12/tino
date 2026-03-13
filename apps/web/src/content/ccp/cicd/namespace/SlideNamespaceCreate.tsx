@@ -128,21 +128,23 @@ export default function SlideNamespaceCreate() {
               </TextCell>
 
               {/* 이름 */}
-              <InfoRow label="이름" labelWidth="86px" data-annotation-id="1">
-                <div className="relative flex items-center gap-2 flex-1">
-                  <TextInput
-                    placeholder="영문 소문자(a-z), 숫자(0-9), 하이픈(-)만 사용"
-                    defaultValue="my-service"
-                    className="flex-1"
-                  />
-                  <Button variant="blue-solid" size="md">
-                    중복검사
-                  </Button>
-                  <Tooltip className="absolute -bottom-8 left-0 z-10">
-                    입력한 이름으로 {"{ns}-cicd"} 폴더와 배포 환경이 생성됩니다.
-                  </Tooltip>
-                </div>
-              </InfoRow>
+              <div data-annotation-id="1">
+                <InfoRow label="이름" labelWidth="86px">
+                  <div className="relative flex items-center gap-2 flex-1">
+                    <TextInput
+                      placeholder="영문 소문자(a-z), 숫자(0-9), 하이픈(-)만 사용"
+                      defaultValue="my-service"
+                      className="flex-1"
+                    />
+                    <Button variant="blue-solid" size="md">
+                      중복검사
+                    </Button>
+                    <Tooltip className="absolute -bottom-8 left-0 z-10">
+                      입력한 이름으로 {"{ns}-cicd"} 폴더와 배포 환경이 생성됩니다.
+                    </Tooltip>
+                  </div>
+                </InfoRow>
+              </div>
             </div>
 
             {/* ── 배포 환경 ── */}

@@ -265,13 +265,15 @@ export default function SlideNamespaceDelete() {
               </InfoRow>
 
               {/* 삭제 유형 */}
-              <Tabs data-annotation-id="1"
-                items={[
-                  { id: "env", label: "환경별 삭제" },
-                  { id: "all", label: "전체 삭제" },
-                ]}
-                activeId="env"
-              />
+              <div data-annotation-id="1">
+                <Tabs
+                  items={[
+                    { id: "env", label: "환경별 삭제" },
+                    { id: "all", label: "전체 삭제" },
+                  ]}
+                  activeId="env"
+                />
+              </div>
 
               {/* 환경 선택 */}
               <div className="flex flex-col gap-2" data-annotation-id="2">

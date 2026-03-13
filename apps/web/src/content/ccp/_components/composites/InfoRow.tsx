@@ -2,7 +2,7 @@ import { type ReactNode } from "react";
 import { cn } from "../cn";
 
 interface InfoRowProps extends React.HTMLAttributes<HTMLDivElement> {
-  label: string;
+  label: ReactNode;
   labelWidth?: string;
   children: ReactNode;
 }

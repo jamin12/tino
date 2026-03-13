@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import {
   Building2,
   FolderOpen,
@@ -12,10 +12,12 @@ import {
   SidebarCicdIcon,
   SidebarSettingsIcon,
   SidebarGitopsIcon,
-} from "../icons";
+} from "./icons";
 import { SideMenu } from "./SideMenu";
 import { GlobalNav } from "./GlobalNav";
-import { PageHeader } from "../composites/PageHeader";
+import { PageHeader } from "./PageHeader";
+import { YamlImportModal } from "./YamlImportModal";
+import { WebTerminalPanel } from "./WebTerminalPanel";
 import type { SideMenuItem } from "./SideMenu";
 import type { NavSelector } from "./GlobalNav";
 
@@ -92,20 +94,27 @@ const defaultSideMenuItems: SideMenuItem[] = [
     id: "settings",
     label: "설정/권한",
     icon: <SidebarSettingsIcon className="w-5 h-5" />,
-    expandIcon: "plus",
+    expandIcon: "minus",
+    expanded: true,
+    sections: [
+      {
+        label: "",
+        items: [
+          { label: "조직 관리" },
+          { label: "프로젝트 관리" },
+          { label: "멤버 관리" },
+          { label: "시스템 설정" },
+        ],
+      },
+    ],
   },
 ];
 
 const defaultNavSelectors: NavSelector[] = [
   {
-    label: "조직",
-    value: "NHN Cloud",
-    icon: <Building2 className="w-4 h-4" />,
-  },
-  {
-    label: "프로젝트",
-    value: "Project-Dummy-1",
-    icon: <FolderOpen className="w-4 h-4" />,
+    label: "클러스터",
+    value: "Cluster-01",
+    icon: <Server className="w-4 h-4" />,
   },
   {
     label: "네임스페이스",
@@ -140,7 +149,7 @@ interface CcpDashboardLayoutProps {
   actionButton?: { label: string; onClick?: () => void };
   /** Additional actions in PageHeader */
   headerActions?: ReactNode;
-  /** Full-screen overlay (modal, backdrop) rendered outside scroll area */
+  /** Overlay content (e.g. modal) */
   overlay?: ReactNode;
 }
 
@@ -156,6 +165,20 @@ export function CcpDashboardLayout({
   headerActions,
   overlay,
 }: CcpDashboardLayoutProps) {
+  const [isYamlModalOpen, setIsYamlModalOpen] = useState(false);
+  const [isTerminalOpen, setIsTerminalOpen] = useState(false);
+
+  // GNB "YAML 가져오기" 버튼의 기본 동작: YAML 모달 열기
+  const resolvedActionButton = actionButton ?? {
+    label: "YAML 가져오기",
+    onClick: () => setIsYamlModalOpen(true),
+  };
+
+  // actionButton이 외부에서 전달되어도 onClick 미지정 시 모달 열기로 동작
+  const finalActionButton = resolvedActionButton.onClick
+    ? resolvedActionButton
+    : { ...resolvedActionButton, onClick: () => setIsYamlModalOpen(true) };
+
   return (
     <div className="relative w-[1920px] h-[1050px] flex bg-[#f6f8fa] overflow-hidden">
       <SideMenu logo={logo} items={sideMenuItems} className="h-[1050px]" />
@@ -164,7 +187,9 @@ export function CcpDashboardLayout({
         <GlobalNav
           selectors={navSelectors}
           userName={userName}
-          actionButton={actionButton}
+          actionButton={finalActionButton}
+          terminalOpen={isTerminalOpen}
+          onTerminalToggle={() => setIsTerminalOpen((v) => !v)}
         />
 
         <div className="flex-1 overflow-auto">
@@ -175,8 +200,16 @@ export function CcpDashboardLayout({
           />
           {children}
         </div>
-      </div>
 
+        {/* Web Terminal Panel */}
+        {isTerminalOpen && (
+          <WebTerminalPanel onClose={() => setIsTerminalOpen(false)} />
+        )}
+      </div>
+      {/* YAML Import Modal */}
+      {isYamlModalOpen && (
+        <YamlImportModal onClose={() => setIsYamlModalOpen(false)} />
+      )}
       {overlay}
     </div>
   );

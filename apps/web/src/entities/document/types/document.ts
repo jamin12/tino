@@ -28,6 +28,8 @@ export interface ScreenLink {
 export interface SlideMeta {
   title?: string;
   section?: string;
+  /** Spec 패널 상단에 표시할 설명 (???...??? 파란 박스 등 서식 지원) */
+  description?: string;
   annotations?: SlideAnnotation[];
   /** 화면 고유 식별자 (예: "CCP-GIT-001") */
   screenId?: string;

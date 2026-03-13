@@ -45,6 +45,62 @@ export const slideMeta: SlideMeta = {
     { targetScreenId: "CCP-STR-003-D1", type: "navigate", label: "행 클릭 → 상세(Spec)" },
     { targetScreenId: "CCP-STR-C00", type: "modal", label: "생성 버튼 → 생성 다이얼로그" },
   ],
+  annotations: [
+    {
+      id: 1,
+      label: "리소스 상태 현황",
+      description:
+        "PVC의 바인딩 상태를 탭별로 요약합니다. '리소스 상태 현황' 탭에서는 Bound/Pending/Lost 수량을, 'GitOps 현황' 탭에서는 동기화 상태를 확인할 수 있습니다.",
+    },
+    {
+      id: 2,
+      label: "상태 필터",
+      description:
+        "PVC의 바인딩 상태(Bound, Pending, Lost)별로 목록을 필터링합니다. '전체'를 선택하면 모든 상태의 PVC가 표시됩니다.",
+    },
+    {
+      id: 3,
+      label: "네임스페이스 필터",
+      description:
+        "네임스페이스별로 PVC 목록을 필터링합니다. 특정 네임스페이스에 속한 PVC만 조회할 수 있습니다.",
+    },
+    {
+      id: 4,
+      label: "이름 검색",
+      description:
+        "PVC 이름 또는 레이블을 기준으로 키워드 검색을 수행합니다. 입력 즉시 목록이 필터링됩니다.",
+    },
+    {
+      id: 5,
+      label: "PVC 생성",
+      description:
+        "새 PersistentVolumeClaim을 생성합니다. 클릭 시 생성 다이얼로그(CCP-STR-C00)가 열립니다.",
+    },
+    {
+      id: 6,
+      label: "동기화",
+      description:
+        "클러스터의 PVC 상태를 GitOps 소스와 동기화합니다. 최신 상태를 반영하기 위해 사용합니다.",
+    },
+    {
+      id: 7,
+      label: "PVC 목록 테이블",
+      description:
+        "등록된 PVC를 GitOps 상태, 이름, 네임스페이스, 바인딩 상태, 볼륨, 용량, Access Modes, Storage Class, 생성일 순으로 표시합니다. 행 클릭 시 해당 PVC의 상세(CCP-STR-003-D1) 화면으로 이동합니다.",
+    },
+    {
+      id: 8,
+      label: "행 컨텍스트 메뉴",
+      description:
+        "각 PVC에 대한 편집, 복제, 요약 보기, YAML 확인, 삭제 등의 추가 작업을 수행할 수 있는 컨텍스트 메뉴입니다.",
+    },
+    {
+      id: 9,
+      label: "페이지네이션",
+      description:
+        "PVC 목록이 한 페이지에 표시할 수 있는 수를 초과할 경우 페이지 단위로 탐색합니다.",
+    },
+  ],
 };
 
 // ─── Side Menu Data ─────────────────────────────────────────────────────────
@@ -317,7 +373,7 @@ export default function Slide03PvcList() {
       title="Persistent Volume Claims"
       sideMenuItems={sideMenuItems}
     >
-      <ContentSection card>
+      <ContentSection card data-annotation-id="1">
         <StatusSummary
           tabs={[
             { id: "status", label: "리소스 상태 현황", count: 25 },
@@ -345,6 +401,7 @@ export default function Slide03PvcList() {
 
       <ContentSection relative>
         <FilterBar className="gap-2">
+          <div data-annotation-id="2">
           <Select
             label="상태"
             options={[
@@ -354,38 +411,46 @@ export default function Slide03PvcList() {
               { value: "lost", label: "Lost" },
             ]}
           />
+          </div>
+          <div data-annotation-id="3">
           <Select
             label="네임스페이스"
             options={[{ value: "", label: "전체" }]}
           />
+          </div>
+          <div data-annotation-id="4">
           <SearchInput placeholder="이름 또는 레이블 검색" className="mr-1" />
-          <Button variant="primary" size="md">
+          </div>
+          <Button data-annotation-id="5" variant="primary" size="md">
             <Plus className="w-4 h-4 mr-1.5" />
             생성
           </Button>
-          <Button variant="secondary" size="md">
+          <Button data-annotation-id="6" variant="secondary" size="md">
             <RefreshCw className="w-3.5 h-3.5 mr-1.5" />
             동기화
           </Button>
         </FilterBar>
 
         <DataTable
+          data-annotation-id="7"
           columns={columns}
           data={tableData}
           selectedIds={new Set()}
           onSelectionChange={() => {}}
         />
 
-        <Overlay top={133} right={0}>
+        <Overlay data-annotation-id="8" top={133} right={0}>
           <ActionMenu items={actionMenuItems} highlightedKeys={["summary"]} static className="w-[160px]" />
         </Overlay>
 
+        <div data-annotation-id="9">
         <Pagination
           currentPage={1}
           totalPages={3}
           visiblePages={[1, 2, 3]}
           className="mt-5 pb-10"
         />
+        </div>
       </ContentSection>
     </CcpDashboardLayout>
   );

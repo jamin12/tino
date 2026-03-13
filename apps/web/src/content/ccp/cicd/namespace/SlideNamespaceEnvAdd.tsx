@@ -119,11 +119,13 @@ export default function SlideNamespaceEnvAdd() {
             </InfoRow>
 
             {/* 현재 환경 */}
-            <InfoRow label="현재 환경" labelWidth="100px" data-annotation-id="1">
-              <Badge variant="blue-label" size="sm">dev</Badge>
-              <Badge variant="yellow-label" size="sm">stg</Badge>
-              <Badge variant="green-label" size="sm">prd</Badge>
-            </InfoRow>
+            <div data-annotation-id="1">
+              <InfoRow label="현재 환경" labelWidth="100px">
+                <Badge variant="blue-label" size="sm">dev</Badge>
+                <Badge variant="yellow-label" size="sm">stg</Badge>
+                <Badge variant="green-label" size="sm">prd</Badge>
+              </InfoRow>
+            </div>
 
             {/* 구분선 */}
             <div className="border-t border-[#f0f0f0]" />

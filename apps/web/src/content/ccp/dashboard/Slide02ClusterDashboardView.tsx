@@ -1,5 +1,5 @@
-import { useState, useEffect, useRef, useCallback } from "react";
-import { RefreshCw, Server, MoreVertical, Pin, GitBranch, Box, ArrowLeft } from "lucide-react";
+import { useState, useEffect, useRef } from "react";
+import { Server, Braces, GitBranch, Settings as SettingsIcon, X, Maximize2 } from "lucide-react";
 import {
   CcpDashboardLayout,
   ContentSection,
@@ -14,15 +14,63 @@ import {
 } from "../_components";
 import type { SideMenuItem } from "../_components";
 import type { SlideMeta } from "@entities/document";
-import { LineChart, PieChart } from "@nhn-cloud/ncui-chart";
+import { LineChart } from "@nhn-cloud/ncui-chart";
 import "@nhn-cloud/ncui-chart/style.css";
 
 export const slideMeta: SlideMeta = {
   screenId: "CCP-DSH-001",
-  title: "클러스터 대시보드",
+  title: "대시보드",
   section: "홈 대시보드",
-  links: [
-    { targetScreenId: "CCP-DSH-002", type: "navigate", label: "위젯 편집 모드" },
+  links: [],
+  annotations: [
+    {
+      id: 1,
+      label: "레이아웃 편집 버튼",
+      description:
+        "대시보드 위젯의 배치와 구성을 변경할 수 있는 레이아웃 편집 모달을 엽니다.",
+    },
+    {
+      id: 2,
+      label: "클러스터 요약 위젯",
+      description:
+        "선택된 클러스터의 이름, 마지막 상태 갱신 시간, 연결된 노드 수, 네임스페이스 수, 전체 Pod/CPU/메모리 사용량을 한눈에 표시합니다.",
+    },
+    {
+      id: 3,
+      label: "클러스터 GitOps 현황 위젯",
+      description:
+        "클러스터 내 모든 GitOps 리소스의 동기화 상태를 스택 바와 범례로 시각화합니다. Stable, Mismatch, Updating 등 상태별 개수와 비율을 표시합니다.",
+    },
+    {
+      id: 4,
+      label: "리소스 사용량 추이 위젯",
+      description:
+        "최근 24시간 동안의 CPU(Core), 메모리(GiB), Pod 수의 시간대별 추이를 라인 차트로 시각화합니다. 좌측 Y축은 CPU/메모리, 우측 Y축은 Pod 수를 나타냅니다.",
+    },
+    {
+      id: 5,
+      label: "클러스터 리소스 위젯",
+      description:
+        "CPU, 메모리, Pod의 현재 사용량을 전체 할당량 대비 프로그레스 바로 표시합니다. 리소스 부족 여부를 빠르게 파악할 수 있습니다.",
+    },
+    {
+      id: 6,
+      label: "자주 찾는 페이지 위젯",
+      description:
+        "워크로드, 파이프라인, GitOps 등 자주 사용하는 페이지로의 빠른 링크 목록입니다. 클릭 시 해당 화면으로 이동합니다.",
+    },
+    {
+      id: 7,
+      label: "최근 이벤트 위젯",
+      description:
+        "쿠버네티스에서 발생한 최근 이벤트 10개를 유형(Warning/Normal/Error), 대상 리소스, 메시지, 발생 시간과 함께 테이블로 표시합니다.",
+    },
+    {
+      id: 8,
+      label: "레이아웃 편집 모달",
+      description:
+        "대시보드 위젯의 순서와 크기를 드래그 앤 드롭으로 변경하고, 선택한 위젯의 타입과 크기를 설정할 수 있습니다. 전체화면 모드도 지원합니다.",
+    },
   ],
 };
 
@@ -88,35 +136,98 @@ function WidgetCard({
   );
 }
 
-// ─── Context Menu Dropdown ──────────────────────────────────────────────────
+// ─── 레이아웃 편집 모달 ─────────────────────────────────────────────────────
 
-function ContextMenuDropdown() {
-  const menuItems = [
-    { id: "refresh", label: "새로고침", icon: <RefreshCw className="w-3.5 h-3.5" /> },
-  ] as const;
-
+function LayoutEditModal({ onClose }: { onClose: () => void }) {
   return (
-    <div className="absolute top-[36px] right-0 w-[160px] bg-white rounded-lg shadow-[0_4px_20px_rgba(0,0,0,0.15)] border border-[#e0e0e0] z-50 py-1 overflow-hidden">
-      <div className="flex justify-end px-2 pt-1 pb-0.5">
-        <button
-          type="button"
-          className="w-7 h-7 flex items-center justify-center rounded hover:bg-[#EBF3FB] text-[#4A90D9] transition-colors cursor-pointer"
-          aria-label="메뉴 고정"
-          title="메뉴 고정"
-        >
-          <Pin className="w-4 h-4" />
-        </button>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+      <div className="bg-white rounded-lg shadow-[0_8px_40px_rgba(0,0,0,0.2)] w-[640px] max-h-[80vh] flex flex-col">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-[#eee]">
+          <h2 className="text-[16px] font-bold text-[#333]">레이아웃 편집</h2>
+          <button
+            type="button"
+            onClick={onClose}
+            className="w-7 h-7 flex items-center justify-center rounded hover:bg-[#f0f0f0] text-[#888] cursor-pointer"
+          >
+            <X className="w-4.5 h-4.5" />
+          </button>
+        </div>
+        <div className="flex-1 overflow-y-auto px-6 py-5">
+          <div className="border border-[#e0e0e0] rounded-lg p-4 mb-6">
+            <div className="border border-[#0077ff] ring-1 ring-[#0077ff]/30 bg-[#f8fbff] rounded-lg p-3 mb-3">
+              <div className="text-[12px] font-semibold text-[#555] mb-2">클러스터 요약</div>
+              <div className="text-[11px] text-[#888]">클러스터 상태, 노드, 네임스페이스 정보</div>
+            </div>
+            <div className="border border-[#e0e0e0] bg-white rounded-lg p-3 mb-3">
+              <div className="text-[12px] font-semibold text-[#555] mb-2">클러스터 GitOps 현황</div>
+              <div className="text-[11px] text-[#888]">GitOps 동기화 상태 요약</div>
+            </div>
+            <div className="border border-[#e0e0e0] bg-white rounded-lg p-3 mb-3">
+              <div className="text-[12px] font-semibold text-[#555] mb-2">리소스 사용량 추이</div>
+              <div className="text-[11px] text-[#888]">최근 24시간 CPU/메모리/Pod 추이</div>
+            </div>
+            <div className="grid grid-cols-2 gap-3 mb-3">
+              <div className="border border-[#e0e0e0] bg-white rounded-lg p-3">
+                <div className="text-[12px] font-semibold text-[#555] mb-2">클러스터 리소스</div>
+                <div className="text-[11px] text-[#888]">CPU, 메모리, Pod 사용량</div>
+              </div>
+              <div className="border border-[#e0e0e0] bg-white rounded-lg p-3">
+                <div className="text-[12px] font-semibold text-[#555] mb-2">자주 찾는 페이지</div>
+                <div className="text-[11px] text-[#888]">빠른 링크 목록</div>
+              </div>
+            </div>
+            <div className="border border-[#e0e0e0] bg-white rounded-lg p-3">
+              <div className="text-[12px] font-semibold text-[#555] mb-2">최근 이벤트</div>
+              <div className="text-[11px] text-[#888]">쿠버네티스 최근 이벤트 10개</div>
+            </div>
+          </div>
+          <div className="border border-[#e0e0e0] rounded-lg p-4">
+            <h3 className="text-[14px] font-bold text-[#333] mb-4">선택된 아이템 설정</h3>
+            <div className="space-y-3">
+              <div className="flex items-center gap-3">
+                <label className="text-[13px] text-[#555] w-[72px] flex-shrink-0">위젯 타입:</label>
+                <select className="h-[32px] px-3 pr-7 text-[13px] text-[#333] bg-white rounded border border-[#ddd] outline-none appearance-none cursor-pointer focus:border-[#0077ff]">
+                  <option>클러스터 요약</option>
+                  <option>클러스터 GitOps 현황</option>
+                  <option>리소스 사용량 추이</option>
+                  <option>클러스터 리소스</option>
+                  <option>자주 찾는 페이지</option>
+                  <option>최근 이벤트</option>
+                </select>
+              </div>
+              <div className="flex items-center gap-3">
+                <label className="text-[13px] text-[#555] w-[72px] flex-shrink-0">크기:</label>
+                <span className="text-[13px] font-medium text-[#333]">1x2</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div className="flex items-center justify-between px-6 py-4 border-t border-[#eee]">
+          <button
+            type="button"
+            className="h-[36px] px-4 text-[13px] font-medium text-[#333] bg-white border border-[#ddd] rounded hover:bg-[#f5f5f5] cursor-pointer flex items-center gap-1.5"
+          >
+            <Maximize2 className="w-3.5 h-3.5" />
+            전체화면
+          </button>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={onClose}
+              className="h-[36px] px-5 text-[13px] font-medium text-[#333] bg-white border border-[#ddd] rounded hover:bg-[#f5f5f5] cursor-pointer"
+            >
+              취소
+            </button>
+            <button
+              type="button"
+              onClick={onClose}
+              className="h-[36px] px-5 text-[13px] font-medium text-white bg-[#0077ff] rounded hover:bg-[#0066dd] cursor-pointer"
+            >
+              확인
+            </button>
+          </div>
+        </div>
       </div>
-      {menuItems.map((item) => (
-        <button
-          key={item.id}
-          type="button"
-          className="flex items-center gap-2.5 w-full px-4 py-[7px] text-left hover:bg-[#f5f5f5] transition-colors cursor-pointer"
-        >
-          <span className="text-[#555]">{item.icon}</span>
-          <span className="text-[13px] text-[#333]">{item.label}</span>
-        </button>
-      ))}
     </div>
   );
 }
@@ -248,236 +359,44 @@ const gitopsStatusConfig: Record<GitOpsStatus, { color: string; bg: string; text
   Stable:    { color: "#22c55e", bg: "bg-[#dcfce7]", text: "text-[#166534]", label: "Stable" },
 };
 
-interface WorkloadGitOpsRow {
-  resource: string;
-  total: number;
-  statuses: Partial<Record<GitOpsStatus, number>>;
-}
-
-const workloadGitOpsData: WorkloadGitOpsRow[] = [
-  { resource: "Deployment",  total: 24, statuses: { Stable: 18, Mismatch: 3, Updating: 1, Broken: 1, Missing: 1 } },
-  { resource: "StatefulSet",  total: 8,  statuses: { Stable: 5, Suspended: 1, Broken: 1, Orphaned: 1 } },
-  { resource: "DaemonSet",    total: 6,  statuses: { Stable: 5, Updating: 1 } },
-  { resource: "Job",          total: 12, statuses: { Stable: 9, Missing: 2, Broken: 1 } },
-  { resource: "CronJob",      total: 5,  statuses: { Stable: 4, Mismatch: 1 } },
-  { resource: "ReplicaSet",   total: 18, statuses: { Stable: 15, Orphaned: 2, Suspended: 1 } },
-];
-
-const appGitOpsData: WorkloadGitOpsRow[] = [
-  { resource: "frontend-app",      total: 3, statuses: { Stable: 2, Updating: 1 } },
-  { resource: "api-server",        total: 5, statuses: { Stable: 3, Mismatch: 1, Broken: 1 } },
-  { resource: "worker-service",    total: 4, statuses: { Stable: 4 } },
-  { resource: "batch-processor",   total: 2, statuses: { Missing: 1, Broken: 1 } },
-  { resource: "monitoring-stack",  total: 6, statuses: { Stable: 5, Orphaned: 1 } },
-  { resource: "redis-cache",       total: 3, statuses: { Stable: 2, Suspended: 1 } },
-];
-
 const allGitOpsStatuses: GitOpsStatus[] = ["Stable", "Mismatch", "Updating", "Suspended", "Missing", "Broken", "Orphaned"];
 
-// ─── GitOps Donut Detail (인라인 확장) ──────────────────────────────────────
+// 클러스터 전체 GitOps 상태 합산
+const clusterGitOpsTotals: Record<GitOpsStatus, number> = {
+  Stable: 56, Mismatch: 5, Updating: 3, Suspended: 3, Missing: 4, Broken: 5, Orphaned: 4,
+};
+const clusterGitOpsTotal = Object.values(clusterGitOpsTotals).reduce((a, b) => a + b, 0);
 
-function GitOpsDonutDetail({ row, onBack }: { row: WorkloadGitOpsRow; onBack: () => void }) {
-  const activeStatuses = allGitOpsStatuses.filter((s) => (row.statuses[s] ?? 0) > 0);
-  const [hiddenStatuses, setHiddenStatuses] = useState<Set<string>>(new Set());
+// ─── 클러스터 리소스 데이터 ─────────────────────────────────────────────────
 
-  const toggleStatus = useCallback((s: string) => {
-    setHiddenStatuses((prev) => {
-      const next = new Set(prev);
-      if (next.has(s)) next.delete(s);
-      else next.add(s);
-      return next;
-    });
-  }, []);
+const resourceBars = [
+  { label: "CPU", used: 2.4, total: 8, unit: "Core", color: "#4A90D9" },
+  { label: "메모리", used: 6.2, total: 16, unit: "GB", color: "#8b5cf6" },
+  { label: "Pods", used: 24, total: 110, unit: "", color: "#22c55e" },
+];
 
-  const visibleStatuses = activeStatuses.filter((s) => !hiddenStatuses.has(s));
-  const pieData = {
-    series: visibleStatuses.map((s) => ({
-      id: s,
-      name: `${s} (${row.statuses[s]})`,
-      data: row.statuses[s] ?? 0,
-    })),
-  };
-  const pieColors = visibleStatuses.map((s) => gitopsStatusConfig[s].color);
+// ─── 자주 찾는 페이지 데이터 ────────────────────────────────────────────────
 
-  return (
-    <div>
-      <div className="flex items-center gap-2 mb-3">
-        <button
-          type="button"
-          onClick={onBack}
-          className="w-6 h-6 flex items-center justify-center rounded hover:bg-[#f0f0f0] transition-colors cursor-pointer"
-          aria-label="뒤로"
-        >
-          <ArrowLeft className="w-4 h-4 text-[#4A90D9]" />
-        </button>
-        <span className="text-[14px] font-bold text-[#1a1a2e]">{row.resource}</span>
-        <span className="text-[12px] text-[#888]">총 {row.total}개</span>
-      </div>
-      <div className="flex items-center gap-0">
-        <div className="flex items-center justify-center flex-shrink-0 pr-4" style={{ width: 200, height: 200, overflow: "hidden" }}>
-          {visibleStatuses.length > 0 ? (
-            <div style={{ marginTop: -10 }}>
-              <PieChart
-                key={visibleStatuses.map((s) => s).join(",")}
-                data={pieData}
-                width={200}
-                height={200}
-                seriesOptions={{
-                  colors: pieColors,
-                  pie: {
-                    radiusRange: { inner: "50%", outer: "95%" },
-                    dataLabels: { enable: false },
-                  },
-                }}
-                legendOptions={{ enable: false }}
-              />
-            </div>
-          ) : (
-            <div className="text-[12px] text-[#aaa]">데이터 없음</div>
-          )}
-        </div>
-        <div className="w-px bg-[#e8e8e8] flex-shrink-0" style={{ alignSelf: "stretch" }} />
-        <div className="flex-1 pl-4">
-          <table className="w-full">
-            <thead>
-              <tr className="border-b border-[#eee]">
-                <th className="text-left text-[11px] font-semibold text-[#888] pb-2">상태</th>
-                <th className="text-right text-[11px] font-semibold text-[#888] pb-2">수량</th>
-                <th className="text-right text-[11px] font-semibold text-[#888] pb-2">비율</th>
-              </tr>
-            </thead>
-            <tbody>
-              {activeStatuses.map((s) => {
-                const count = row.statuses[s] ?? 0;
-                const cfg = gitopsStatusConfig[s];
-                const pct = Math.round((count / row.total) * 100);
-                const isHidden = hiddenStatuses.has(s);
-                return (
-                  <tr
-                    key={s}
-                    className="border-b border-[#f5f5f5] cursor-pointer hover:bg-[#f8f8f8] transition-colors"
-                    onClick={() => toggleStatus(s)}
-                    style={{ opacity: isHidden ? 0.35 : 1 }}
-                  >
-                    <td className="py-1.5">
-                      <span className="flex items-center gap-1.5">
-                        <span
-                          className="w-[7px] h-[7px] rounded-full flex-shrink-0"
-                          style={{ backgroundColor: isHidden ? "#ccc" : cfg.color }}
-                        />
-                        <span className={`text-[12px] ${isHidden ? "text-[#aaa] line-through" : "text-[#333]"}`}>{s}</span>
-                      </span>
-                    </td>
-                    <td className={`text-right text-[12px] font-semibold py-1.5 ${isHidden ? "text-[#aaa]" : "text-[#1a1a2e]"}`}>{count}</td>
-                    <td className={`text-right text-[11px] py-1.5 ${isHidden ? "text-[#ccc]" : "text-[#888]"}`}>{pct}%</td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// ─── GitOps Card Group ───────────────────────────────────────────────────────
-
-function GitOpsCardGroup({ data, showLegend = true, footerText }: { data: WorkloadGitOpsRow[]; showLegend?: boolean; footerText?: string }) {
-  const [selectedRow, setSelectedRow] = useState<WorkloadGitOpsRow | null>(null);
-
-  if (selectedRow) {
-    return <GitOpsDonutDetail row={selectedRow} onBack={() => setSelectedRow(null)} />;
-  }
-
-  return (
-    <div>
-      {showLegend && <GitOpsStatusLegend />}
-      <div className="grid grid-cols-2 gap-3">
-      {data.map((row, i) => {
-        const activeStatuses = allGitOpsStatuses.filter((s) => (row.statuses[s] ?? 0) > 0);
-        return (
-          <div
-            key={i}
-            className="group relative border border-[#e8e8e8] rounded-lg p-3.5 hover:shadow-[0_2px_8px_rgba(0,0,0,0.08)] hover:border-[#d0d0d0] transition-all cursor-pointer"
-            onClick={() => setSelectedRow(row)}
-          >
-            <div className="flex items-center justify-between mb-2.5">
-              <span className="text-[12px] font-semibold text-[#1a1a2e]">{row.resource}</span>
-              <span className="text-[16px] font-bold text-[#1a1a2e]">
-                {row.total}
-                <span className="text-[10px] font-normal text-[#999] ml-0.5">개</span>
-              </span>
-            </div>
-            <div className="flex h-[5px] rounded-full overflow-hidden">
-              {allGitOpsStatuses.map((s) => {
-                const count = row.statuses[s] ?? 0;
-                if (count === 0) return null;
-                return (
-                  <div
-                    key={s}
-                    className="h-full"
-                    style={{
-                      width: `${(count / row.total) * 100}%`,
-                      backgroundColor: gitopsStatusConfig[s].color,
-                    }}
-                  />
-                );
-              })}
-            </div>
-            {/* Tooltip on hover */}
-            <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 hidden group-hover:flex flex-col gap-1 bg-[#1a1a2e] text-white rounded-lg px-3 py-2.5 shadow-lg z-50 min-w-[140px]">
-              <div className="text-[11px] font-semibold mb-1 border-b border-white/20 pb-1">{row.resource}</div>
-              {activeStatuses.map((s) => {
-                const count = row.statuses[s] ?? 0;
-                const cfg = gitopsStatusConfig[s];
-                return (
-                  <div key={s} className="flex items-center justify-between gap-3 text-[11px]">
-                    <span className="flex items-center gap-1.5">
-                      <span className="w-[6px] h-[6px] rounded-full" style={{ backgroundColor: cfg.color }} />
-                      {s}
-                    </span>
-                    <span className="font-medium">{count}</span>
-                  </div>
-                );
-              })}
-              <div className="absolute left-1/2 -translate-x-1/2 top-full w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-t-[6px] border-t-[#1a1a2e]" />
-            </div>
-          </div>
-        );
-      })}
-      </div>
-      {footerText && (
-        <div className="mt-3 text-[11px] text-[#aaa] text-center">{footerText}</div>
-      )}
-    </div>
-  );
-}
-
-function GitOpsStatusLegend() {
-  return (
-    <div className="flex items-center justify-center gap-2.5 mb-4 flex-wrap">
-      {allGitOpsStatuses.map((s) => (
-        <div key={s} className="flex items-center gap-1">
-          <div className="w-[7px] h-[7px] rounded-full" style={{ backgroundColor: gitopsStatusConfig[s].color }} />
-          <span className="text-[10px] text-[#888]">{s}</span>
-        </div>
-      ))}
-    </div>
-  );
-}
+const quickLinks = [
+  { label: "워크로드", color: "#4A90D9" },
+  { label: "파이프라인 구성", color: "#4A90D9" },
+  { label: "GitOps Applications", color: "#22c55e" },
+  { label: "네임스페이스", color: "#f97316" },
+  { label: "프로젝트 관리", color: "#6b7280" },
+];
 
 // ─── Slide ──────────────────────────────────────────────────────────────────
 
 export default function Slide02ClusterDashboardView() {
+  const [showEditModal, setShowEditModal] = useState(false);
+
   return (
     <CcpDashboardLayout
       breadcrumbs={[
         { label: "홈" },
-        { label: "대시보드" },
-        { label: "클러스터 대시보드", isBold: true },
+        { label: "대시보드", isBold: true },
       ]}
-      title="클러스터 대시보드"
+      title="대시보드"
       sideMenuItems={sideMenuItems}
       navSelectors={[
         {
@@ -485,21 +404,27 @@ export default function Slide02ClusterDashboardView() {
           value: "dev-cluster",
           icon: <Server className="w-4 h-4" />,
         },
+        {
+          label: "네임스페이스",
+          value: "전체 네임스페이스",
+          icon: <Braces className="w-4 h-4" />,
+        },
       ]}
       headerActions={
-        <div className="relative">
-          <button
-            type="button"
-            className="w-8 h-8 flex items-center justify-center rounded-md hover:bg-[#f0f0f0] transition-colors cursor-pointer"
-            aria-label="메뉴"
-          >
-            <MoreVertical className="w-5 h-5 text-[#555]" />
-          </button>
-          <ContextMenuDropdown />
-        </div>
+        <button
+          type="button"
+          data-annotation-id="1"
+          onClick={() => setShowEditModal(true)}
+          className="w-8 h-8 flex items-center justify-center rounded-md hover:bg-[#f0f0f0] transition-colors cursor-pointer"
+          aria-label="레이아웃 편집"
+          title="레이아웃 편집"
+        >
+          <SettingsIcon className="w-5 h-5 text-[#555]" />
+        </button>
       }
     >
       {/* ── 클러스터 요약 ── */}
+      <div data-annotation-id="2">
       <ContentSection spacing="sm">
         <WidgetCard>
           <div className="flex justify-between items-start mb-4">
@@ -551,29 +476,56 @@ export default function Slide02ClusterDashboardView() {
           </div>
         </WidgetCard>
       </ContentSection>
+      </div>
 
-      {/* ── 워크로드 GitOps 상태 + 애플리케이션 GitOps 상태 (반반) ── */}
+      {/* ── 클러스터 GitOps 현황 ── */}
+      <div data-annotation-id="3">
       <ContentSection spacing="sm">
-        <div className="grid grid-cols-2 gap-4">
-          <WidgetCard>
-            <div className="flex items-center gap-2 mb-3">
-              <GitBranch className="w-4 h-4 text-[#4A90D9]" />
-              <span className="text-[14px] font-semibold text-[#1a1a2e]">워크로드 GitOps 상태</span>
-            </div>
-            <GitOpsCardGroup data={workloadGitOpsData} showLegend footerText="* 워크로드 리소스 유형별 GitOps 동기화 상태" />
-          </WidgetCard>
-
-          <WidgetCard>
-            <div className="flex items-center gap-2 mb-3">
-              <Box className="w-4 h-4 text-[#4A90D9]" />
-              <span className="text-[14px] font-semibold text-[#1a1a2e]">애플리케이션 GitOps 상태</span>
-            </div>
-            <GitOpsCardGroup data={appGitOpsData} showLegend footerText="* 애플리케이션별 GitOps 동기화 상태" />
-          </WidgetCard>
-        </div>
+        <WidgetCard>
+          <div className="flex items-center gap-2 mb-4">
+            <GitBranch className="w-4 h-4 text-[#4A90D9]" />
+            <span className="text-[14px] font-bold text-[#333]">클러스터 GitOps 현황</span>
+            <span className="text-[12px] text-[#888] ml-1">총 {clusterGitOpsTotal}개 리소스</span>
+          </div>
+          {/* 스택 바 */}
+          <div className="flex h-[8px] rounded-full overflow-hidden mb-4">
+            {allGitOpsStatuses.map((s) => {
+              const count = clusterGitOpsTotals[s];
+              if (count === 0) return null;
+              return (
+                <div
+                  key={s}
+                  className="h-full"
+                  style={{
+                    width: `${(count / clusterGitOpsTotal) * 100}%`,
+                    backgroundColor: gitopsStatusConfig[s].color,
+                  }}
+                />
+              );
+            })}
+          </div>
+          {/* 범례 + 수치 */}
+          <div className="flex items-center justify-center gap-5 flex-wrap">
+            {allGitOpsStatuses.map((s) => {
+              const count = clusterGitOpsTotals[s];
+              if (count === 0) return null;
+              const pct = Math.round((count / clusterGitOpsTotal) * 100);
+              return (
+                <div key={s} className="flex items-center gap-1.5">
+                  <span className="w-[8px] h-[8px] rounded-full flex-shrink-0" style={{ backgroundColor: gitopsStatusConfig[s].color }} />
+                  <span className="text-[12px] text-[#555]">{s}</span>
+                  <span className="text-[12px] font-bold text-[#1a1a2e]">{count}</span>
+                  <span className="text-[11px] text-[#aaa]">({pct}%)</span>
+                </div>
+              );
+            })}
+          </div>
+        </WidgetCard>
       </ContentSection>
+      </div>
 
       {/* ── 리소스 사용량 추이 ── */}
+      <div data-annotation-id="4">
       <ContentSection spacing="sm">
         <WidgetCard>
           <div className="mb-4">
@@ -583,12 +535,65 @@ export default function Slide02ClusterDashboardView() {
           <UsageTrendChart />
         </WidgetCard>
       </ContentSection>
+      </div>
 
-      {/* ── 최근 중요 이벤트 ── */}
+      {/* ── 클러스터 리소스 + 자주 찾는 페이지 (2열) ── */}
+      <ContentSection spacing="sm">
+        <div className="grid grid-cols-2 gap-4">
+          <div data-annotation-id="5">
+          <WidgetCard>
+            <h3 className="text-[14px] font-bold text-[#333] mb-4">클러스터 리소스</h3>
+            <div className="space-y-4">
+              {resourceBars.map((res) => {
+                const pct = Math.round((res.used / res.total) * 100);
+                return (
+                  <div key={res.label}>
+                    <div className="flex items-center justify-between mb-1.5">
+                      <span className="text-[13px] font-medium text-[#333]">{res.label}</span>
+                      <span className="text-[12px] text-[#888]">
+                        {res.used}/{res.total} {res.unit} ({pct}%)
+                      </span>
+                    </div>
+                    <div className="h-[6px] bg-[#e5e7eb] rounded-full overflow-hidden">
+                      <div
+                        className="h-full rounded-full transition-all"
+                        style={{ width: `${pct}%`, backgroundColor: res.color }}
+                      />
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </WidgetCard>
+          </div>
+          <div data-annotation-id="6">
+          <WidgetCard>
+            <h3 className="text-[14px] font-bold text-[#333] mb-3">자주 찾는 페이지</h3>
+            <div className="space-y-2.5">
+              {quickLinks.map((link) => (
+                <div key={link.label} className="flex items-center gap-2.5">
+                  <span className="w-[7px] h-[7px] rounded-full flex-shrink-0" style={{ backgroundColor: link.color }} />
+                  <a
+                    href="#"
+                    className="text-[13px] text-[#0077ff] hover:underline"
+                    onClick={(e) => e.preventDefault()}
+                  >
+                    {link.label}
+                  </a>
+                </div>
+              ))}
+            </div>
+          </WidgetCard>
+          </div>
+        </div>
+      </ContentSection>
+
+      {/* ── 최근 이벤트 ── */}
+      <div data-annotation-id="7">
       <ContentSection spacing="sm" className="pb-6">
         <WidgetCard noPadding>
           <div className="px-6 py-4 border-b border-[#eee]">
-            <span className="text-[14px] font-bold text-[#333]">최근 중요 이벤트</span>
+            <span className="text-[14px] font-bold text-[#333]">최근 이벤트</span>
           </div>
           <table className="w-full border-collapse">
             <thead>
@@ -620,10 +625,13 @@ export default function Slide02ClusterDashboardView() {
             </tbody>
           </table>
           <div className="px-6 py-3 text-[11px] text-[#aaa] border-t border-[#f0f0f0]">
-            * 쿠버네티스 내 발생한 최근 중요 이벤트 10개 조회
+            * 쿠버네티스 내 발생한 최근 이벤트 10개 조회
           </div>
         </WidgetCard>
       </ContentSection>
+      </div>
+
+      {showEditModal && <div data-annotation-id="8"><LayoutEditModal onClose={() => setShowEditModal(false)} /></div>}
     </CcpDashboardLayout>
   );
 }

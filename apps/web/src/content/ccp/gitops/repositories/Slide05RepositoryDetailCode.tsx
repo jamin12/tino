@@ -8,30 +8,98 @@ import {
   Folder,
   FileText,
   Pencil,
+  Link2,
+  Unlink,
+  Trash2,
   Eye,
+  MoreHorizontal,
 } from "lucide-react";
 import {
   Badge,
   Button,
   CcpDashboardLayout,
+  ContextMenu,
   ContentSection,
   CodeEditor,
+  Overlay,
   SplitPanel,
   Tabs,
-
 } from "../../_components";
-import type { SideMenuItem } from "../../_components";
+import type { SideMenuItem, ContextMenuEntry } from "../../_components";
 import type { SlideMeta } from "@entities/document";
 
 export const slideMeta: SlideMeta = {
   screenId: "CCP-GIT-005",
-  title: "리포지토리 상세 (코드 보기)",
-  section: "GitOps Repositories",
-  links: [
-    { targetScreenId: "CCP-GIT-004", type: "tab", label: "기본정보 탭" },
-    { targetScreenId: "CCP-GIT-006", type: "tab", label: "코드 편집 탭" },
+  title: "배포 저장소 상세 (파일)",
+  section: "GitOps 배포 저장소",
+  description:
+    "???파일 탭 최초 진입 시 저장소에 README 파일(README.md 등)이 존재하면 해당 파일을 우선적으로 선택하여 코드 뷰어에 표시합니다.???",
+  annotations: [
+    {
+      id: 1,
+      label: "상세 탭 네비게이션",
+      description:
+        "기본정보(CCP-GIT-004), 파일, 브랜치/태그(CCP-GIT-007), 커밋 이력(CCP-GIT-008), GitOps(CCP-GIT-010) 탭을 전환합니다. 현재 '파일' 탭이 활성화되어 있습니다.",
+    },
+    {
+      id: 2,
+      label: "브랜치/커밋 정보",
+      description:
+        "현재 선택된 브랜치 이름, 최신 커밋 작성자, 커밋 해시, 커밋 메시지 및 시간을 표시합니다.",
+    },
+    {
+      id: 3,
+      label: "파일 트리",
+      description:
+        "저장소의 디렉토리 구조를 트리 형태로 표시합니다. 파일 클릭 시 우측 코드 뷰어에 해당 파일의 내용이 표시됩니다.",
+    },
+    {
+      id: 4,
+      label: "파일 편집/미리보기",
+      description:
+        "'파일 편집' 클릭 시 웹 코드 에디터(CCP-GIT-006) 화면으로 전환되어 파일을 직접 수정할 수 있습니다. '변경내용 미리보기' 클릭 시 편집 전후의 Diff를 확인하는 미리보기(CCP-GIT-006-1) 화면으로 전환됩니다.",
+    },
+    {
+      id: 5,
+      label: "코드 뷰어",
+      description:
+        "선택된 파일의 내용을 구문 강조와 줄 번호와 함께 표시합니다. YAML, JSON 등 다양한 언어를 지원하며, 4번 '파일 편집' 버튼을 통해 직접 수정할 수 있습니다.",
+    },
+    {
+      id: 6,
+      label: "더보기 메뉴",
+      description:
+        "배포 저장소에 대한 추가 작업을 수행할 수 있는 컨텍스트 메뉴를 표시합니다.",
+    },
+    {
+      id: 7,
+      label: "컨텍스트 메뉴",
+      description:
+        "더보기 아이콘 클릭 시 표시되는 팝업 메뉴입니다.\n• 애플리케이션 생성: 연결된 앱을 만듭니다.\n• 설정: 해당 저장소의 상세 화면 설정 탭으로 이동합니다.\n• 연결: GitOps 연결을 설정합니다.\n• 연결해제: GitOps 연결을 해제합니다.\n• 삭제: 저장소를 삭제합니다.",
+    },
   ],
 };
+
+// ─── Context Menu Data ──────────────────────────────────────────────────────
+
+const repoGroupContextMenu: ContextMenuEntry[] = [
+  { id: "create-app", label: "애플리케이션 생성", icon: <Link2 className="w-4 h-4" /> },
+  { id: "settings", label: "설정", icon: <Settings className="w-4 h-4" /> },
+  { id: "connect", label: "연결", icon: <Link2 className="w-4 h-4" /> },
+  {
+    id: "disconnect",
+    label: "연결해제",
+    icon: <Unlink className="w-4 h-4" />,
+    textColor: "text-[#da1e28]",
+  },
+  { id: "divider", type: "divider" },
+  {
+    id: "delete",
+    label: "삭제",
+    icon: <Trash2 className="w-4 h-4" />,
+    textColor: "text-[#da1e28]",
+  },
+];
 
 // ─── Side Menu Data ─────────────────────────────────────────────────────────
 
@@ -70,8 +138,10 @@ const sideMenuItems: SideMenuItem[] = [
       {
         label: "",
         items: [
-          { label: "Applications" },
-          { label: "Repositories", active: true, bold: true },
+          { label: "배포 애플리케이션" },
+          { label: "배포 저장소", active: true, bold: true },
+          { label: "소스 저장소" },
+          { label: "저장소 그룹" },
         ],
       },
     ],
@@ -158,9 +228,9 @@ export default function Slide05RepositoryDetailCode() {
   return (
     <CcpDashboardLayout
       breadcrumbs={[
+        { label: "홈" },
         { label: "GitOps" },
-        { label: "Repositories" },
-        { label: "app1-maven-pipeline", isBold: true },
+        { label: "배포 저장소", isBold: true },
       ]}
       title={
         <span className="group relative inline-flex items-center gap-2">
@@ -187,25 +257,41 @@ export default function Slide05RepositoryDetailCode() {
         </span>
       }
       sideMenuItems={sideMenuItems}
+      headerActions={
+        <button
+          data-annotation-id="6"
+          type="button"
+          className="flex items-center justify-center w-8 h-8 rounded hover:bg-[#f0f0f0] text-[#666]"
+        >
+          <MoreHorizontal className="w-5 h-5" />
+        </button>
+      }
+      overlay={
+        <Overlay data-annotation-id="7" top={100} right={80}>
+          <ContextMenu items={repoGroupContextMenu} className="w-[200px]" />
+        </Overlay>
+      }
     >
       <ContentSection>
-        <Tabs
-          items={[
-            { id: "basic", label: "기본정보" },
-            { id: "files", label: "파일" },
-            { id: "branches", label: "브랜치" },
-            { id: "commits", label: "커밋 이력" },
-            { id: "tags", label: "태그/릴리스" },
-            { id: "gitops", label: "GitOps", dividerBefore: true },
-          ]}
-          activeId="files"
-          className="mb-0"
-        />
+        <div data-annotation-id="1">
+          <Tabs
+            items={[
+              { id: "basic", label: "기본정보" },
+              { id: "files", label: "파일" },
+              { id: "branches", label: "브랜치/태그" },
+              { id: "commits", label: "커밋 이력" },
+              { id: "settings", label: "설정" },
+              { id: "gitops", label: "GitOps", dividerBefore: true },
+            ]}
+            activeId="files"
+            className="mb-0"
+          />
+        </div>
       </ContentSection>
 
       <ContentSection>
         {/* Branch & commit info */}
-        <div className="flex items-center gap-3 mb-3">
+        <div data-annotation-id="2" className="flex items-center gap-3 mb-3">
           <Badge variant="neutral" className="!px-3 !py-1">
             <GitBranch className="w-3 h-3 mr-1" />
             main
@@ -225,7 +311,7 @@ export default function Slide05RepositoryDetailCode() {
           leftWidth="240px"
           height="520px"
           left={
-            <div className="border border-[#e0e0e0] rounded bg-white h-full overflow-auto">
+            <div data-annotation-id="3" className="border border-[#e0e0e0] rounded bg-white h-full overflow-auto">
               {fileTree.map((item, i) => (
                 <div
                   key={i}
@@ -260,7 +346,7 @@ export default function Slide05RepositoryDetailCode() {
                     build-pr.yaml
                   </span>
                 </div>
-                <div className="flex items-center gap-2">
+                <div data-annotation-id="4" className="flex items-center gap-2">
                   <Button variant="ghost" size="sm" className="!h-7 !text-[12px]">
                     <Pencil className="w-3 h-3 mr-1" />
                     파일 편집
@@ -272,6 +358,7 @@ export default function Slide05RepositoryDetailCode() {
                 </div>
               </div>
               {/* Code editor */}
+              <div data-annotation-id="5" className="flex-1">
               <CodeEditor
                 code={sampleYaml}
                 language="yaml"
@@ -281,6 +368,7 @@ export default function Slide05RepositoryDetailCode() {
                 wordWrap={true}
                 className="flex-1 !rounded-t-none !border-t-0"
               />
+              </div>
             </div>
           }
         />

@@ -440,7 +440,7 @@ export function SlidePresenter({ slides }: Props) {
 
                   {/* Annotation side panel (inside captureRef for Figma export) */}
                   {showAnnotations && currentAnnotations && currentAnnotations.length > 0 && (
-                    <AnnotationSidePanel annotations={currentAnnotations} />
+                    <AnnotationSidePanel annotations={currentAnnotations} description={currentMeta?.description} />
                   )}
                 </div>
 
@@ -627,10 +627,74 @@ function AnnotationMarkers({
   );
 }
 
-function AnnotationSidePanel({ annotations }: { annotations: SlideAnnotation[] }) {
+/** description 텍스트를 파싱하여 ```코드블록```, `인라인코드`, !!!경고!!!, ???정보??? 를 React 요소로 변환 */
+function renderDescription(text: string) {
+  // 0) !!! 경고 블록 및 ??? 정보 블록 분리
+  const blockParts = text.split(/(!!![\s\S]*?!!!|\?\?\?[\s\S]*?\?\?\?)/g);
+  return blockParts.map((part, wi) => {
+    if (part.startsWith("!!!") && part.endsWith("!!!")) {
+      const inner = part.slice(3, -3).trim();
+      return (
+        <div key={`w${wi}`} className="mt-1.5 mb-1 px-3 py-2 bg-red-50 border border-red-200 rounded text-[13px] font-semibold text-red-600 leading-snug">
+          {inner}
+        </div>
+      );
+    }
+    if (part.startsWith("???") && part.endsWith("???")) {
+      const inner = part.slice(3, -3).trim();
+      return (
+        <div key={`i${wi}`} className="mt-1.5 mb-1 px-3 py-2 bg-blue-50 border border-blue-200 rounded text-[13px] text-blue-700 leading-snug">
+          {inner}
+        </div>
+      );
+    }
+    return <span key={`w${wi}`}>{renderDescriptionInner(part)}</span>;
+  });
+}
+
+function renderDescriptionInner(text: string) {
+  // 1) ``` 코드블록 분리
+  const parts = text.split(/(```[\s\S]*?```)/g);
+  return parts.map((part, i) => {
+    if (part.startsWith("```") && part.endsWith("```")) {
+      const inner = part.slice(3, -3);
+      // 첫 줄이 언어 힌트일 수 있으므로 제거
+      const lines = inner.split("\n");
+      const firstLine = lines[0]?.trim();
+      const isLangHint = firstLine && !firstLine.includes(" ") && lines.length > 1;
+      const code = isLangHint ? lines.slice(1).join("\n") : inner;
+      return (
+        <pre key={i} className="mt-1.5 mb-1 px-3 py-2 bg-gray-200/70 rounded text-[12px] font-mono text-gray-700 whitespace-pre-wrap break-all">
+          {code.trim()}
+        </pre>
+      );
+    }
+    // 2) 인라인 `코드` 분리
+    const inlineParts = part.split(/(`[^`]+`)/g);
+    return (
+      <span key={i}>
+        {inlineParts.map((seg, j) => {
+          if (seg.startsWith("`") && seg.endsWith("`")) {
+            return (
+              <code key={j} className="px-1 py-0.5 bg-gray-200/70 rounded text-[12px] font-mono text-gray-700">
+                {seg.slice(1, -1)}
+              </code>
+            );
+          }
+          return seg;
+        })}
+      </span>
+    );
+  });
+}
+
+function AnnotationSidePanel({ annotations, description }: { annotations: SlideAnnotation[]; description?: string }) {
   return (
     <div className="w-[480px] shrink-0 border-l border-gray-200 bg-gray-50 rounded-r-lg p-8 flex flex-col gap-6">
       <div className="text-[16px] font-bold text-gray-400 uppercase tracking-wide">Spec</div>
+      {description && (
+        <div className="text-[14px] text-gray-500 leading-snug whitespace-pre-line">{renderDescription(description)}</div>
+      )}
       {annotations.map((a) => (
         <div key={a.id} className="flex gap-4 items-start">
           <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-amber-500 text-[14px] font-bold text-white mt-0.5">
@@ -638,7 +702,7 @@ function AnnotationSidePanel({ annotations }: { annotations: SlideAnnotation[] }
           </span>
           <div className="min-w-0">
             <div className="text-[16px] font-semibold text-gray-800 leading-tight">{a.label}</div>
-            <div className="text-[14px] text-gray-500 leading-snug mt-1">{a.description}</div>
+            <div className="text-[14px] text-gray-500 leading-snug mt-1 whitespace-pre-line">{renderDescription(a.description)}</div>
           </div>
         </div>
       ))}

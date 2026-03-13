@@ -5,32 +5,95 @@ import {
   GitBranch,
   Settings,
   GitCompare,
-  RefreshCw,
+  MoreHorizontal,
   Pencil,
-  Plus,
+  Trash2,
   Copy,
+  Link2,
+  Unlink,
 } from "lucide-react";
 import {
   Badge,
-  Button,
   CcpDashboardLayout,
+  ContextMenu,
   ContentSection,
   InfoRow,
+  Overlay,
   Tabs,
-
 } from "../../_components";
-import type { SideMenuItem } from "../../_components";
+import type { SideMenuItem, ContextMenuEntry } from "../../_components";
 import type { SlideMeta } from "@entities/document";
 
 export const slideMeta: SlideMeta = {
   screenId: "CCP-GIT-004",
-  title: "리포지토리 상세 (기본정보)",
-  section: "GitOps Repositories",
-  links: [
-    { targetScreenId: "CCP-GIT-005", type: "tab", label: "코드 보기 탭" },
-    { targetScreenId: "CCP-GIT-006", type: "tab", label: "코드 편집 탭" },
+  title: "배포 저장소 상세 (기본정보)",
+  section: "GitOps 배포 저장소",
+  annotations: [
+    {
+      id: 1,
+      label: "저장소 상태 표시",
+      description:
+        "저장소 이름 옆에 GitOps 연결 상태(색상 점)와 Topic 배지를 표시합니다. 호버 시 Stable/Healthy/Synced 상세 상태 툴팁이 나타납니다.",
+    },
+    {
+      id: 2,
+      label: "더보기 메뉴",
+      description:
+        "저장소에 대한 추가 작업(편집, 삭제, 연결해제 등)을 수행할 수 있는 메뉴를 엽니다.",
+    },
+    {
+      id: 3,
+      label: "상세 탭 네비게이션",
+      description:
+        "기본정보, 파일(CCP-GIT-005), 브랜치/태그(CCP-GIT-007), 커밋 이력(CCP-GIT-008), GitOps(CCP-GIT-010) 탭을 전환합니다.",
+    },
+    {
+      id: 4,
+      label: "기본정보 카드",
+      description:
+        "저장소 URL, Topic, 저장소 그룹, 이름, 설명, 기본 브랜치, 생성/수정 시간, 라이선스, 템플릿 등 저장소의 메타데이터를 읽기 전용으로 표시합니다.",
+    },
+    {
+      id: 5,
+      label: "클립보드 복사",
+      description:
+        "저장소 URL을 클립보드에 복사합니다. Git clone 등에 활용할 수 있습니다.",
+    },
+    {
+      id: 6,
+      label: "더보기 메뉴",
+      description:
+        "배포 저장소에 대한 추가 작업을 수행할 수 있는 컨텍스트 메뉴를 표시합니다.",
+    },
+    {
+      id: 7,
+      label: "컨텍스트 메뉴",
+      description:
+        "더보기 아이콘 클릭 시 표시되는 팝업 메뉴입니다.\n• 애플리케이션 생성: 연결된 앱을 만듭니다.\n• 설정: 해당 저장소의 상세 화면 설정 탭으로 이동합니다.\n• 연결: GitOps 연결을 설정합니다.\n• 연결해제: GitOps 연결을 해제합니다.\n• 삭제: 저장소를 삭제합니다.",
+    },
   ],
 };
+
+// ─── Context Menu Data ──────────────────────────────────────────────────────
+
+const repoGroupContextMenu: ContextMenuEntry[] = [
+  { id: "create-app", label: "애플리케이션 생성", icon: <Link2 className="w-4 h-4" /> },
+  { id: "settings", label: "설정", icon: <Settings className="w-4 h-4" /> },
+  { id: "connect", label: "연결", icon: <Link2 className="w-4 h-4" /> },
+  {
+    id: "disconnect",
+    label: "연결해제",
+    icon: <Unlink className="w-4 h-4" />,
+    textColor: "text-[#da1e28]",
+  },
+  { id: "divider", type: "divider" },
+  {
+    id: "delete",
+    label: "삭제",
+    icon: <Trash2 className="w-4 h-4" />,
+    textColor: "text-[#da1e28]",
+  },
+];
 
 // ─── Side Menu Data ─────────────────────────────────────────────────────────
 
@@ -69,8 +132,10 @@ const sideMenuItems: SideMenuItem[] = [
       {
         label: "",
         items: [
-          { label: "Applications" },
-          { label: "Repositories", active: true, bold: true },
+          { label: "배포 애플리케이션" },
+          { label: "배포 저장소", active: true, bold: true },
+          { label: "소스 저장소" },
+          { label: "저장소 그룹" },
         ],
       },
     ],
@@ -89,12 +154,12 @@ export default function Slide04RepositoryDetail() {
   return (
     <CcpDashboardLayout
       breadcrumbs={[
+        { label: "홈" },
         { label: "GitOps" },
-        { label: "Repositories" },
-        { label: "app1-maven-pipeline", isBold: true },
+        { label: "배포 저장소", isBold: true },
       ]}
       title={
-        <span className="group relative inline-flex items-center gap-2">
+        <span data-annotation-id="1" className="group relative inline-flex items-center gap-2">
           <span className="rounded-full shrink-0 w-2.5 h-2.5 bg-[#00b30e]" />
           <span className="cursor-pointer">app1-maven-pipeline</span>
           <Badge variant="info">Pipeline</Badge>
@@ -119,50 +184,54 @@ export default function Slide04RepositoryDetail() {
       }
       sideMenuItems={sideMenuItems}
       headerActions={
-        <div className="flex items-center gap-2">
-          <Button variant="ghost" size="md">
-            <RefreshCw className="w-3.5 h-3.5 mr-1.5" />
-            동기화
-          </Button>
-          <Button variant="secondary" size="md" className="!border-[#00b30e] !text-[#00b30e]">
-            <Pencil className="w-3.5 h-3.5 mr-1.5" />
-            수정
-          </Button>
-          <Button variant="primary" size="md">
-            <Plus className="w-4 h-4 mr-1.5" />
-            앱 생성
-          </Button>
-        </div>
+        <>
+          <button
+            data-annotation-id="2"
+            type="button"
+            className="flex items-center justify-center w-8 h-8 rounded hover:bg-[#f0f0f0] text-[#666]"
+          >
+            <MoreHorizontal className="w-5 h-5" />
+          </button>
+          <button
+            data-annotation-id="6"
+            type="button"
+            className="flex items-center justify-center w-8 h-8 rounded hover:bg-[#f0f0f0] text-[#666]"
+          >
+            <MoreHorizontal className="w-5 h-5" />
+          </button>
+        </>
+      }
+      overlay={
+        <Overlay data-annotation-id="7" top={100} right={80}>
+          <ContextMenu items={repoGroupContextMenu} className="w-[200px]" />
+        </Overlay>
       }
     >
       <ContentSection>
-        <Tabs
-          items={[
-            { id: "basic", label: "기본정보" },
-            { id: "files", label: "파일" },
-            { id: "branches", label: "브랜치" },
-            { id: "commits", label: "커밋 이력" },
-            { id: "tags", label: "태그/릴리스" },
-            { id: "gitops", label: "GitOps", dividerBefore: true },
-          ]}
-          activeId="basic"
-          className="mb-0"
-        />
+        <div data-annotation-id="3">
+          <Tabs
+            items={[
+              { id: "basic", label: "기본정보" },
+              { id: "files", label: "파일" },
+              { id: "branches", label: "브랜치/태그" },
+              { id: "commits", label: "커밋 이력" },
+              { id: "settings", label: "설정" },
+              { id: "gitops", label: "GitOps", dividerBefore: true },
+            ]}
+            activeId="basic"
+            className="mb-0"
+          />
+        </div>
       </ContentSection>
 
-      <ContentSection card>
+      <ContentSection card data-annotation-id="4">
         <div className="p-1 space-y-1">
-          <InfoRow label="리포지토리 연결" labelWidth="140px">
-            <span className="text-[13px] font-medium text-[#333]">선택</span>
-          </InfoRow>
-          <InfoRow label="유형" labelWidth="140px">
-            <span className="text-[13px] font-medium text-[#333]">git</span>
-          </InfoRow>
           <InfoRow label="리포지토리" labelWidth="140px">
             <span className="text-[13px] font-medium text-[#0077ff]">
               https://gitea.cone-chain.com/app-cicd/app1-maven-pipeline.git
             </span>
             <button
+              data-annotation-id="5"
               type="button"
               className="ml-2 px-2 py-1 text-[12px] text-[#555] border border-[#ddd] rounded hover:bg-[#f6f8fa] flex items-center gap-1"
             >
@@ -173,7 +242,7 @@ export default function Slide04RepositoryDetail() {
           <InfoRow label="Topic" labelWidth="140px">
             <Badge variant="info">Pipeline</Badge>
           </InfoRow>
-          <InfoRow label="프로젝트" labelWidth="140px">
+          <InfoRow label="저장소 그룹" labelWidth="140px">
             <span className="text-[13px] font-medium text-[#333]">
               app-cicd
             </span>
@@ -181,11 +250,6 @@ export default function Slide04RepositoryDetail() {
           <InfoRow label="이름" labelWidth="140px">
             <span className="text-[13px] font-bold text-[#111]">
               app1-maven-pipeline
-            </span>
-          </InfoRow>
-          <InfoRow label="네임스페이스" labelWidth="140px">
-            <span className="text-[13px] font-medium text-[#333]">
-              app-cicd
             </span>
           </InfoRow>
           <InfoRow label="설명" labelWidth="140px">
@@ -199,6 +263,11 @@ export default function Slide04RepositoryDetail() {
           <InfoRow label="생성시간" labelWidth="140px">
             <span className="text-[13px] font-medium text-[#555]">
               2024-01-15 14:30:22
+            </span>
+          </InfoRow>
+          <InfoRow label="수정시간" labelWidth="140px">
+            <span className="text-[13px] font-medium text-[#555]">
+              2024-02-10 09:15:43
             </span>
           </InfoRow>
           <InfoRow label="라이선스" labelWidth="140px">
