@@ -3,6 +3,7 @@ import {
   Building2,
   FolderOpen,
   Braces,
+  Server,
 } from "lucide-react";
 import {
   ConechainIcon,
@@ -12,12 +13,12 @@ import {
   SidebarCicdIcon,
   SidebarSettingsIcon,
   SidebarGitopsIcon,
-} from "./icons";
+} from "../icons";
 import { SideMenu } from "./SideMenu";
 import { GlobalNav } from "./GlobalNav";
-import { PageHeader } from "./PageHeader";
-import { YamlImportModal } from "./YamlImportModal";
-import { WebTerminalPanel } from "./WebTerminalPanel";
+import { PageHeader } from "../composites/PageHeader";
+import { YamlImportModal } from "../YamlImportModal";
+import { WebTerminalPanel } from "../WebTerminalPanel";
 import type { SideMenuItem } from "./SideMenu";
 import type { NavSelector } from "./GlobalNav";
 

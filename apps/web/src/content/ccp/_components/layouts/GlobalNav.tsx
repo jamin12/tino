@@ -1,9 +1,9 @@
 import {
   ChevronDown,
+  ChevronRight,
   Upload,
   TerminalSquare,
 } from "lucide-react";
-import { ChevronDown, Upload, ChevronRight } from "lucide-react";
 import { cn } from "../cn";
 
 interface NavSelector {
