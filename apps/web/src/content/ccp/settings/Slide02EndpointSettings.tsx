@@ -5,14 +5,8 @@ import {
   AlertTriangle,
   ExternalLink,
   Server,
-  Globe,
-  Database,
   GitBranch,
   Box,
-  Search,
-  BarChart3,
-  Activity,
-  Bug,
   Anchor,
   Workflow,
   X,
@@ -30,14 +24,17 @@ import {
   SidebarCicdIcon,
   SidebarSettingsIcon,
   SidebarGitopsIcon,
+  SidebarTenantIcon,
+  SidebarConnectionIcon,
+  SidebarServiceMeshIcon,
+  createSideMenuItems,
 } from "../_components";
-import type { SideMenuItem } from "../_components";
 import type { SlideMeta } from "@entities/document";
 
 export const slideMeta: SlideMeta = {
   screenId: "CCP-SET-002",
   title: "엔드포인트 설정",
-  section: "설정/권한",
+  section: "설정",
   annotations: [
     {
       id: 1,
@@ -102,75 +99,14 @@ export const slideMeta: SlideMeta = {
   ],
 };
 
-// ─── Side Menu ──────────────────────────────────────────────────────────────
-
-const sideMenuItems: SideMenuItem[] = [
-  {
-    id: "dashboard",
-    label: "대시보드",
-    icon: <SidebarDashboardIcon className="w-5 h-5" />,
-    expandIcon: "plus",
-  },
-  {
-    id: "namespace",
-    label: "네임스페이스",
-    icon: <SidebarNamespaceIcon className="w-5 h-5" />,
-    expandIcon: "plus",
-  },
-  {
-    id: "application",
-    label: "애플리케이션",
-    icon: <SidebarApplicationIcon className="w-5 h-5" />,
-    expandIcon: "plus",
-  },
-  {
-    id: "cicd",
-    label: "CI/CD",
-    icon: <SidebarCicdIcon className="w-5 h-5" />,
-    expandIcon: "plus",
-  },
-  {
-    id: "gitops",
-    label: "GitOps",
-    icon: <SidebarGitopsIcon className="w-5 h-5" />,
-    expandIcon: "plus",
-  },
-  {
-    id: "settings",
-    label: "설정/권한",
-    icon: <SidebarSettingsIcon className="w-5 h-5" />,
-    active: true,
-    expanded: true,
-    expandIcon: "minus",
-    sections: [
-      {
-        label: "",
-        items: [
-          { label: "조직 관리" },
-          { label: "프로젝트 관리" },
-          { label: "멤버 관리" },
-          { label: "시스템 설정" },
-          { label: "엔드포인트 설정", active: true },
-        ],
-      },
-    ],
-  },
-];
-
 // ─── Endpoint 타입별 아이콘 ──────────────────────────────────────────────────
 
 const endpointTypeIcon: Record<string, React.ReactNode> = {
   "API Server": <Server className="w-4 h-4 text-[#4A90D9]" />,
   Gitea: <GitBranch className="w-4 h-4 text-[#609926]" />,
   ArgoCD: <Workflow className="w-4 h-4 text-[#ef4444]" />,
-  Nexus: <Database className="w-4 h-4 text-[#3b82f6]" />,
   Tekton: <Anchor className="w-4 h-4 text-[#fd495c]" />,
   Harbor: <Box className="w-4 h-4 text-[#60b932]" />,
-  SonarQube: <Bug className="w-4 h-4 text-[#4e9bcd]" />,
-  Kiali: <Activity className="w-4 h-4 text-[#003d6b]" />,
-  Jaeger: <Search className="w-4 h-4 text-[#66cfe3]" />,
-  OpenSearch: <Globe className="w-4 h-4 text-[#005eb8]" />,
-  Grafana: <BarChart3 className="w-4 h-4 text-[#f46800]" />,
 };
 
 // ─── 상태 뱃지 ──────────────────────────────────────────────────────────────
@@ -217,8 +153,10 @@ function FormRow({
 
 function EndpointCard({
   ep,
+  showDelete,
 }: {
   ep: { id: string; name: string; type: string; url: string; status: "connected" | "disconnected" | "error"; auth: string; desc: string; inCluster?: boolean };
+  showDelete?: boolean;
 }) {
   return (
     <div className="flex items-center gap-4 px-4 py-3 h-[52px] rounded border border-[#eee] bg-[#fafbfc] hover:bg-[#f4f7fa] transition-colors">
@@ -238,6 +176,11 @@ function EndpointCard({
         <StatusIndicator status={ep.status} />
         <div className="text-[11px] text-[#aaa] mt-0.5">{ep.auth}</div>
       </div>
+      {showDelete && !ep.inCluster && (
+        <button type="button" className="flex-shrink-0 w-7 h-7 flex items-center justify-center rounded hover:bg-[#fee] text-[#ccc] hover:text-[#da1e28] transition-colors cursor-pointer">
+          <X className="w-3.5 h-3.5" />
+        </button>
+      )}
     </div>
   );
 }
@@ -347,7 +290,7 @@ function ClusterAddModal({ open, onClose }: { open: boolean; onClose: () => void
 
 function ComponentAddModal({ open, onClose }: { open: boolean; onClose: () => void }) {
   return (
-    <Modal open={open} onClose={onClose} title="컴포넌트 추가" width="520px">
+    <Modal open={open} onClose={onClose} title="시스템 컴포넌트 추가" width="520px">
       <div className="space-y-4">
         <FormRow label="컴포넌트 유형">
           <Select
@@ -356,14 +299,8 @@ function ComponentAddModal({ open, onClose }: { open: boolean; onClose: () => vo
             options={[
               { value: "Gitea", label: "Gitea" },
               { value: "ArgoCD", label: "ArgoCD" },
-              { value: "Nexus", label: "Nexus" },
               { value: "Tekton", label: "Tekton" },
               { value: "Harbor", label: "Harbor" },
-              { value: "SonarQube", label: "SonarQube" },
-              { value: "Kiali", label: "Kiali" },
-              { value: "Jaeger", label: "Jaeger" },
-              { value: "OpenSearch", label: "OpenSearch" },
-              { value: "Grafana", label: "Grafana" },
             ]}
             minWidth="200px"
           />
@@ -418,16 +355,10 @@ export default function Slide02EndpointSettings() {
   ];
 
   const devopsEndpoints = [
-    { id: "ep-001", name: "Gitea", type: "Gitea", url: "https://gitea.example.com", status: "connected" as const, auth: "OAuth2", desc: "Git 소스코드 저장소" },
-    { id: "ep-002", name: "ArgoCD", type: "ArgoCD", url: "https://argocd.example.com", status: "connected" as const, auth: "Token", desc: "GitOps 지속적 배포 엔진" },
-    { id: "ep-003", name: "Nexus Repository", type: "Nexus", url: "https://nexus.example.com", status: "connected" as const, auth: "Basic Auth", desc: "아티팩트 및 패키지 저장소" },
-    { id: "ep-004", name: "Tekton", type: "Tekton", url: "https://tekton.example.com", status: "connected" as const, auth: "Token", desc: "클라우드 네이티브 CI/CD 파이프라인" },
-    { id: "ep-005", name: "Harbor Registry", type: "Harbor", url: "https://harbor.example.com", status: "connected" as const, auth: "Token", desc: "컨테이너 이미지 레지스트리" },
-    { id: "ep-006", name: "SonarQube", type: "SonarQube", url: "https://sonarqube.example.com", status: "connected" as const, auth: "Token", desc: "코드 품질 및 보안 분석" },
-    { id: "ep-007", name: "Kiali", type: "Kiali", url: "https://kiali.example.com", status: "connected" as const, auth: "Token", desc: "서비스 메시 관찰성 콘솔" },
-    { id: "ep-008", name: "Jaeger", type: "Jaeger", url: "https://jaeger.example.com", status: "disconnected" as const, auth: "Token", desc: "분산 트레이싱 시스템" },
-    { id: "ep-009", name: "OpenSearch", type: "OpenSearch", url: "https://opensearch.example.com", status: "connected" as const, auth: "Basic Auth", desc: "로그 수집 및 검색 엔진" },
-    { id: "ep-010", name: "Grafana", type: "Grafana", url: "https://grafana.example.com", status: "connected" as const, auth: "Token", desc: "모니터링 대시보드 및 시각화" },
+    { id: "ep-001", name: "Gitea", type: "Gitea", url: "http://gitea-http.gitea.svc.cluster.local:3000", status: "connected" as const, auth: "OAuth2", desc: "Git 소스코드 저장소" },
+    { id: "ep-002", name: "ArgoCD", type: "ArgoCD", url: "http://argocd-server.argocd.svc.cluster.local:8080", status: "connected" as const, auth: "Token", desc: "GitOps 지속적 배포 엔진" },
+    { id: "ep-003", name: "Tekton", type: "Tekton", url: "http://tekton-dashboard.tekton-pipelines.svc.cluster.local:9097", status: "connected" as const, auth: "Token", desc: "클라우드 네이티브 CI/CD 파이프라인" },
+    { id: "ep-004", name: "Harbor Registry", type: "Harbor", url: "https://harbor.example.com", status: "connected" as const, auth: "Token", desc: "컨테이너 이미지 레지스트리" },
   ];
 
   const clusterConnected = clusterEndpoints.filter((e) => e.status === "connected").length;
@@ -436,11 +367,11 @@ export default function Slide02EndpointSettings() {
   return (
     <CcpDashboardLayout
       breadcrumbs={[
-        { label: "설정/권한" },
+        { label: "설정" },
         { label: "엔드포인트 설정" },
       ]}
       title="엔드포인트 설정"
-      sideMenuItems={sideMenuItems}
+      sideMenuItems={createSideMenuItems({ activeId: "settings", activeLabel: "엔드포인트 설정" })}
     >
       <ContentSection spacing="md">
         <div className="space-y-5">
@@ -464,7 +395,7 @@ export default function Slide02EndpointSettings() {
             </div>
             <div data-annotation-id="2" className="space-y-3">
               {clusterEndpoints.map((ep) => (
-                <EndpointCard key={ep.id} ep={ep} />
+                <EndpointCard key={ep.id} ep={ep} showDelete />
               ))}
             </div>
             <div className="flex justify-end gap-2 mt-4">
@@ -477,8 +408,8 @@ export default function Slide02EndpointSettings() {
           <div data-annotation-id="5" className="bg-white rounded-lg border border-[#e0e0e0] p-5">
             <div className="flex items-start justify-between mb-4">
               <div>
-                <h3 className="text-[15px] font-bold text-[#333]">컴포넌트</h3>
-                <p className="text-[12px] text-[#999] mt-1">CI/CD, GitOps, 레지스트리, 시크릿 관리 등 DevOps 도구 연결</p>
+                <h3 className="text-[15px] font-bold text-[#333]">시스템 컴포넌트</h3>
+                <p className="text-[12px] text-[#999] mt-1">CI/CD, GitOps, 레지스트리 등 DevOps 도구 연결</p>
               </div>
               <div className="flex items-center gap-6 text-right">
                 <div>

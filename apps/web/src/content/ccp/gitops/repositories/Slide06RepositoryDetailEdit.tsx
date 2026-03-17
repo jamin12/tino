@@ -30,8 +30,12 @@ import {
   SplitPanel,
   Tabs,
   Toggle,
+  SidebarTenantIcon,
+  SidebarConnectionIcon,
+  SidebarServiceMeshIcon,
+  createSideMenuItems,
 } from "../../_components";
-import type { SideMenuItem, ContextMenuEntry } from "../../_components";
+import type { ContextMenuEntry } from "../../_components";
 import type { SlideMeta } from "@entities/document";
 
 export const slideMeta: SlideMeta = {
@@ -112,57 +116,7 @@ const repoGroupContextMenu: ContextMenuEntry[] = [
 ];
 
 // ─── Side Menu Data ─────────────────────────────────────────────────────────
-
-const sideMenuItems: SideMenuItem[] = [
-  {
-    id: "dashboard",
-    label: "대시보드",
-    icon: <LayoutDashboard className="w-5 h-5" />,
-  },
-  {
-    id: "namespace",
-    label: "네임스페이스",
-    icon: <Layers className="w-5 h-5" />,
-    expandIcon: "plus",
-  },
-  {
-    id: "application",
-    label: "애플리케이션",
-    icon: <AppWindow className="w-5 h-5" />,
-    expandIcon: "plus",
-  },
-  {
-    id: "cicd",
-    label: "CI/CD",
-    icon: <GitBranch className="w-5 h-5" />,
-    expandIcon: "plus",
-  },
-  {
-    id: "gitops",
-    label: "GitOps",
-    icon: <GitCompare className="w-5 h-5" />,
-    active: true,
-    expanded: true,
-    expandIcon: "minus",
-    sections: [
-      {
-        label: "",
-        items: [
-          { label: "배포 애플리케이션" },
-          { label: "배포 저장소", active: true, bold: true },
-          { label: "소스 저장소" },
-          { label: "저장소 그룹" },
-        ],
-      },
-    ],
-  },
-  {
-    id: "settings",
-    label: "설정/권한",
-    icon: <Settings className="w-5 h-5" />,
-    expandIcon: "plus",
-  },
-];
+
 
 // ─── Code Sample ────────────────────────────────────────────────────────────
 
@@ -248,7 +202,7 @@ export default function Slide06RepositoryDetailEdit() {
           </span>
         </span>
       }
-      sideMenuItems={sideMenuItems}
+      sideMenuItems={createSideMenuItems({ activeId: "gitops", activeLabel: "배포 저장소" })}
       headerActions={
         <button
           data-annotation-id="7"

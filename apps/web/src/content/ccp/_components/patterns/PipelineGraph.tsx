@@ -1,4 +1,4 @@
-import { CheckCircle2, Activity, Box } from "lucide-react";
+import { CheckCircle2, Activity, Box, XCircle, ChevronRight } from "lucide-react";
 
 interface PipelineStage {
   id: string;
@@ -11,67 +11,95 @@ interface PipelineGraphProps {
   stages: PipelineStage[];
 }
 
-function getProgressWidth(stages: PipelineStage[]): string {
-  const lastActiveIdx = stages.reduce(
-    (acc, s, i) => (s.status === "success" || s.status === "running" ? i : acc),
-    0,
-  );
-  const pct = Math.round(((lastActiveIdx + 0.5) / stages.length) * 100);
-  return `${pct}%`;
-}
+const statusConfig = {
+  success: {
+    bg: "bg-[#ecfdf5]",
+    border: "border-[#10b981]",
+    ring: "",
+    iconColor: "text-[#10b981]",
+    labelColor: "text-[#0f172a]",
+    lineColor: "bg-[#10b981]",
+  },
+  running: {
+    bg: "bg-[#0077ff]",
+    border: "border-[#93c5fd]",
+    ring: "ring-4 ring-[#dbeafe]",
+    iconColor: "text-white",
+    labelColor: "text-[#0f172a]",
+    lineColor: "bg-[#0077ff]",
+  },
+  failed: {
+    bg: "bg-[#fef2f2]",
+    border: "border-[#ef4444]",
+    ring: "ring-4 ring-[#fee2e2]",
+    iconColor: "text-[#ef4444]",
+    labelColor: "text-[#0f172a]",
+    lineColor: "bg-[#ef4444]",
+  },
+  pending: {
+    bg: "bg-[#f8fafc]",
+    border: "border-[#cbd5e1]",
+    ring: "",
+    iconColor: "text-[#94a3b8]",
+    labelColor: "text-[#94a3b8]",
+    lineColor: "bg-[#e2e8f0]",
+  },
+};
+
+const statusIcon = {
+  success: <CheckCircle2 className="w-5 h-5" />,
+  running: <Activity className="w-5 h-5 animate-pulse" />,
+  failed: <XCircle className="w-5 h-5" />,
+  pending: <Box className="w-4.5 h-4.5" />,
+};
 
 export function PipelineGraph({ stages }: PipelineGraphProps) {
   return (
-    <div className="relative mb-10 py-8 px-12 bg-[#fafbfc] rounded-lg border border-[#e2e8f0] flex items-center justify-between">
-      {/* Background Line */}
-      <div className="absolute top-[50%] left-16 right-16 h-1 bg-[#e2e8f0] -translate-y-[50%] z-0" />
-      {/* Progress Line */}
-      <div
-        className="absolute top-[50%] left-16 h-1 bg-[#0077ff] -translate-y-[50%] z-0 transition-all"
-        style={{ width: getProgressWidth(stages) }}
-      />
+    <div className="py-6 px-8 bg-[#f8fafc] rounded-xl border border-[#e2e8f0] shadow-sm">
+      <div className="flex items-center justify-between">
+        {stages.map((stage, idx) => {
+          const cfg = statusConfig[stage.status];
+          const isLast = idx === stages.length - 1;
+          return (
+            <div key={stage.id} className="flex items-center flex-1 last:flex-none">
+              {/* Node + Label */}
+              <div className="flex flex-col items-center gap-2.5">
+                <div
+                  className={`w-12 h-12 rounded-xl flex items-center justify-center border-2 ${cfg.bg} ${cfg.border} ${cfg.ring} transition-all`}
+                >
+                  <span className={cfg.iconColor}>{statusIcon[stage.status]}</span>
+                </div>
+                <div className="text-center">
+                  <p className={`text-[12px] font-semibold tracking-[-0.1px] font-mono ${cfg.labelColor}`}>
+                    {stage.name}
+                  </p>
+                  <p className="text-[11px] text-[#64748b] mt-0.5 font-medium">{stage.duration}</p>
+                </div>
+              </div>
 
-      {stages.map((stage) => (
-        <div
-          key={stage.id}
-          className="relative z-10 flex flex-col items-center gap-3"
-        >
-          {/* Node */}
-          <div
-            className={`w-14 h-14 rounded-full flex items-center justify-center border-4 ${
-              stage.status === "success"
-                ? "bg-white border-[#00b30e]"
-                : stage.status === "running"
-                  ? "bg-[#0077ff] border-[#c0dfff] shadow-[0_0_0_4px_#e5f1ff]"
-                  : "bg-white border-[#e0e0e0]"
-            }`}
-          >
-            {stage.status === "success" && (
-              <CheckCircle2 className="w-6 h-6 text-[#00b30e]" />
-            )}
-            {stage.status === "running" && (
-              <Activity className="w-6 h-6 text-white animate-pulse" />
-            )}
-            {stage.status === "pending" && (
-              <Box className="w-5 h-5 text-[#aaaaaa]" />
-            )}
-          </div>
-
-          {/* Label */}
-          <div className="text-center">
-            <p
-              className={`text-sm font-bold tracking-[-0.14px] ${
-                stage.status === "pending"
-                  ? "text-[#888888]"
-                  : "text-[#111111]"
-              }`}
-            >
-              {stage.name}
-            </p>
-            <p className="text-xs text-[#555555] mt-0.5">{stage.duration}</p>
-          </div>
-        </div>
-      ))}
+              {/* Connector */}
+              {!isLast && (
+                <div className="flex-1 flex items-center justify-center mx-3 -mt-8">
+                  <div className={`flex-1 h-[2px] rounded-full ${
+                    stage.status === "success" || stage.status === "running"
+                      ? "bg-[#10b981]"
+                      : stage.status === "failed"
+                        ? "bg-[#ef4444]"
+                        : "bg-[#e2e8f0]"
+                  }`} />
+                  <ChevronRight className={`w-3.5 h-3.5 -ml-0.5 flex-shrink-0 ${
+                    stage.status === "success" || stage.status === "running"
+                      ? "text-[#10b981]"
+                      : stage.status === "failed"
+                        ? "text-[#ef4444]"
+                        : "text-[#cbd5e1]"
+                  }`} />
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 }

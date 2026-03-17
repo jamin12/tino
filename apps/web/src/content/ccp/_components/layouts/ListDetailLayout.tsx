@@ -17,16 +17,19 @@ export function ListDetailLayout({
   className,
   ...props
 }: ListDetailLayoutProps) {
+  const hasDetail = detailWidth !== "0px";
   return (
     <div className={cn("relative h-full", className)} {...props}>
       <div className="h-full overflow-hidden">{children}</div>
-      <div
-        data-name="DetailPanel"
-        style={{ width: detailWidth }}
-        className="absolute top-0 right-0 h-full border-l border-neutral-200 shadow-[-4px_0_12px_rgba(0,0,0,0.08)]"
-      >
-        {detail}
-      </div>
+      {hasDetail && (
+        <div
+          data-name="DetailPanel"
+          style={{ width: detailWidth }}
+          className="absolute top-0 right-0 h-full bg-white border-l border-neutral-200 shadow-lg"
+        >
+          {detail}
+        </div>
+      )}
     </div>
   );
 }

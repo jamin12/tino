@@ -74,8 +74,8 @@ export function SideMenu({
         </div>
       )}
 
-      {/* Menu - offset 20px from nav left */}
-      <nav className="relative z-10 flex-1 pl-5">
+      {/* Menu - offset 20px from nav left, scrollable */}
+      <nav className="relative z-10 flex-1 pl-5 overflow-y-auto overflow-x-hidden scrollbar-thin scrollbar-thumb-white/20 scrollbar-track-transparent hover:scrollbar-thumb-white/30 [&::-webkit-scrollbar]:w-[4px] [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-white/20 [&::-webkit-scrollbar-thumb]:rounded-full hover:[&::-webkit-scrollbar-thumb]:bg-white/30 pb-4">
         {items.map((item) => {
           const isExpanded = item.expanded && item.sections;
 

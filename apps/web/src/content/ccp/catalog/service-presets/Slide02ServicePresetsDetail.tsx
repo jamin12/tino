@@ -8,8 +8,8 @@ import {
   ContentSection,
   InfoRow,
   Tabs,
+  createSideMenuItems,
 } from "../../_components";
-import type { SideMenuItem } from "../../_components";
 import type { SlideMeta } from "@entities/document";
 import {
   SidebarDashboardIcon,
@@ -18,6 +18,9 @@ import {
   SidebarCicdIcon,
   SidebarSettingsIcon,
   SidebarGitopsIcon,
+  SidebarTenantIcon,
+  SidebarConnectionIcon,
+  SidebarServiceMeshIcon,
 } from "../../_components";
 
 export const slideMeta: SlideMeta = {
@@ -34,73 +37,6 @@ export const slideMeta: SlideMeta = {
     { id: 7, label: "Annotations 목록", description: "프리셋 리소스에 설정된 Kubernetes Annotations를 배지 형태로 표시합니다. 부가 메타데이터나 도구 설정 정보가 포함됩니다." },
   ],
 };
-
-// ─── Side Menu Data ─────────────────────────────────────────────────────────
-
-const sideMenuItems: SideMenuItem[] = [
-  {
-    id: "dashboard",
-    label: "대시보드",
-    icon: <SidebarDashboardIcon className="w-5 h-5" />,
-  },
-  {
-    id: "namespace",
-    label: "네임스페이스",
-    icon: <SidebarNamespaceIcon className="w-5 h-5" />,
-    expandIcon: "plus",
-  },
-  {
-    id: "application",
-    label: "애플리케이션",
-    icon: <SidebarApplicationIcon className="w-5 h-5" />,
-    expandIcon: "plus",
-  },
-  {
-    id: "cicd",
-    label: "CI/CD",
-    icon: <SidebarCicdIcon className="w-5 h-5" />,
-    active: true,
-    expanded: true,
-    expandIcon: "minus",
-    sections: [
-      {
-        label: "저장소",
-        items: [
-          { label: "StorageClasses" },
-          { label: "PV" },
-          { label: "PVC" },
-          { label: "ConfigMaps" },
-          { label: "Secrets" },
-        ],
-      },
-      {
-        label: "파이프라인",
-        items: [
-          { label: "파이프라인 정의" },
-          { label: "파이프라인 실행" },
-          { label: "파이프라인 트리거" },
-          { label: "파이프라인 통계" },
-        ],
-      },
-      {
-        label: "카탈로그",
-        items: [{ label: "Service Presets", active: true, bold: true }],
-      },
-    ],
-  },
-  {
-    id: "gitops",
-    label: "GitOps",
-    icon: <SidebarGitopsIcon className="w-5 h-5" />,
-    expandIcon: "plus",
-  },
-  {
-    id: "settings",
-    label: "설정/권한",
-    icon: <SidebarSettingsIcon className="w-5 h-5" />,
-    expandIcon: "plus",
-  },
-];
 
 // ─── Slide ──────────────────────────────────────────────────────────────────
 
@@ -136,7 +72,7 @@ export default function Slide02ServicePresetsDetail() {
           </span>
         </span>
       }
-      sideMenuItems={sideMenuItems}
+      sideMenuItems={createSideMenuItems({ activeId: "cicd", activeLabel: "Service Presets" })}
       headerActions={
         <button
           type="button"

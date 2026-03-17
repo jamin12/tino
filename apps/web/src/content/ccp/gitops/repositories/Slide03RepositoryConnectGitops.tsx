@@ -13,8 +13,12 @@ import {
   Select,
   Tabs,
   Toggle,
+  SidebarTenantIcon,
+  SidebarConnectionIcon,
+  SidebarServiceMeshIcon,
+  createSideMenuItems,
 } from "../../_components";
-import type { SideMenuItem } from "../../_components";
+
 import type { SlideMeta } from "@entities/document";
 
 export const slideMeta: SlideMeta = {
@@ -54,12 +58,6 @@ export const slideMeta: SlideMeta = {
     },
     {
       id: 6,
-      label: "검증 버튼",
-      description:
-        "입력된 GitOps(ArgoCD) 연결 정보로 저장소 접근 가능 여부를 사전 테스트합니다. 입력된 프로토콜·인증 정보를 사용해 저장소 URL로 curl 요청을 보내 응답 상태를 확인합니다.\n```\ncurl -s -o /dev/null -w \"%{http_code}\" https://gitea.example.com/org/repo.git\n```",
-    },
-    {
-      id: 7,
       label: "생성 버튼",
       description:
         "기본정보와 GitOps 설정을 포함하여 배포 저장소를 최종 생성합니다. 생성 후 목록(CCP-GIT-001) 화면으로 이동합니다.",
@@ -68,57 +66,7 @@ export const slideMeta: SlideMeta = {
 };
 
 // ─── Side Menu Data ─────────────────────────────────────────────────────────
-
-const sideMenuItems: SideMenuItem[] = [
-  {
-    id: "dashboard",
-    label: "대시보드",
-    icon: <LayoutDashboard className="w-5 h-5" />,
-  },
-  {
-    id: "namespace",
-    label: "네임스페이스",
-    icon: <Layers className="w-5 h-5" />,
-    expandIcon: "plus",
-  },
-  {
-    id: "application",
-    label: "애플리케이션",
-    icon: <AppWindow className="w-5 h-5" />,
-    expandIcon: "plus",
-  },
-  {
-    id: "cicd",
-    label: "CI/CD",
-    icon: <GitBranch className="w-5 h-5" />,
-    expandIcon: "plus",
-  },
-  {
-    id: "gitops",
-    label: "GitOps",
-    icon: <GitCompare className="w-5 h-5" />,
-    active: true,
-    expanded: true,
-    expandIcon: "minus",
-    sections: [
-      {
-        label: "",
-        items: [
-          { label: "배포 애플리케이션" },
-          { label: "배포 저장소", active: true, bold: true },
-          { label: "소스 저장소" },
-          { label: "저장소 그룹" },
-        ],
-      },
-    ],
-  },
-  {
-    id: "settings",
-    label: "설정/권한",
-    icon: <Settings className="w-5 h-5" />,
-    expandIcon: "plus",
-  },
-];
+
 
 // ─── Slide ──────────────────────────────────────────────────────────────────
 
@@ -131,7 +79,7 @@ export default function Slide03RepositoryConnectGitops() {
         { label: "배포 저장소", isBold: true },
       ]}
       title="배포 저장소 생성"
-      sideMenuItems={sideMenuItems}
+      sideMenuItems={createSideMenuItems({ activeId: "gitops", activeLabel: "배포 저장소" })}
     >
       <div className="flex gap-0 mx-8 mt-4">
         {/* Left Form Area */}
@@ -229,9 +177,6 @@ export default function Slide03RepositoryConnectGitops() {
           취소
         </Button>
         <Button data-annotation-id="6" variant="primary" size="md">
-          검증
-        </Button>
-        <Button data-annotation-id="7" variant="primary" size="md">
           생성
         </Button>
       </div>

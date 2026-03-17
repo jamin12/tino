@@ -36,10 +36,13 @@ import {
   SidebarApplicationIcon,
   SidebarCicdIcon,
   SidebarSettingsIcon,
+  SidebarTenantIcon,
+  SidebarConnectionIcon,
+  SidebarServiceMeshIcon,
   SidebarGitopsIcon,
+  createSideMenuItems,
 } from "../../_components";
 import type {
-  SideMenuItem,
   DataTableColumn,
   ActionMenuEntry,
   IconNavItem,
@@ -72,72 +75,7 @@ export const slideMeta: SlideMeta = {
 };
 
 // ─── Side Menu Data ─────────────────────────────────────────────────────────
-
-const sideMenuItems: SideMenuItem[] = [
-  {
-    id: "dashboard",
-    label: "대시보드",
-    icon: <SidebarDashboardIcon className="w-5 h-5" />,
-  },
-  {
-    id: "namespace",
-    label: "네임스페이스",
-    icon: <SidebarNamespaceIcon className="w-5 h-5" />,
-    expandIcon: "plus",
-  },
-  {
-    id: "application",
-    label: "애플리케이션",
-    icon: <SidebarApplicationIcon className="w-5 h-5" />,
-    expandIcon: "plus",
-  },
-  {
-    id: "cicd",
-    label: "CI/CD",
-    icon: <SidebarCicdIcon className="w-5 h-5" />,
-    active: true,
-    expanded: true,
-    expandIcon: "minus",
-    sections: [
-      { label: "", items: [{ label: "네임스페이스" }] },
-      {
-        label: "저장소",
-        items: [
-          { label: "StorageClasses" },
-          { label: "PV" },
-          { label: "PVC" },
-          { label: "ConfigMaps", active: true, bold: true },
-          { label: "Secrets" },
-        ],
-      },
-      {
-        label: "파이프라인",
-        items: [
-          { label: "파이프라인 구성" },
-          { label: "파이프라인 실행" },
-          { label: "트리거 구성" },
-          { label: "트리거 실행" },
-        ],
-      },
-      {
-        label: "카탈로그",
-        items: [{ label: "Service Presets" }],
-      },
-    ],
-  },
-  {
-    id: "settings",
-    label: "설정/권한",
-    icon: <SidebarSettingsIcon className="w-5 h-5" />,
-    expandIcon: "plus",
-  },
-  {
-    id: "gitops",
-    label: "GitOps",
-    icon: <SidebarGitopsIcon className="w-5 h-5" />,
-    expandIcon: "plus",
-  },
-];
+
 
 // ─── Table Data ─────────────────────────────────────────────────────────────
 
@@ -246,7 +184,7 @@ export default function SlideConfigMapsDetailConfig() {
     <CcpDashboardLayout
       breadcrumbs={[{ label: "저장소" }, { label: "ConfigMaps", isBold: true }]}
       title="ConfigMaps"
-      sideMenuItems={sideMenuItems}
+      sideMenuItems={createSideMenuItems({ activeId: "cicd", activeLabel: "ConfigMaps" })}
     >
       <ListDetailLayout
         detail={

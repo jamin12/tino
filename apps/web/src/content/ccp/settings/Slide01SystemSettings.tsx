@@ -9,15 +9,19 @@ import {
   SidebarApplicationIcon,
   SidebarCicdIcon,
   SidebarSettingsIcon,
+  SidebarTenantIcon,
+  SidebarConnectionIcon,
+  SidebarServiceMeshIcon,
   SidebarGitopsIcon,
+  createSideMenuItems,
 } from "../_components";
-import type { SideMenuItem } from "../_components";
+
 import type { SlideMeta } from "@entities/document";
 
 export const slideMeta: SlideMeta = {
   screenId: "CCP-SET-001",
   title: "시스템 설정",
-  section: "설정/권한",
+  section: "설정",
   links: [],
   annotations: [
     {
@@ -36,19 +40,13 @@ export const slideMeta: SlideMeta = {
       id: 3,
       label: "GitOps 설정 섹션",
       description:
-        "GitOps 자동 동기화, 동기화 주기, 롤백 히스토리 등 GitOps 관련 동작을 제어하는 설정 그룹입니다.",
+        "GitOps 자동 동기화, Git 변경 감지 주기, 롤백 히스토리 등 GitOps 관련 동작을 제어하는 설정 그룹입니다.",
     },
-    {
-      id: 4,
-      label: "GitOps 자동 동기화 토글",
-      description:
-        "활성화 시 Git 저장소 변경이 감지되면 클러스터에 자동으로 동기화합니다. 비활성화 시 수동 동기화만 가능합니다.",
-    },
-    {
+{
       id: 5,
-      label: "동기화 주기 입력",
+      label: "Git 변경 감지 주기 입력",
       description:
-        "자동 동기화가 활성화된 경우 Git 저장소를 폴링하는 간격을 초 단위로 설정합니다.",
+        "ArgoCD의 timeout.reconciliation 값으로, Git 저장소 변경을 폴링하는 간격을 초 단위로 설정합니다.",
     },
     {
       id: 6,
@@ -90,58 +88,7 @@ export const slideMeta: SlideMeta = {
 };
 
 // ─── Side Menu ──────────────────────────────────────────────────────────────
-
-const sideMenuItems: SideMenuItem[] = [
-  {
-    id: "dashboard",
-    label: "대시보드",
-    icon: <SidebarDashboardIcon className="w-5 h-5" />,
-    expandIcon: "plus",
-  },
-  {
-    id: "namespace",
-    label: "네임스페이스",
-    icon: <SidebarNamespaceIcon className="w-5 h-5" />,
-    expandIcon: "plus",
-  },
-  {
-    id: "application",
-    label: "애플리케이션",
-    icon: <SidebarApplicationIcon className="w-5 h-5" />,
-    expandIcon: "plus",
-  },
-  {
-    id: "cicd",
-    label: "CI/CD",
-    icon: <SidebarCicdIcon className="w-5 h-5" />,
-    expandIcon: "plus",
-  },
-  {
-    id: "gitops",
-    label: "GitOps",
-    icon: <SidebarGitopsIcon className="w-5 h-5" />,
-    expandIcon: "plus",
-  },
-  {
-    id: "settings",
-    label: "설정/권한",
-    icon: <SidebarSettingsIcon className="w-5 h-5" />,
-    active: true,
-    expanded: true,
-    expandIcon: "minus",
-    sections: [
-      {
-        label: "",
-        items: [
-          { label: "조직 관리" },
-          { label: "프로젝트 관리" },
-          { label: "멤버 관리" },
-          { label: "시스템 설정", active: true },
-        ],
-      },
-    ],
-  },
-];
+
 
 // ─── 폼 행 (label : value) ──────────────────────────────────────────────────
 
@@ -159,7 +106,7 @@ function FormRow({
       <div className="w-[180px] flex-shrink-0 pt-1">
         <span className="text-[13px] font-medium text-[#333]">{label}</span>
         {description && (
-          <p className="text-[11px] text-[#999] mt-0.5">{description}</p>
+          <p className="text-[11px] text-[#999] mt-0.5 whitespace-pre-line">{description}</p>
         )}
       </div>
       <div className="flex-1 min-w-0">{children}</div>
@@ -173,11 +120,11 @@ export default function Slide01SystemSettings() {
   return (
     <CcpDashboardLayout
       breadcrumbs={[
-        { label: "설정/권한" },
+        { label: "설정" },
         { label: "시스템 설정" },
       ]}
       title="시스템 설정"
-      sideMenuItems={sideMenuItems}
+      sideMenuItems={createSideMenuItems({ activeId: "settings", activeLabel: "시스템 설정" })}
     >
       <ContentSection spacing="md">
         <div className="space-y-5">
@@ -198,16 +145,13 @@ export default function Slide01SystemSettings() {
           <div data-annotation-id="3" className="bg-white rounded-lg border border-[#e0e0e0] p-5">
             <h3 className="text-[14px] font-bold text-[#333] mb-3">GitOps 설정</h3>
             <div className="space-y-0">
-              <FormRow label="GitOps 자동 동기화" description="Git 변경 시 자동 클러스터 동기화">
-                <div data-annotation-id="4"><Toggle checked={true} /></div>
-              </FormRow>
-              <FormRow label="동기화 주기" description="자동 동기화 간격">
+<FormRow label="Git 변경 감지 주기" description="timeout.reconciliation (기본값: 180s)">
                 <div data-annotation-id="5" className="flex items-center gap-2">
                   <TextInput type="number" defaultValue="180" className="w-[100px]" />
                   <span className="text-[13px] text-[#888]">초</span>
                 </div>
               </FormRow>
-              <FormRow label="롤백 히스토리" description="앱별 롤백 가능 최대 리비전 수">
+              <FormRow label="롤백 히스토리" description={"전역 기본값\n앱에서 개별 설정 시 개별값이 우선 적용"}>
                 <div data-annotation-id="6" className="flex items-center gap-2">
                   <TextInput type="number" defaultValue="10" className="w-[100px]" />
                   <span className="text-[13px] text-[#888]">개</span>

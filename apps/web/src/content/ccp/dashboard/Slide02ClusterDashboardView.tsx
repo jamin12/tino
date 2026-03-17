@@ -10,9 +10,13 @@ import {
   SidebarApplicationIcon,
   SidebarCicdIcon,
   SidebarSettingsIcon,
+  SidebarTenantIcon,
+  SidebarConnectionIcon,
+  SidebarServiceMeshIcon,
   SidebarGitopsIcon,
+  createSideMenuItems,
 } from "../_components";
-import type { SideMenuItem } from "../_components";
+
 import type { SlideMeta } from "@entities/document";
 import { LineChart } from "@nhn-cloud/ncui-chart";
 import "@nhn-cloud/ncui-chart/style.css";
@@ -75,46 +79,7 @@ export const slideMeta: SlideMeta = {
 };
 
 // ─── Side Menu (대시보드 active) ──────────────────────────────────────────────
-
-const sideMenuItems: SideMenuItem[] = [
-  {
-    id: "dashboard",
-    label: "대시보드",
-    icon: <SidebarDashboardIcon className="w-5 h-5" />,
-    active: true,
-    expandIcon: "minus",
-  },
-  {
-    id: "namespace",
-    label: "네임스페이스",
-    icon: <SidebarNamespaceIcon className="w-5 h-5" />,
-    expandIcon: "plus",
-  },
-  {
-    id: "application",
-    label: "애플리케이션",
-    icon: <SidebarApplicationIcon className="w-5 h-5" />,
-    expandIcon: "plus",
-  },
-  {
-    id: "cicd",
-    label: "CI/CD",
-    icon: <SidebarCicdIcon className="w-5 h-5" />,
-    expandIcon: "plus",
-  },
-  {
-    id: "gitops",
-    label: "GitOps",
-    icon: <SidebarGitopsIcon className="w-5 h-5" />,
-    expandIcon: "plus",
-  },
-  {
-    id: "settings",
-    label: "설정/권한",
-    icon: <SidebarSettingsIcon className="w-5 h-5" />,
-    expandIcon: "plus",
-  },
-];
+
 
 // ─── Widget Wrapper (정상 모드 – 편집 UI 없음) ────────────────────────────────
 
@@ -397,7 +362,7 @@ export default function Slide02ClusterDashboardView() {
         { label: "대시보드", isBold: true },
       ]}
       title="대시보드"
-      sideMenuItems={sideMenuItems}
+      sideMenuItems={createSideMenuItems({ activeId: "dashboard" })}
       navSelectors={[
         {
           label: "클러스터",

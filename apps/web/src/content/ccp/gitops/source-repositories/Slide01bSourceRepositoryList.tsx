@@ -22,6 +22,10 @@ import {
   SearchInput,
   Select,
   TextCell,
+  SidebarTenantIcon,
+  SidebarConnectionIcon,
+  SidebarServiceMeshIcon,
+  createSideMenuItems,
 } from "../../_components";
 import type {
   SideMenuItem,
@@ -79,59 +83,6 @@ export const slideMeta: SlideMeta = {
     },
   ],
 };
-
-// ─── Side Menu Data ─────────────────────────────────────────────────────────
-
-const sideMenuItems: SideMenuItem[] = [
-  {
-    id: "dashboard",
-    label: "대시보드",
-    icon: <LayoutDashboard className="w-5 h-5" />,
-  },
-  {
-    id: "namespace",
-    label: "네임스페이스",
-    icon: <Layers className="w-5 h-5" />,
-    expandIcon: "plus",
-  },
-  {
-    id: "application",
-    label: "애플리케이션",
-    icon: <AppWindow className="w-5 h-5" />,
-    expandIcon: "plus",
-  },
-  {
-    id: "cicd",
-    label: "CI/CD",
-    icon: <GitBranch className="w-5 h-5" />,
-    expandIcon: "plus",
-  },
-  {
-    id: "gitops",
-    label: "GitOps",
-    icon: <GitCompare className="w-5 h-5" />,
-    active: true,
-    expanded: true,
-    expandIcon: "minus",
-    sections: [
-      {
-        label: "",
-        items: [
-          { label: "배포 애플리케이션" },
-          { label: "배포 저장소" },
-          { label: "소스 저장소", active: true, bold: true },
-          { label: "저장소 그룹" },
-        ],
-      },
-    ],
-  },
-  {
-    id: "settings",
-    label: "설정/권한",
-    icon: <Settings className="w-5 h-5" />,
-    expandIcon: "plus",
-  },
-];
 
 // ─── Table Data ─────────────────────────────────────────────────────────────
 
@@ -242,7 +193,7 @@ export default function Slide01bSourceRepositoryList() {
         { label: "소스 저장소", isBold: true },
       ]}
       title="소스 저장소 목록"
-      sideMenuItems={sideMenuItems}
+      sideMenuItems={createSideMenuItems({ activeId: "gitops", activeLabel: "소스 저장소" })}
     >
       <ContentSection relative>
         <FilterBar className="gap-2">

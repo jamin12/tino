@@ -5,3 +5,6 @@ export { SidebarApplicationIcon } from "./SidebarApplicationIcon";
 export { SidebarCicdIcon } from "./SidebarCicdIcon";
 export { SidebarSettingsIcon } from "./SidebarSettingsIcon";
 export { SidebarGitopsIcon } from "./SidebarGitopsIcon";
+export { SidebarTenantIcon } from "./SidebarTenantIcon";
+export { SidebarConnectionIcon } from "./SidebarConnectionIcon";
+export { SidebarServiceMeshIcon } from "./SidebarServiceMeshIcon";

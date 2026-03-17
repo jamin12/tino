@@ -39,7 +39,8 @@
       "mcp__dooray-mcp__get-task",
       "mcp__dooray-mcp__update-task",
       "Bash(do echo:*)",
-      "Bash(read f:*)"
+      "Bash(read f:*)",
+      "Bash(source:*)"
     ]
   }
 }
