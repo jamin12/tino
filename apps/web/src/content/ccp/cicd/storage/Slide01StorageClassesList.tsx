@@ -325,6 +325,7 @@ export default function Slide01StorageClassesList() {
         <FilterBar className="gap-2">
           <div data-annotation-id="2">
           <Select
+            data-annotation-id="1"
             label="프로비저너"
             options={[
               { value: "", label: "전체" },

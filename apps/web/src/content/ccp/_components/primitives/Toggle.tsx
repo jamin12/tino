@@ -18,7 +18,7 @@ export function Toggle({
       type="button"
       role="switch"
       aria-checked={checked}
-      className={cn("inline-flex items-center gap-1.5", className)}
+      className={cn("inline-flex items-center gap-[4px]", className)}
       onClick={() => onChange?.(!checked)}
       {...props}
     >
@@ -26,7 +26,7 @@ export function Toggle({
         <span
           className={cn(
             "text-[13px] font-medium leading-5 tracking-[-0.13px]",
-            checked ? "text-[#0077ff]" : "text-[#9ca3af]",
+            checked ? "text-[#0077ff]" : "text-[#6d7073]",
           )}
         >
           {label}
@@ -34,14 +34,14 @@ export function Toggle({
       )}
       <div
         className={cn(
-          "relative w-[34px] h-[20px] rounded-full transition-colors",
-          checked ? "bg-[#0077ff]" : "bg-[#d1d5db]",
+          "relative w-[24px] h-[14px] rounded-[10px] transition-colors",
+          checked ? "bg-[#0077ff]" : "bg-[#dddddd]",
         )}
       >
         <div
           className={cn(
-            "absolute top-[2px] w-4 h-4 rounded-full bg-white shadow transition-transform",
-            checked ? "translate-x-[16px]" : "translate-x-[2px]",
+            "absolute top-[2px] w-[10px] h-[10px] rounded-full bg-white shadow transition-transform",
+            checked ? "translate-x-[12px]" : "translate-x-[2px]",
           )}
         />
       </div>

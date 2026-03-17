@@ -38,67 +38,27 @@ import type {
 import type { SlideMeta } from "@entities/document";
 
 export const slideMeta: SlideMeta = {
-  screenId: "CCP-STR-005",
-  title: "Secrets 목록",
+  screenId: "CCP-STR-002",
+  title: "PV 목록",
   section: "CI/CD 저장소",
-  links: [
-    { targetScreenId: "CCP-STR-005-D1", type: "navigate", label: "행 클릭 → 상세(타입)" },
-    { targetScreenId: "CCP-STR-C00", type: "modal", label: "생성 버튼 → 생성 다이얼로그" },
-  ],
   annotations: [
     {
       id: 1,
-      label: "GitOps 현황 요약",
+      label: "상태 필터",
       description:
-        "Secret 리소스의 GitOps 동기화 상태를 카드로 요약합니다. Stable, Mismatch 등 상태별 수량을 한눈에 파악할 수 있습니다.",
+        "PV의 바인딩 상태별로 목록을 필터링합니다. Available(사용 가능), Bound(PVC에 바인딩됨), Released(PVC 삭제 후 해제됨), Failed(자동 회수 실패) 중 선택할 수 있으며, '전체'를 선택하면 모든 상태가 표시됩니다.",
     },
     {
       id: 2,
-      label: "타입 필터",
+      label: "Reclaim Policy 필터",
       description:
-        "Secret 타입(Opaque, TLS, dockerconfigjson, service-account-token)별로 목록을 필터링합니다.",
+        "PV의 회수 정책별로 목록을 필터링합니다. Retain(PVC 삭제 후에도 데이터 보존), Delete(PVC 삭제 시 PV와 스토리지 함께 삭제) 중 선택할 수 있습니다.",
     },
     {
       id: 3,
-      label: "네임스페이스 필터",
+      label: "이름/PVC 검색",
       description:
-        "네임스페이스별로 Secret 목록을 필터링합니다. 특정 네임스페이스에 속한 Secret만 조회할 수 있습니다.",
-    },
-    {
-      id: 4,
-      label: "이름 검색",
-      description:
-        "Secret 이름을 기준으로 키워드 검색을 수행합니다. 입력 즉시 목록이 필터링됩니다.",
-    },
-    {
-      id: 5,
-      label: "Secret 생성",
-      description:
-        "새 Secret 리소스를 생성합니다. 클릭 시 생성 다이얼로그(CCP-STR-C00)가 열립니다.",
-    },
-    {
-      id: 6,
-      label: "동기화",
-      description:
-        "클러스터의 Secret 상태를 GitOps 소스와 동기화합니다. 최신 상태를 반영하기 위해 사용합니다.",
-    },
-    {
-      id: 7,
-      label: "Secret 목록 테이블",
-      description:
-        "등록된 Secret을 GitOps 상태, 이름, 네임스페이스, 타입, Data 수, 생성일 순으로 표시합니다. 행 클릭 시 해당 Secret의 상세(CCP-STR-005-D1) 화면으로 이동합니다.",
-    },
-    {
-      id: 8,
-      label: "행 컨텍스트 메뉴",
-      description:
-        "각 Secret에 대한 편집, 복제, 요약 보기, YAML 확인, 삭제 등의 추가 작업을 수행할 수 있는 컨텍스트 메뉴입니다.",
-    },
-    {
-      id: 9,
-      label: "페이지네이션",
-      description:
-        "Secret 목록이 한 페이지에 표시할 수 있는 수를 초과할 경우 페이지 단위로 탐색합니다.",
+        "PV 이름 또는 연결된 PVC 이름으로 목록을 필터링합니다. 키워드 입력 후 Enter 키 또는 검색 버튼을 클릭하여 검색하며, 부분 일치(contains) 방식으로 동작합니다.",
     },
   ],
 };
@@ -136,10 +96,10 @@ const sideMenuItems: SideMenuItem[] = [
         label: "저장소",
         items: [
           { label: "StorageClasses" },
-          { label: "PV" },
+          { label: "PV", active: true, bold: true },
           { label: "PVC" },
           { label: "ConfigMaps" },
-          { label: "Secrets", active: true, bold: true },
+          { label: "Secrets" },
         ],
       },
       {
@@ -173,82 +133,114 @@ const sideMenuItems: SideMenuItem[] = [
 
 // ─── Table Data ─────────────────────────────────────────────────────────────
 
-interface SecretRow {
+interface PvRow {
   id: string;
   gitopsColor: string;
   name: string;
-  namespace: string;
-  type: string;
-  data: number;
+  capacity: string;
+  accessModes: string;
+  reclaimPolicy: "Retain" | "Delete" | "Recycle";
+  status: "Available" | "Bound" | "Released" | "Failed";
+  persistentVolumeClaim: string | null;
+  storageClass: string;
+  source: string;
+  reason: string | null;
   age: string;
 }
 
-const tableData: SecretRow[] = [
+const tableData: PvRow[] = [
   {
     id: "1",
     gitopsColor: "#00b30e",
-    name: "db-credentials",
-    namespace: "app-database",
-    type: "Opaque",
-    data: 3,
+    name: "pvc-1a2b3c4d",
+    capacity: "20Gi",
+    accessModes: "RWO",
+    reclaimPolicy: "Retain",
+    status: "Bound",
+    persistentVolumeClaim: "app-database/data-db-mongodb-0",
+    storageClass: "local-storage",
+    source: "local",
+    reason: null,
     age: "5d",
   },
   {
     id: "2",
     gitopsColor: "#00b30e",
-    name: "api-tls-cert",
-    namespace: "app-backend",
-    type: "kubernetes.io/tls",
-    data: 2,
-    age: "10d",
+    name: "pvc-5e6f7g8h",
+    capacity: "5Gi",
+    accessModes: "RWO",
+    reclaimPolicy: "Retain",
+    status: "Bound",
+    persistentVolumeClaim: "app-database/data-db-redis-0",
+    storageClass: "local-storage",
+    source: "local",
+    reason: null,
+    age: "5d",
   },
   {
     id: "3",
     gitopsColor: "#00b30e",
-    name: "registry-auth",
-    namespace: "app-cicd",
-    type: "kubernetes.io/dockerconfigjson",
-    data: 1,
-    age: "30d",
+    name: "pvc-9i0j1k2l",
+    capacity: "1Gi",
+    accessModes: "ROX",
+    reclaimPolicy: "Delete",
+    status: "Bound",
+    persistentVolumeClaim: "app-frontend/nginx-assets-pvc",
+    storageClass: "standard",
+    source: "hostPath",
+    reason: null,
+    age: "12d",
   },
   {
     id: "4",
-    gitopsColor: "#6366f1",
-    name: "oauth2-client",
-    namespace: "app-backend",
-    type: "Opaque",
-    data: 4,
-    age: "8d",
+    gitopsColor: "#dea600",
+    name: "pv-nfs-shared-01",
+    capacity: "100Gi",
+    accessModes: "RWX",
+    reclaimPolicy: "Retain",
+    status: "Available",
+    persistentVolumeClaim: null,
+    storageClass: "nfs-client",
+    source: "nfs",
+    reason: null,
+    age: "20d",
   },
   {
     id: "5",
-    gitopsColor: "#00b30e",
-    name: "grafana-admin",
-    namespace: "monitoring",
-    type: "Opaque",
-    data: 2,
-    age: "15d",
-  },
-  {
-    id: "6",
-    gitopsColor: "#00b30e",
-    name: "sa-token-default",
-    namespace: "kube-system",
-    type: "kubernetes.io/service-account-token",
-    data: 3,
-    age: "90d",
+    gitopsColor: "#da1e28",
+    name: "pvc-3m4n5o6p",
+    capacity: "100Gi",
+    accessModes: "RWO",
+    reclaimPolicy: "Delete",
+    status: "Released",
+    persistentVolumeClaim: null,
+    storageClass: "standard",
+    source: "hostPath",
+    reason: "PVC deleted",
+    age: "30d",
   },
 ];
 
-const typeVariant: Record<string, "success" | "warning" | "info" | "neutral"> =
-  {
-    Opaque: "neutral",
-    "kubernetes.io/tls": "success",
-    "kubernetes.io/dockerconfigjson": "info" as "success",
-    "kubernetes.io/service-account-token": "warning",
-  };
+const statusVariant: Record<
+  string,
+  "success" | "error" | "warning" | "neutral"
+> = {
+  Available: "info" as "success",
+  Bound: "success",
+  Released: "warning",
+  Failed: "error",
+};
 
-const columns: DataTableColumn<SecretRow>[] = [
+const policyVariant: Record<
+  string,
+  "success" | "error" | "warning" | "neutral"
+> = {
+  Retain: "success",
+  Delete: "error",
+  Recycle: "warning",
+};
+
+const columns: DataTableColumn<PvRow>[] = [
   {
     id: "gitops",
     header: "GitOps",
@@ -259,7 +251,7 @@ const columns: DataTableColumn<SecretRow>[] = [
   {
     id: "name",
     header: "이름",
-    width: "220px",
+    width: "200px",
     render: (row) => (
       <TextCell bold color="#111111" className="px-4">
         {row.name}
@@ -267,27 +259,59 @@ const columns: DataTableColumn<SecretRow>[] = [
     ),
   },
   {
-    id: "namespace",
-    header: "네임스페이스",
-    width: "140px",
-    align: "center",
-    render: (row) => <TextCell color="#555555">{row.namespace}</TextCell>,
-  },
-  {
-    id: "type",
-    header: "타입",
-    width: "280px",
+    id: "capacity",
+    header: "용량",
+    width: "100px",
     align: "center",
     render: (row) => (
-      <Badge variant={typeVariant[row.type] ?? "neutral"}>{row.type}</Badge>
+      <TextCell bold color="#111111">
+        {row.capacity}
+      </TextCell>
     ),
   },
   {
-    id: "data",
-    header: "Data",
+    id: "accessModes",
+    header: "Access Modes",
+    width: "120px",
+    align: "center",
+    render: (row) => <Badge variant="neutral">{row.accessModes}</Badge>,
+  },
+  {
+    id: "reclaimPolicy",
+    header: "Reclaim Policy",
+    width: "130px",
+    align: "center",
+    render: (row) => (
+      <Badge variant={policyVariant[row.reclaimPolicy]}>
+        {row.reclaimPolicy}
+      </Badge>
+    ),
+  },
+  {
+    id: "status",
+    header: "상태",
+    width: "110px",
+    align: "center",
+    render: (row) => (
+      <Badge variant={statusVariant[row.status]}>{row.status}</Badge>
+    ),
+  },
+  {
+    id: "pvc",
+    header: "PVC",
+    width: "240px",
+    render: (row) => (
+      <TextCell color={row.persistentVolumeClaim ? "#0077ff" : "#999999"}>
+        {row.persistentVolumeClaim ?? "-"}
+      </TextCell>
+    ),
+  },
+  {
+    id: "source",
+    header: "소스",
     width: "100px",
     align: "center",
-    render: (row) => <Badge variant="neutral">{row.data}</Badge>,
+    render: (row) => <Badge variant="neutral">{row.source}</Badge>,
   },
   {
     id: "age",
@@ -331,90 +355,89 @@ const actionMenuItems: ActionMenuEntry[] = [
 
 // ─── Slide ──────────────────────────────────────────────────────────────────
 
-export default function Slide05SecretsList() {
+export default function Slide02PvList() {
   return (
     <CcpDashboardLayout
-      breadcrumbs={[{ label: "저장소" }, { label: "Secrets", isBold: true }]}
-      title="Secrets"
+      breadcrumbs={[{ label: "저장소" }, { label: "PV", isBold: true }]}
+      title="Persistent Volumes"
       sideMenuItems={sideMenuItems}
     >
-      <ContentSection card data-annotation-id="1">
+      <ContentSection card>
         <StatusSummary
-          tabs={[{ id: "gitops", label: "GitOps 현황", count: 6 }]}
-          activeTabId="gitops"
-          cards={[
-            { label: "Stable", count: 5, color: "#00b30e" },
-            { label: "Mismatch", count: 1, color: "#da1e28" },
-            { label: "Updating", count: 0, color: "#00b30e" },
-            { label: "Missing", count: 0, color: "#dea600" },
-            { label: "Broken", count: 0, color: "#da1e28" },
-            { label: "Orphaned", count: 0, color: "#6366f1" },
+          tabs={[
+            { id: "status", label: "리소스 상태 현황", count: 5 },
+            { id: "gitops", label: "GitOps 현황", count: 5 },
           ]}
+          activeTabId="status"
+          cards={[]}
+          cardsByTab={{
+            status: [
+              { label: "Bound", count: 3, color: "#00b30e" },
+              { label: "Available", count: 1, color: "#0077ff" },
+              { label: "Released", count: 1, color: "#f59e0b" },
+            ],
+            gitops: [
+              { label: "Stable", count: 3, color: "#00b30e" },
+              { label: "Mismatch", count: 1, color: "#da1e28" },
+              { label: "Updating", count: 0, color: "#00b30e" },
+              { label: "Missing", count: 0, color: "#dea600" },
+              { label: "Broken", count: 1, color: "#da1e28" },
+              { label: "Orphaned", count: 0, color: "#6366f1" },
+            ],
+          }}
         />
       </ContentSection>
 
       <ContentSection relative>
         <FilterBar className="gap-2">
-          <div data-annotation-id="2">
           <Select
             data-annotation-id="1"
-            label="타입"
+            label="상태"
             options={[
               { value: "", label: "전체" },
-              { value: "opaque", label: "Opaque" },
-              { value: "tls", label: "kubernetes.io/tls" },
-              { value: "docker", label: "dockerconfigjson" },
-              { value: "sa-token", label: "service-account-token" },
+              { value: "available", label: "Available" },
+              { value: "bound", label: "Bound" },
+              { value: "released", label: "Released" },
+              { value: "failed", label: "Failed" },
             ]}
           />
-          </div>
-          <div data-annotation-id="3">
           <Select
             data-annotation-id="2"
-            label="네임스페이스"
+            label="Reclaim Policy"
             options={[
               { value: "", label: "전체" },
-              { value: "app-database", label: "app-database" },
-              { value: "app-backend", label: "app-backend" },
-              { value: "app-cicd", label: "app-cicd" },
-              { value: "monitoring", label: "monitoring" },
-              { value: "kube-system", label: "kube-system" },
+              { value: "retain", label: "Retain" },
+              { value: "delete", label: "Delete" },
             ]}
           />
-          </div>
-          <div data-annotation-id="4">
-          <SearchInput placeholder="이름 검색" className="mr-1" />
-          </div>
-          <Button data-annotation-id="5" variant="primary" size="md">
+          <SearchInput data-annotation-id="3" placeholder="이름 또는 PVC 검색" className="mr-1" />
+          <Button variant="primary" size="md">
             <Plus className="w-4 h-4 mr-1.5" />
             생성
           </Button>
-          <Button data-annotation-id="6" variant="secondary" size="md">
+          <Button variant="secondary" size="md">
             <RefreshCw className="w-3.5 h-3.5 mr-1.5" />
             동기화
           </Button>
         </FilterBar>
 
         <DataTable
-          data-annotation-id="7"
           columns={columns}
           data={tableData}
           selectedIds={new Set()}
           onSelectionChange={() => {}}
         />
 
-        <Overlay data-annotation-id="8" top={133} right={0}>
+        <Overlay top={133} right={0}>
           <ActionMenu items={actionMenuItems} highlightedKeys={["summary"]} static className="w-[160px]" />
         </Overlay>
 
-        <div data-annotation-id="9">
         <Pagination
           currentPage={1}
-          totalPages={4}
-          visiblePages={[1, 2, 3, 4]}
+          totalPages={2}
+          visiblePages={[1, 2]}
           className="mt-5 pb-10"
         />
-        </div>
       </ContentSection>
     </CcpDashboardLayout>
   );

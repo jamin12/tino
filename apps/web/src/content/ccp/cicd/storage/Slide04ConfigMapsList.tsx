@@ -327,6 +327,7 @@ export default function Slide04ConfigMapsList() {
         <FilterBar className="gap-2">
           <div data-annotation-id="2">
           <Select
+            data-annotation-id="1"
             label="네임스페이스"
             options={[
               { value: "", label: "전체" },

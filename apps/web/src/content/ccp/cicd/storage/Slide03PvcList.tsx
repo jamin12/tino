@@ -403,6 +403,7 @@ export default function Slide03PvcList() {
         <FilterBar className="gap-2">
           <div data-annotation-id="2">
           <Select
+            data-annotation-id="1"
             label="상태"
             options={[
               { value: "", label: "전체" },
@@ -414,6 +415,7 @@ export default function Slide03PvcList() {
           </div>
           <div data-annotation-id="3">
           <Select
+            data-annotation-id="2"
             label="네임스페이스"
             options={[{ value: "", label: "전체" }]}
           />
