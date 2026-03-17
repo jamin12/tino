@@ -1,11 +1,5 @@
 import { useState, type ReactNode } from "react";
 import {
-  Building2,
-  FolderOpen,
-  Braces,
-  Server,
-} from "lucide-react";
-import {
   ConechainIcon,
   SidebarDashboardIcon,
   SidebarNamespaceIcon,
@@ -19,6 +13,8 @@ import { GlobalNav } from "./GlobalNav";
 import { PageHeader } from "../composites/PageHeader";
 import { YamlImportModal } from "../YamlImportModal";
 import { WebTerminalPanel } from "../WebTerminalPanel";
+import { gnbPresets } from "./gnb-presets";
+import type { GnbPresetKey } from "./gnb-presets";
 import type { SideMenuItem } from "./SideMenu";
 import type { NavSelector } from "./GlobalNav";
 
@@ -111,18 +107,7 @@ const defaultSideMenuItems: SideMenuItem[] = [
   },
 ];
 
-const defaultNavSelectors: NavSelector[] = [
-  {
-    label: "클러스터",
-    value: "Cluster-01",
-    icon: <Server className="w-4 h-4" />,
-  },
-  {
-    label: "네임스페이스",
-    value: "전체 네임스페이스",
-    icon: <Braces className="w-4 h-4" />,
-  },
-];
+const defaultNavSelectors: NavSelector[] = gnbPresets.cicd!.selectors;
 
 // ─── Component ───────────────────────────────────────────────────────────────
 
@@ -138,16 +123,33 @@ interface CcpDashboardLayoutProps {
   title: ReactNode;
   /** Main content area */
   children: ReactNode;
+  /**
+   * Figma GNB 섹션에 대응하는 프리셋 키.
+   * null인 프리셋(settings, connection, service-mesh)은 GNB를 숨깁니다.
+   *
+   * | 프리셋        | selectors                    | actionButton   |
+   * |--------------|------------------------------|----------------|
+   * | dashboard    | 클러스터 + 네임스페이스          | -              |
+   * | namespace    | 클러스터                       | -              |
+   * | application  | 조직 + 프로젝트 + 네임스페이스    | -              |
+   * | cicd         | 클러스터 + 네임스페이스          | YAML 가져오기    |
+   * | gitops       | 클러스터 + 네임스페이스          | -              |
+   * | tenant       | 조직 + 프로젝트 + 네임스페이스    | -              |
+   * | settings     | (GNB 없음)                    | -              |
+   * | connection   | (GNB 없음)                    | -              |
+   * | service-mesh | (GNB 없음)                    | -              |
+   */
+  gnbPreset?: GnbPresetKey;
   /** Override default SideMenu logo */
   logo?: ReactNode;
   /** Override default SideMenu items */
   sideMenuItems?: SideMenuItem[];
-  /** Override default GlobalNav selectors */
+  /** Override preset / default GlobalNav selectors */
   navSelectors?: NavSelector[];
   /** Override default user name */
   userName?: string;
-  /** Override default action button */
-  actionButton?: { label: string; onClick?: () => void };
+  /** Override preset action button. false to hide explicitly */
+  actionButton?: { label: string; onClick?: () => void } | false;
   /** Additional actions in PageHeader */
   headerActions?: ReactNode;
   /** Overlay content (e.g. modal) */
@@ -158,40 +160,52 @@ export function CcpDashboardLayout({
   breadcrumbs,
   title,
   children,
+  gnbPreset,
   logo = defaultLogo,
   sideMenuItems = defaultSideMenuItems,
-  navSelectors = defaultNavSelectors,
+  navSelectors,
   userName = "홍길동",
-  actionButton = { label: "Yaml 가져오기" },
+  actionButton,
   headerActions,
   overlay,
 }: CcpDashboardLayoutProps) {
   const [isYamlModalOpen, setIsYamlModalOpen] = useState(false);
   const [isTerminalOpen, setIsTerminalOpen] = useState(false);
 
-  // GNB "YAML 가져오기" 버튼의 기본 동작: YAML 모달 열기
-  const resolvedActionButton = actionButton ?? {
-    label: "YAML 가져오기",
-    onClick: () => setIsYamlModalOpen(true),
-  };
+  // Resolve preset config
+  const presetConfig = gnbPreset ? gnbPresets[gnbPreset] : undefined;
+  const showGnb = presetConfig !== null; // null preset = GNB 숨김
 
-  // actionButton이 외부에서 전달되어도 onClick 미지정 시 모달 열기로 동작
-  const finalActionButton = resolvedActionButton.onClick
-    ? resolvedActionButton
-    : { ...resolvedActionButton, onClick: () => setIsYamlModalOpen(true) };
+  // Selectors: prop > preset > default
+  const resolvedSelectors = navSelectors ?? presetConfig?.selectors ?? defaultNavSelectors;
+
+  // ActionButton: prop(false=숨김) > preset > undefined
+  const resolvedActionButton: { label: string; onClick?: () => void } | undefined =
+    actionButton === false
+      ? undefined
+      : actionButton || presetConfig?.actionButton || undefined;
+
+  // onClick 미지정 시 YAML 모달 열기로 동작
+  const finalActionButton = resolvedActionButton
+    ? resolvedActionButton.onClick
+      ? resolvedActionButton
+      : { ...resolvedActionButton, onClick: () => setIsYamlModalOpen(true) }
+    : undefined;
 
   return (
     <div className="relative w-[1920px] h-[1050px] flex bg-[#f6f8fa] overflow-hidden">
       <SideMenu logo={logo} items={sideMenuItems} className="h-[1050px]" />
 
       <div className="flex flex-col flex-1 min-w-0 -ml-[24px]">
-        <GlobalNav
-          selectors={navSelectors}
-          userName={userName}
-          actionButton={finalActionButton}
-          terminalOpen={isTerminalOpen}
-          onTerminalToggle={() => setIsTerminalOpen((v) => !v)}
-        />
+        {showGnb && (
+          <GlobalNav
+            selectors={resolvedSelectors}
+            userName={userName}
+            actionButton={finalActionButton}
+            terminalOpen={isTerminalOpen}
+            onTerminalToggle={() => setIsTerminalOpen((v) => !v)}
+          />
+        )}
 
         <div className="flex-1 overflow-auto">
           <PageHeader

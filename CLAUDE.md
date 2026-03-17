@@ -184,20 +184,6 @@ packages/shared/src/
 * 앱 간 공통 로직 공유
 * UI는 포함하지 않음 (UI는 app의 shared/ui에서 관리)
 
----
-
-## Path Alias
-
-| Alias               | 경로                        |
-| ------------------- | ------------------------- |
-| `@/*`               | `apps/web/src/*`          |
-| `@app/*`            | `apps/web/src/app/*`      |
-| `@pages/*`          | `apps/web/src/pages/*`    |
-| `@widgets/*`        | `apps/web/src/widgets/*`  |
-| `@features/*`       | `apps/web/src/features/*` |
-| `@entities/*`       | `apps/web/src/entities/*` |
-| `@shared/*`         | `apps/web/src/shared/*`   |
-| `@workpulse/shared` | `packages/shared/src`     |
 
 ---
 
@@ -350,3 +336,48 @@ export default function Slide01() {
 4. 컴포넌트 import는 반드시 `@shared/ui/components/text` 또는 `@shared/ui/components/diagram`에서
 5. Tailwind CSS 클래스 사용 가능
 6. Vite HMR로 저장 시 즉시 브라우저에 반영
+
+### content 슬라이드 `_components` 필수 사용 규칙
+
+**`apps/web/src/content/` 하위의 슬라이드 파일(.tsx)은 반드시 해당 폴더의 `_components/`에 정의된 컴포넌트만 사용하여 구성해야 한다.**
+
+#### 금지 사항
+
+| 금지 항목 | 예시 | 이유 |
+|-----------|------|------|
+| Raw HTML 태그 직접 사용 | `<div>`, `<span>`, `<button>`, `<table>` 등 | 스타일 일관성 파괴 |
+| Inline style 사용 | `style={{ color: '#333' }}` | 디자인 토큰 우회 |
+| Tailwind 클래스로 스타일 하드코딩 | `className="text-[#333] text-[13px] border-[#f0f0f0]"` | 토큰 시스템 무시 |
+| 색상값 직접 하드코딩 | `color: "#00b30e"`, `bg-[#da1e28]` | 변경 시 전수 수정 필요 |
+
+#### 올바른 작성 방법
+
+```tsx
+// ✅ 좋은 예: _components에서 import하여 조합
+import { ContentSection, DataTable, Badge, TextCell } from "../../_components";
+
+export default function Slide01() {
+  return (
+    <ContentSection card>
+      <DataTable columns={columns} data={data} />
+    </ContentSection>
+  );
+}
+
+// ❌ 나쁜 예: raw HTML + 하드코딩 스타일
+export default function Slide01() {
+  return (
+    <div className="p-4 bg-white border border-[#e0e0e0] rounded-lg">
+      <span className="text-[14px] font-bold text-[#333]">제목</span>
+      <table className="w-full">...</table>
+    </div>
+  );
+}
+```
+
+#### 새로운 UI 패턴이 필요한 경우
+
+1. `_components/` 디렉토리에 컴포넌트를 **먼저 생성**한다
+2. 디자인 토큰(`tokens.ts`)의 색상/크기 값을 사용한다
+3. 슬라이드에서는 생성한 컴포넌트를 import하여 **조합만** 수행한다
+4. DataTable의 column render 함수 내부도 `TextCell`, `Badge`, `Button` 등 컴포넌트만 사용한다

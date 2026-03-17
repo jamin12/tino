@@ -6,5 +6,7 @@ export { GlobalNav } from "./GlobalNav";
 export type { NavSelector, GlobalNavProps } from "./GlobalNav";
 export { CcpDashboardLayout } from "./CcpDashboardLayout";
 export type { CcpDashboardLayoutProps, BreadcrumbItem } from "./CcpDashboardLayout";
+export { gnbPresets } from "./gnb-presets";
+export type { GnbPresetKey, GnbPresetConfig } from "./gnb-presets";
 export { ListDetailLayout } from "./ListDetailLayout";
 export { ResourceDetailPanel } from "./ResourceDetailPanel";

@@ -106,3 +106,5 @@ export { GlobalNav } from "./layouts/GlobalNav";
 export type { NavSelector, GlobalNavProps } from "./layouts/GlobalNav";
 export { CcpDashboardLayout } from "./layouts/CcpDashboardLayout";
 export type { CcpDashboardLayoutProps, BreadcrumbItem } from "./layouts/CcpDashboardLayout";
+export { gnbPresets } from "./layouts/gnb-presets";
+export type { GnbPresetKey, GnbPresetConfig } from "./layouts/gnb-presets";
