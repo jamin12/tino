@@ -6,15 +6,6 @@ import {
   FormActions,
   InfoRow,
   TextCell,
-  SidebarDashboardIcon,
-  SidebarNamespaceIcon,
-  SidebarApplicationIcon,
-  SidebarCicdIcon,
-  SidebarSettingsIcon,
-  SidebarTenantIcon,
-  SidebarConnectionIcon,
-  SidebarServiceMeshIcon,
-  SidebarGitopsIcon,
   createSideMenuItems,
 } from "../../_components";
 
@@ -23,7 +14,7 @@ import type { SlideMeta } from "@entities/document";
 export const slideMeta: SlideMeta = {
   screenId: "CCP-NS-006",
   title: "Namespace 환경 추가",
-  section: "CI/CD 네임스페이스",
+  section: "네임스페이스",
   links: [],
   annotations: [
     { id: 1, label: "현재 환경 표시", description: "이 네임스페이스에 이미 생성된 배포 환경 목록입니다. 이미 존재하는 환경은 중복 추가할 수 없으므로 참고 정보로 표시됩니다." },
@@ -40,14 +31,15 @@ export const slideMeta: SlideMeta = {
 export default function SlideNamespaceEnvAdd() {
   return (
     <CcpDashboardLayout
+      gnbPreset="namespace"
       breadcrumbs={[
-        { label: "CI/CD" },
         { label: "네임스페이스" },
+        { label: "워크스페이스" },
         { label: "sample" },
         { label: "환경 추가", isBold: true },
       ]}
       title="sample — 환경 추가"
-      sideMenuItems={createSideMenuItems({ activeId: "cicd", activeLabel: "네임스페이스" })}
+      sideMenuItems={createSideMenuItems({ activeId: "namespace" })}
     >
       <ContentSection>
         <div className="max-w-[640px]">

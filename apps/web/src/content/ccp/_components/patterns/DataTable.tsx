@@ -90,6 +90,7 @@ interface DataTableProps<T extends { id: string }> {
   variant?: "default" | "compact";
   expandedId?: string;
   onExpandChange?: (id: string | null) => void;
+  renderSubRows?: (row: T) => ReactNode;
   onRowAction?: (id: string) => void;
   emptyMessage?: string;
   className?: string;
@@ -215,6 +216,7 @@ export function DataTable<T extends { id: string }>({
   variant = "default",
   expandedId,
   onExpandChange,
+  renderSubRows,
   onRowAction,
   emptyMessage = "데이터가 없습니다.",
   className,
@@ -332,48 +334,67 @@ export function DataTable<T extends { id: string }>({
         ) : (
           data.map((row) => {
             const isSelected = selectedIds?.has(row.id) ?? false;
+            const isExpandable = !!renderSubRows && !!onExpandChange;
+            const isExpanded = expandedId === row.id;
             return (
-              <article
-                key={row.id}
-                className={cn(
-                  "flex items-center w-full min-h-[48px] rounded border transition-colors",
-                  isSelected
-                    ? "bg-[#e9f1ff] border-[#0077ff]"
-                    : "bg-white border-[#dddddd] hover:border-[#0077ff]",
-                )}
-              >
-                {selectable && (
-                  <div className="flex w-10 items-center justify-center shrink-0">
-                    <Checkbox
-                      checked={isSelected}
-                      onChange={() => toggleRow(row.id)}
-                      aria-label={`${row.id} 선택`}
-                    />
+              <div key={row.id} className="flex flex-col w-full">
+                <article
+                  className={cn(
+                    "flex items-center w-full min-h-[48px] rounded border transition-colors",
+                    isSelected
+                      ? "bg-[#e9f1ff] border-[#0077ff]"
+                      : isExpanded
+                        ? "bg-[#f7f9fc] border-[#0077ff] rounded-b-none"
+                        : "bg-white border-[#dddddd] hover:border-[#0077ff]",
+                  )}
+                >
+                  {isExpandable && (
+                    <button
+                      type="button"
+                      className="flex w-10 items-center justify-center shrink-0"
+                      onClick={() => onExpandChange(isExpanded ? null : row.id)}
+                    >
+                      <AccordionArrow expanded={isExpanded} />
+                    </button>
+                  )}
+                  {selectable && (
+                    <div className="flex w-10 items-center justify-center shrink-0">
+                      <Checkbox
+                        checked={isSelected}
+                        onChange={() => toggleRow(row.id)}
+                        aria-label={`${row.id} 선택`}
+                      />
+                    </div>
+                  )}
+                  {columns.map((col) => (
+                    <div
+                      key={col.id}
+                      className={cn(
+                        "flex items-center gap-1.5 px-2 py-3",
+                        col.align === "left"
+                          ? "justify-start"
+                          : col.align === "right"
+                            ? "justify-end"
+                            : "justify-center",
+                      )}
+                      style={{
+                        flex: col.fixed
+                          ? `0 0 ${col.width}`
+                          : col.width
+                            ? `1 0 ${col.width}`
+                            : "1 1 0%",
+                      }}
+                    >
+                      {col.render(row)}
+                    </div>
+                  ))}
+                </article>
+                {isExpanded && renderSubRows && (
+                  <div className="border border-t-0 border-[#0077ff] rounded-b bg-white">
+                    {renderSubRows(row)}
                   </div>
                 )}
-                {columns.map((col) => (
-                  <div
-                    key={col.id}
-                    className={cn(
-                      "flex items-center gap-1.5 px-2 py-3",
-                      col.align === "left"
-                        ? "justify-start"
-                        : col.align === "right"
-                          ? "justify-end"
-                          : "justify-center",
-                    )}
-                    style={{
-                      flex: col.fixed
-                        ? `0 0 ${col.width}`
-                        : col.width
-                          ? `1 0 ${col.width}`
-                          : "1 1 0%",
-                    }}
-                  >
-                    {col.render(row)}
-                  </div>
-                ))}
-              </article>
+              </div>
             );
           })
         )}

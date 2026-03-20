@@ -1,6 +1,5 @@
 import {
   Plus,
-  RefreshCw,
   MoreHorizontal,
   Eye,
   FolderPlus,
@@ -24,15 +23,6 @@ import {
   Tabs,
   TextCell,
   TextInput,
-  SidebarDashboardIcon,
-  SidebarNamespaceIcon,
-  SidebarApplicationIcon,
-  SidebarCicdIcon,
-  SidebarSettingsIcon,
-  SidebarTenantIcon,
-  SidebarConnectionIcon,
-  SidebarServiceMeshIcon,
-  SidebarGitopsIcon,
   createSideMenuItems,
 } from "../../_components";
 import type {
@@ -44,7 +34,7 @@ import type { SlideMeta } from "@entities/document";
 export const slideMeta: SlideMeta = {
   screenId: "CCP-NS-007",
   title: "Namespace 삭제 모달",
-  section: "CI/CD 네임스페이스",
+  section: "네임스페이스",
   links: [],
   annotations: [
     { id: 1, label: "삭제 유형 선택", description: "환경별 삭제는 선택한 배포 환경의 app-init 리소스만 제거하고 CICD 파이프라인은 유지합니다. 전체 삭제는 CICD 파이프라인과 모든 배포 환경을 함께 제거합니다." },
@@ -172,12 +162,13 @@ const actionMenuItems: ActionMenuEntry[] = [
 export default function SlideNamespaceDelete() {
   return (
     <CcpDashboardLayout
+      gnbPreset="namespace"
       breadcrumbs={[
-        { label: "CI/CD" },
-        { label: "네임스페이스", isBold: true },
+        { label: "네임스페이스" },
+        { label: "워크스페이스", isBold: true },
       ]}
       title="Namespaces"
-      sideMenuItems={createSideMenuItems({ activeId: "cicd", activeLabel: "네임스페이스" })}
+      sideMenuItems={createSideMenuItems({ activeId: "namespace" })}
       overlay={
         /* ─── Modal Backdrop + Dialog ─────────────────────────── */
         <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/40">
@@ -272,6 +263,14 @@ export default function SlideNamespaceDelete() {
       {/* ─── Background: List View (dimmed) ─────────────────── */}
       <ContentSection relative>
         <FilterBar className="gap-2">
+          <Tabs
+            items={[
+              { id: "list", label: "리스트 보기" },
+              { id: "grouped", label: "묶음 보기" },
+            ]}
+            activeId="grouped"
+            variant="pill"
+          />
           <Select
             label="배포 환경"
             options={[
@@ -285,10 +284,6 @@ export default function SlideNamespaceDelete() {
           <Button variant="primary" size="md">
             <Plus className="w-4 h-4 mr-1.5" />
             생성
-          </Button>
-          <Button variant="secondary" size="md">
-            <RefreshCw className="w-3.5 h-3.5 mr-1.5" />
-            동기화
           </Button>
         </FilterBar>
 

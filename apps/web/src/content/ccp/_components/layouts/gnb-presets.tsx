@@ -66,9 +66,7 @@ export const gnbPresets: Record<GnbPresetKey, GnbPresetConfig | null> = {
   dashboard: {
     selectors: [clusterSelector, namespaceSelector],
   },
-  namespace: {
-    selectors: [clusterSelector],
-  },
+  namespace: null,
   application: {
     selectors: [orgSelector, projectSelector, namespaceSelector],
   },

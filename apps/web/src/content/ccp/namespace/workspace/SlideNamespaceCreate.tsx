@@ -1,6 +1,5 @@
 import {
   Badge,
-  Button,
   CcpDashboardLayout,
   Checkbox,
   ContentSection,
@@ -9,15 +8,6 @@ import {
   TextInput,
   Tooltip,
   FormActions,
-  SidebarDashboardIcon,
-  SidebarNamespaceIcon,
-  SidebarApplicationIcon,
-  SidebarCicdIcon,
-  SidebarSettingsIcon,
-  SidebarTenantIcon,
-  SidebarConnectionIcon,
-  SidebarServiceMeshIcon,
-  SidebarGitopsIcon,
   createSideMenuItems,
 } from "../../_components";
 
@@ -26,10 +16,10 @@ import type { SlideMeta } from "@entities/document";
 export const slideMeta: SlideMeta = {
   screenId: "CCP-NS-002",
   title: "Namespace 생성",
-  section: "CI/CD 네임스페이스",
+  section: "네임스페이스",
   links: [],
   annotations: [
-    { id: 1, label: "NS 이름 입력", description: "sample-cicd/ 템플릿 폴더 내 모든 파일에서 'sample'을 입력한 이름으로 치환합니다. 영문 소문자, 숫자, 하이픈만 사용 가능합니다. 중복검사로 k8s-cicd-init 레포에 동일 이름의 폴더가 이미 존재하는지 확인합니다." },
+    { id: 1, label: "NS 이름 입력", description: "sample-cicd/ 템플릿 폴더 내 모든 파일에서 'sample'을 입력한 이름으로 치환합니다. 영문 소문자, 숫자, 하이픈만 사용 가능합니다." },
     { id: 2, label: "배포 환경 선택", description: "기존 환경(dev/stg/prd) 중 생성할 환경을 체크합니다. 선택한 환경별로 k8s-app-init 레포의 overlays/{env}/sample-{env}/ 폴더를 복제하여 overlays/{env}/{ns}-{env}/ 폴더가 생성되고, 내부 파일의 'sample'이 입력한 NS 이름으로 치환됩니다. 해당 환경의 kustomization.yaml resources에도 자동으로 참조가 추가됩니다." },
     { id: 3, label: "생성 미리보기", description: "입력한 이름과 선택한 환경에 따라 Gitea API가 두 레포에 생성할 파일 경로입니다. 생성되는 파일 목록은 sample 템플릿의 내용에 따라 달라지며, 공통적으로 k8s-cicd-init에는 {ns}-cicd/ 폴더(sample-cicd/ 복제), 루트 kustomization.yaml 참조 추가, clusterrolebinding.yaml 권한 추가가 반영되고, k8s-app-init에는 환경별 overlays/{env}/{ns}-{env}/ 폴더(sample-{env}/ 복제)와 환경 kustomization.yaml 참조 추가가 반영됩니다." },
   ],
@@ -43,13 +33,14 @@ export const slideMeta: SlideMeta = {
 export default function SlideNamespaceCreate() {
   return (
     <CcpDashboardLayout
+      gnbPreset="namespace"
       breadcrumbs={[
-        { label: "CI/CD" },
         { label: "네임스페이스" },
+        { label: "워크스페이스" },
         { label: "Namespace 생성", isBold: true },
       ]}
       title="Namespace 생성"
-      sideMenuItems={createSideMenuItems({ activeId: "cicd", activeLabel: "네임스페이스" })}
+      sideMenuItems={createSideMenuItems({ activeId: "namespace" })}
     >
       <ContentSection>
         <div className="max-w-[640px]">
@@ -75,9 +66,6 @@ export default function SlideNamespaceCreate() {
                       defaultValue="my-service"
                       className="flex-1"
                     />
-                    <Button variant="blue-solid" size="md">
-                      중복검사
-                    </Button>
                     <Tooltip className="absolute -bottom-8 left-0 z-10">
                       입력한 이름으로 {"{ns}-cicd"} 폴더와 배포 환경이 생성됩니다.
                     </Tooltip>

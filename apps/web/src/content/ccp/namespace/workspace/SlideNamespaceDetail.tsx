@@ -1,10 +1,7 @@
 import {
   Plus,
-  RefreshCw,
   MoreHorizontal,
-  Settings2,
-  Copy,
-  FileText,
+  Eye,
   Trash2,
   Info,
   FolderPlus,
@@ -24,16 +21,8 @@ import {
   ResourceDetailPanel,
   SearchInput,
   Select,
+  Tabs,
   TextCell,
-  SidebarDashboardIcon,
-  SidebarNamespaceIcon,
-  SidebarApplicationIcon,
-  SidebarCicdIcon,
-  SidebarSettingsIcon,
-  SidebarTenantIcon,
-  SidebarConnectionIcon,
-  SidebarServiceMeshIcon,
-  SidebarGitopsIcon,
   createSideMenuItems,
 } from "../../_components";
 import type {
@@ -46,7 +35,7 @@ import type { SlideMeta } from "@entities/document";
 export const slideMeta: SlideMeta = {
   screenId: "CCP-NS-004",
   title: "Namespace 상세",
-  section: "CI/CD 네임스페이스",
+  section: "네임스페이스",
   links: [
     { targetScreenId: "CCP-NS-006", type: "navigate", label: "환경 추가" },
   ],
@@ -160,12 +149,14 @@ const columns: DataTableColumn<NamespaceRow>[] = [
 
 const iconClass = "w-[14px] h-[14px] text-[#555759]";
 const actionMenuItems: ActionMenuEntry[] = [
-  { key: "detail", label: "상세보기", icon: <Settings2 className={iconClass} /> },
-  { key: "duplicate", label: "복제", icon: <Copy className={iconClass} /> },
+  { key: "detail", label: "상세보기", icon: <Eye className={iconClass} /> },
+  { key: "env-add", label: "환경 추가", icon: <FolderPlus className={iconClass} /> },
   { type: "divider" },
-  { key: "summary", label: "요약", icon: <FileText className="w-[14px] h-[14px] text-[#0077ff]" /> },
-  { type: "divider" },
-  { key: "delete", label: "전체 삭제", icon: <Trash2 className="w-[14px] h-[14px] text-[#da1e28]" /> },
+  {
+    key: "delete",
+    label: "삭제",
+    icon: <Trash2 className="w-[14px] h-[14px] text-[#da1e28]" />,
+  },
 ];
 
 // ─── Detail Panel ───────────────────────────────────────────────────────────
@@ -249,12 +240,13 @@ const envColumns: DataTableColumn<EnvRow>[] = [
 export default function SlideNamespaceDetail() {
   return (
     <CcpDashboardLayout
+      gnbPreset="namespace"
       breadcrumbs={[
-        { label: "CI/CD" },
-        { label: "네임스페이스", isBold: true },
+        { label: "네임스페이스" },
+        { label: "워크스페이스", isBold: true },
       ]}
       title="Namespaces"
-      sideMenuItems={createSideMenuItems({ activeId: "cicd", activeLabel: "네임스페이스" })}
+      sideMenuItems={createSideMenuItems({ activeId: "namespace" })}
     >
       <ListDetailLayout
         detail={
@@ -323,6 +315,14 @@ export default function SlideNamespaceDetail() {
         {/* Main List Content */}
         <ContentSection relative>
           <FilterBar className="gap-2">
+            <Tabs
+              items={[
+                { id: "list", label: "리스트 보기" },
+                { id: "grouped", label: "묶음 보기" },
+              ]}
+              activeId="grouped"
+              variant="pill"
+            />
             <Select
               label="배포 환경"
               options={[
@@ -336,10 +336,6 @@ export default function SlideNamespaceDetail() {
             <Button variant="primary" size="md">
               <Plus className="w-4 h-4 mr-1.5" />
               생성
-            </Button>
-            <Button variant="secondary" size="md">
-              <RefreshCw className="w-3.5 h-3.5 mr-1.5" />
-              동기화
             </Button>
           </FilterBar>
 

@@ -5,6 +5,7 @@ import { cn } from "../cn";
 interface FormAction {
   label: string;
   variant?: "ghost" | "primary" | "blue-solid" | "blue-border" | "gray-solid";
+  annotationId?: number;
 }
 
 interface FormActionsProps extends React.HTMLAttributes<HTMLDivElement> {
@@ -47,7 +48,12 @@ export function FormActions({
       </div>
       <div className="flex items-center gap-2">
         {actions.map((action) => (
-          <Button key={action.label} variant={action.variant} size="md">
+          <Button
+            key={action.label}
+            variant={action.variant}
+            size="md"
+            {...(action.annotationId != null ? { "data-annotation-id": String(action.annotationId) } : {})}
+          >
             {action.label}
           </Button>
         ))}
