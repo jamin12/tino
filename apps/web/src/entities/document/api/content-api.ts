@@ -2,6 +2,7 @@ import type { ComponentType } from "react";
 import type {
   DocumentMeta,
   DiscoveredDocument,
+  DocFile,
   SlideMeta,
   SlideWithMeta,
   ScreenLinkMap,
@@ -19,12 +20,34 @@ const slideModules = import.meta.glob<{
   slideMeta?: SlideMeta;
 }>("/src/content/**/Slide*.tsx");
 
+// Lazily import all docs/*.md files as raw text
+const docModules = import.meta.glob<string>("/src/content/**/docs/*.md", {
+  query: "?raw",
+  import: "default",
+});
+
 function getSlugFromPath(path: string): string {
   // "/src/content/example-project-overview/meta.ts" → "example-project-overview"
   // "/src/content/ccp/cicd/storage/SlideXxx.tsx" → "ccp"
   const contentPrefix = "/src/content/";
   const rest = path.slice(contentPrefix.length); // "ccp/cicd/storage/SlideXxx.tsx"
   return rest.split("/")[0];
+}
+
+/** slug 이후의 상대 폴더 경로를 추출 (예: "ccp/namespace/workspace/Slide01.tsx" → "namespace/workspace/") */
+function getFolderFromPath(path: string, slug: string): string {
+  const prefix = `/src/content/${slug}/`;
+  const rest = path.slice(prefix.length); // "namespace/workspace/Slide01.tsx"
+  const lastSlash = rest.lastIndexOf("/");
+  return lastSlash >= 0 ? rest.slice(0, lastSlash + 1) : "";
+}
+
+/** docs 파일의 상위 폴더 경로를 추출 (docs/ 디렉토리의 부모, 예: "namespace/workspace/docs/xxx.md" → "namespace/workspace/") */
+function getDocFolderFromPath(path: string, slug: string): string {
+  const prefix = `/src/content/${slug}/`;
+  const rest = path.slice(prefix.length); // "namespace/workspace/docs/xxx.md"
+  const docsIdx = rest.indexOf("/docs/");
+  return docsIdx >= 0 ? rest.slice(0, docsIdx + 1) : "";
 }
 
 function countSlides(slug: string): number {
@@ -54,7 +77,7 @@ export function getDocuments(): DiscoveredDocument[] {
 
 export async function getDocument(
   slug: string,
-): Promise<{ meta: DocumentMeta; slides: SlideWithMeta[] } | undefined> {
+): Promise<{ meta: DocumentMeta; slides: SlideWithMeta[]; docs: DocFile[] } | undefined> {
   const metaPath = `/src/content/${slug}/meta.ts`;
   const metaMod = metaModules[metaPath];
   if (!metaMod) return undefined;
@@ -65,20 +88,37 @@ export async function getDocument(
     .filter((path) => path.startsWith(prefix))
     .sort();
 
-  // Load all slides in parallel (component + optional slideMeta)
-  const slides: SlideWithMeta[] = await Promise.all(
-    slidePaths.map(async (path) => {
-      const mod = await slideModules[path]();
-      return {
-        component: mod.default,
-        meta: mod.slideMeta ?? {},
-      };
-    }),
-  );
+  // Collect doc paths for this slug
+  const docPaths = Object.keys(docModules)
+    .filter((path) => path.startsWith(prefix))
+    .sort();
+
+  // Load all slides and docs in parallel
+  const [slides, docs] = await Promise.all([
+    Promise.all(
+      slidePaths.map(async (path) => {
+        const mod = await slideModules[path]();
+        return {
+          component: mod.default,
+          meta: mod.slideMeta ?? {},
+          folder: getFolderFromPath(path, slug),
+        };
+      }),
+    ),
+    Promise.all(
+      docPaths.map(async (path) => {
+        const content = await docModules[path]();
+        // Extract filename without extension from path
+        const fileName = path.split("/").pop()?.replace(/\.md$/, "") ?? "untitled";
+        return { name: fileName, content, folder: getDocFolderFromPath(path, slug) } as DocFile;
+      }),
+    ),
+  ]);
 
   return {
     meta: metaMod.default,
     slides,
+    docs,
   };
 }
 

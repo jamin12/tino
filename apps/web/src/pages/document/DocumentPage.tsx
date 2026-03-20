@@ -112,7 +112,7 @@ export function DocumentPage() {
       {/* Content — SlidePresenter는 항상 마운트 유지 (store 동기화 보존) */}
       <div className="flex-1 overflow-hidden relative">
         <div className={viewMode === "slides" ? "h-full" : "hidden"}>
-          <SlidePresenter slides={document.slides} />
+          <SlidePresenter slides={document.slides} docs={document.docs} />
         </div>
         {viewMode === "graph" && (
           <div className="absolute inset-0">

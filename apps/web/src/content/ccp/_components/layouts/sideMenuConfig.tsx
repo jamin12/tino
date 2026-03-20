@@ -14,7 +14,6 @@ import type { SideMenuItem, MenuSection } from "./SideMenu";
 // ─── 각 메뉴별 하위 섹션 정의 ─────────────────────────────────────────────────
 
 const cicdSections: MenuSection[] = [
-  { label: "", items: [{ label: "네임스페이스" }] },
   {
     label: "저장소",
     items: [

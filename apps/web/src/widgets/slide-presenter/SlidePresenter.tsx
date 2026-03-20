@@ -1,5 +1,7 @@
-import { useCallback, useEffect, useRef, useState, type MouseEvent } from "react";
+import { useCallback, useEffect, useRef, useState, useMemo, type MouseEvent } from "react";
 import { useSearchParams } from "react-router";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 import {
   useSlideViewerStore,
   useSlideNavigation,
@@ -7,7 +9,7 @@ import {
 } from "@features/slide-viewer";
 import { CopyToFigmaButton } from "@features/export-to-figma";
 import { domToFigmaSvg } from "@shared/lib";
-import type { SlideWithMeta, SlideAnnotation } from "@entities/document";
+import type { SlideWithMeta, SlideAnnotation, DocFile } from "@entities/document";
 
 // ─── Component detection ────────────────────────────────────────────────────
 
@@ -52,9 +54,10 @@ function getComponentName(el: HTMLElement): string {
 
 interface Props {
   slides: SlideWithMeta[];
+  docs?: DocFile[];
 }
 
-export function SlidePresenter({ slides }: Props) {
+export function SlidePresenter({ slides, docs = [] }: Props) {
   const { currentSlideIndex, setSlideIndex, nextSlide, prevSlide } =
     useSlideViewerStore();
 
@@ -89,11 +92,31 @@ export function SlidePresenter({ slides }: Props) {
     [setSearchParams],
   );
 
-  const CurrentSlide = slides[currentSlideIndex]?.component;
-  const currentAnnotations = slides[currentSlideIndex]?.meta.annotations;
-  const currentMeta = slides[currentSlideIndex]?.meta;
+  const currentSlide = slides[currentSlideIndex];
+  const CurrentSlide = currentSlide?.component;
+  const currentAnnotations = currentSlide?.meta.annotations;
+  const currentMeta = currentSlide?.meta;
   const [copiedId, setCopiedId] = useState<string | null>(null);
-  const [collapsedSections, setCollapsedSections] = useState<Set<string>>(new Set());
+
+  // 모든 섹션 목록 (순서 유지)
+  const allSections = useMemo(() => {
+    const seen = new Set<string>();
+    for (const s of slides) {
+      if (s.meta.section && !seen.has(s.meta.section)) seen.add(s.meta.section);
+    }
+    return seen;
+  }, [slides]);
+
+  // 기본: 모든 섹션 닫힘 (현재 슬라이드 섹션은 useEffect에서 열림)
+  const [collapsedSections, setCollapsedSections] = useState<Set<string>>(() => new Set(allSections));
+  const [docsOpen, setDocsOpen] = useState(false);
+
+
+  const [activeDocIndex, setActiveDocIndex] = useState(0);
+
+  // 현재 슬라이드 폴더에 해당하는 docs만 필터링
+  const currentFolder = currentSlide?.folder ?? "";
+  const filteredDocs = docs.filter((doc) => doc.folder === currentFolder);
 
   const handleCopyScreenId = useCallback(
     (e: MouseEvent, screenId: string) => {
@@ -140,7 +163,7 @@ export function SlidePresenter({ slides }: Props) {
   useEffect(() => {
     // Double rAF to ensure layout is settled after DOM changes (e.g. side panel toggle)
     requestAnimationFrame(() => requestAnimationFrame(updateScale));
-  }, [currentSlideIndex, showAnnotations, updateScale]);
+  }, [currentSlideIndex, showAnnotations, docsOpen, updateScale]);
 
   // Ctrl key tracking
   useEffect(() => {
@@ -167,11 +190,28 @@ export function SlidePresenter({ slides }: Props) {
     };
   }, []);
 
-  // Clear selection on slide change
+  // Clear selection on slide change & reset doc index, auto-expand current section (collapse others)
   useEffect(() => {
     setSelectedEl(null);
     setHoveredEl(null);
-  }, [currentSlideIndex]);
+    setActiveDocIndex(0);
+
+    const section = slides[currentSlideIndex]?.meta.section;
+    if (section) {
+      setCollapsedSections(() => {
+        const next = new Set(allSections);
+        next.delete(section);
+        return next;
+      });
+    }
+  }, [currentSlideIndex, slides, allSections]);
+
+  // 현재 폴더에 docs가 없으면 drawer 자동 닫기
+  useEffect(() => {
+    if (filteredDocs.length === 0 && docsOpen) {
+      setDocsOpen(false);
+    }
+  }, [filteredDocs.length, docsOpen]);
 
   // Hover detection with Ctrl
   const handleMouseMove = useCallback(
@@ -366,6 +406,22 @@ export function SlidePresenter({ slides }: Props) {
               Spec
             </button>
           )}
+          {filteredDocs.length > 0 && (
+            <button
+              type="button"
+              onClick={() => setDocsOpen((v) => !v)}
+              className={`flex items-center gap-1.5 rounded-md border px-3 py-1.5 text-xs font-medium shadow-sm transition-colors ${
+                docsOpen
+                  ? "border-emerald-400 bg-emerald-50 text-emerald-700"
+                  : "border-gray-200 bg-white text-gray-600 hover:bg-gray-50"
+              }`}
+            >
+              <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+              Docs
+            </button>
+          )}
           <CopyToFigmaButton
             targetRef={captureRef}
             title={slides[currentSlideIndex]?.meta.title}
@@ -389,7 +445,7 @@ export function SlidePresenter({ slides }: Props) {
           </div>
         )}
 
-        {/* Slide content + annotation side panel */}
+        {/* Slide content + annotation side panel + docs drawer */}
         <div className="flex flex-1 overflow-hidden">
           <div className="flex-1 overflow-hidden bg-gray-100 p-4">
             <div ref={containerRef} className="relative h-full w-full">
@@ -457,6 +513,16 @@ export function SlidePresenter({ slides }: Props) {
               </div>
             </div>
           </div>
+
+          {/* Docs drawer */}
+          {docsOpen && filteredDocs.length > 0 && (
+            <DocsDrawer
+              docs={filteredDocs}
+              activeIndex={activeDocIndex}
+              onSelectDoc={setActiveDocIndex}
+              onClose={() => setDocsOpen(false)}
+            />
+          )}
         </div>
 
         {/* Navigation bar */}
@@ -706,6 +772,237 @@ function AnnotationSidePanel({ annotations, description }: { annotations: SlideA
           </div>
         </div>
       ))}
+    </div>
+  );
+}
+
+// ─── Docs Drawer ─────────────────────────────────────────────────────────────
+
+const remarkPlugins = [remarkGfm];
+
+const mdComponents: Record<string, React.ComponentType<Record<string, unknown>>> = {
+  h1: ({ children, ...props }: Record<string, unknown>) => (
+    <h1 className="text-[20px] font-bold text-gray-900 pb-3 mb-5 border-b-2 border-gray-200 leading-tight" {...props}>
+      {children as React.ReactNode}
+    </h1>
+  ),
+  h2: ({ children, ...props }: Record<string, unknown>) => (
+    <h2 className="text-[17px] font-bold text-gray-800 mt-8 mb-3 pb-2 border-b border-gray-100 leading-snug" {...props}>
+      {children as React.ReactNode}
+    </h2>
+  ),
+  h3: ({ children, ...props }: Record<string, unknown>) => (
+    <h3 className="text-[15px] font-semibold text-gray-700 mt-6 mb-2 leading-snug" {...props}>
+      {children as React.ReactNode}
+    </h3>
+  ),
+  p: ({ children, ...props }: Record<string, unknown>) => (
+    <p className="text-[14px] text-gray-600 leading-[1.75] mb-3" {...props}>
+      {children as React.ReactNode}
+    </p>
+  ),
+  strong: ({ children, ...props }: Record<string, unknown>) => (
+    <strong className="font-semibold text-gray-800" {...props}>{children as React.ReactNode}</strong>
+  ),
+  blockquote: ({ children, ...props }: Record<string, unknown>) => (
+    <blockquote className="border-l-[3px] border-emerald-300 bg-emerald-50/50 rounded-r-lg pl-4 pr-3 py-2.5 my-4 text-[13px] text-emerald-800 [&>p]:mb-0.5 [&>p]:text-[13px] [&>p]:text-emerald-800" {...props}>
+      {children as React.ReactNode}
+    </blockquote>
+  ),
+  hr: (props: Record<string, unknown>) => (
+    <hr className="my-6 border-gray-200" {...props} />
+  ),
+  ul: ({ children, ...props }: Record<string, unknown>) => (
+    <ul className="list-disc pl-5 my-2.5 space-y-1.5 text-[14px] text-gray-600 leading-relaxed marker:text-gray-400" {...props}>
+      {children as React.ReactNode}
+    </ul>
+  ),
+  ol: ({ children, ...props }: Record<string, unknown>) => (
+    <ol className="list-decimal pl-5 my-2.5 space-y-1.5 text-[14px] text-gray-600 leading-relaxed marker:text-gray-500 marker:font-medium" {...props}>
+      {children as React.ReactNode}
+    </ol>
+  ),
+  li: ({ children, ...props }: Record<string, unknown>) => (
+    <li className="pl-0.5 [&>p]:mb-0 [&>ul]:mt-1 [&>ol]:mt-1" {...props}>
+      {children as React.ReactNode}
+    </li>
+  ),
+  a: ({ children, ...props }: Record<string, unknown>) => (
+    <a className="text-emerald-600 underline underline-offset-2 decoration-emerald-300 hover:text-emerald-700 hover:decoration-emerald-500 transition-colors" {...props}>
+      {children as React.ReactNode}
+    </a>
+  ),
+  code: ({ children, className, ...props }: Record<string, unknown>) => {
+    const isBlock = typeof className === "string" && className.startsWith("language-");
+    if (isBlock) {
+      return (
+        <code className={`block text-[13px] leading-relaxed ${className}`} {...props}>
+          {children as React.ReactNode}
+        </code>
+      );
+    }
+    return (
+      <code className="px-1.5 py-0.5 bg-gray-100 border border-gray-200/60 rounded text-[13px] font-mono text-gray-700 break-words" {...props}>
+        {children as React.ReactNode}
+      </code>
+    );
+  },
+  pre: ({ children, ...props }: Record<string, unknown>) => (
+    <pre className="my-4 rounded-lg border border-gray-200 bg-[#fafbfc] px-4 py-3.5 overflow-x-auto text-[13px] font-mono leading-[1.6] text-gray-700 [&>code]:block [&>code]:bg-transparent [&>code]:border-0 [&>code]:p-0" {...props}>
+      {children as React.ReactNode}
+    </pre>
+  ),
+  table: ({ children, ...props }: Record<string, unknown>) => (
+    <div className="my-4 overflow-x-auto rounded-lg border border-gray-200">
+      <table className="w-full text-[13px] border-collapse" {...props}>
+        {children as React.ReactNode}
+      </table>
+    </div>
+  ),
+  thead: ({ children, ...props }: Record<string, unknown>) => (
+    <thead className="bg-gray-50/80" {...props}>{children as React.ReactNode}</thead>
+  ),
+  th: ({ children, ...props }: Record<string, unknown>) => (
+    <th className="px-3.5 py-2.5 text-left text-[12px] font-semibold text-gray-500 uppercase tracking-wide border-b border-gray-200" {...props}>
+      {children as React.ReactNode}
+    </th>
+  ),
+  td: ({ children, ...props }: Record<string, unknown>) => (
+    <td className="px-3.5 py-2.5 text-gray-600 border-b border-gray-100 align-top leading-relaxed" {...props}>
+      {children as React.ReactNode}
+    </td>
+  ),
+  tr: ({ children, ...props }: Record<string, unknown>) => (
+    <tr className="hover:bg-gray-50/50 transition-colors" {...props}>{children as React.ReactNode}</tr>
+  ),
+};
+
+function DocsDrawer({
+  docs,
+  activeIndex,
+  onSelectDoc,
+  onClose,
+}: {
+  docs: DocFile[];
+  activeIndex: number;
+  onSelectDoc: (index: number) => void;
+  onClose: () => void;
+}) {
+  const activeDoc = docs[activeIndex];
+  // TOC 추출 (h2, h3)
+  const toc = useMemo(() => {
+    if (!activeDoc) return [];
+    const headingRe = /^(#{2,3})\s+(.+)$/gm;
+    const entries: { level: number; text: string; id: string }[] = [];
+    let match;
+    while ((match = headingRe.exec(activeDoc.content)) !== null) {
+      const text = match[2].replace(/[*`]/g, "").trim();
+      const id = text.toLowerCase().replace(/[^\w가-힣]+/g, "-").replace(/(^-|-$)/g, "");
+      entries.push({ level: match[1].length, text, id });
+    }
+    return entries;
+  }, [activeDoc]);
+
+  const [showToc, setShowToc] = useState(false);
+
+  return (
+    <div className="w-[520px] shrink-0 border-l border-gray-200 bg-white flex flex-col">
+      {/* Header */}
+      <div className="flex items-center justify-between border-b border-gray-200 px-5 py-3">
+        <div className="flex items-center gap-2.5">
+          <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-emerald-50">
+            <svg className="h-4 w-4 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+          </div>
+          <span className="text-[13px] font-semibold text-gray-800">기획 문서</span>
+          {docs.length > 1 && (
+            <span className="rounded-full bg-gray-100 px-2 py-0.5 text-[11px] font-medium text-gray-500">
+              {activeIndex + 1}/{docs.length}
+            </span>
+          )}
+        </div>
+        <div className="flex items-center gap-1">
+          {toc.length > 0 && (
+            <button
+              type="button"
+              onClick={() => setShowToc((v) => !v)}
+              className={`rounded-md p-1.5 transition-colors ${showToc ? "bg-gray-100 text-gray-700" : "text-gray-400 hover:bg-gray-50 hover:text-gray-600"}`}
+              title="목차"
+            >
+              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 10h16M4 14h16M4 18h16" />
+              </svg>
+            </button>
+          )}
+          <button
+            type="button"
+            onClick={onClose}
+            className="rounded-md p-1.5 text-gray-400 hover:bg-gray-50 hover:text-gray-600 transition-colors"
+          >
+            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      {/* Doc tabs (when multiple docs) */}
+      {docs.length > 1 && (
+        <div className="flex gap-1 border-b border-gray-200 px-5 py-2 overflow-x-auto bg-gray-50/50">
+          {docs.map((doc, i) => (
+            <button
+              key={doc.name}
+              type="button"
+              onClick={() => onSelectDoc(i)}
+              className={`shrink-0 rounded-md px-3 py-1.5 text-[12px] font-medium transition-colors ${
+                i === activeIndex
+                  ? "bg-white text-gray-800 shadow-sm border border-gray-200"
+                  : "text-gray-500 hover:bg-white/60 hover:text-gray-700"
+              }`}
+            >
+              {doc.name}
+            </button>
+          ))}
+        </div>
+      )}
+
+      {/* TOC */}
+      {showToc && toc.length > 0 && (
+        <div className="border-b border-gray-200 bg-gray-50/70 px-5 py-3 max-h-[200px] overflow-y-auto">
+          <div className="text-[11px] font-semibold text-gray-400 uppercase tracking-wide mb-2">목차</div>
+          <nav className="space-y-0.5">
+            {toc.map((item) => (
+              <a
+                key={item.id}
+                href={`#${item.id}`}
+                onClick={(e) => {
+                  e.preventDefault();
+                  const el = e.currentTarget.closest(".flex.flex-col")?.querySelector(`[id="${item.id}"]`);
+                  el?.scrollIntoView({ behavior: "smooth", block: "start" });
+                }}
+                className={`block text-[12px] text-gray-500 hover:text-gray-800 transition-colors truncate ${
+                  item.level === 3 ? "pl-4" : ""
+                }`}
+              >
+                {item.text}
+              </a>
+            ))}
+          </nav>
+        </div>
+      )}
+
+      {/* Markdown content */}
+      <div className="flex-1 overflow-y-auto px-6 py-6">
+        {activeDoc && (
+          <ReactMarkdown
+            remarkPlugins={remarkPlugins}
+            components={mdComponents}
+          >
+            {activeDoc.content}
+          </ReactMarkdown>
+        )}
+      </div>
     </div>
   );
 }

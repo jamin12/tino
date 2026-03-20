@@ -40,6 +40,8 @@ export interface SlideMeta {
 export interface SlideWithMeta {
   component: React.ComponentType;
   meta: SlideMeta;
+  /** 슬라이드 파일의 폴더 경로 (slug 이후 상대 경로, 예: "namespace/workspace/") */
+  folder: string;
 }
 
 /** 역방향 링크 (자동 생성) */
@@ -60,6 +62,15 @@ export interface ScreenNode {
 
 /** 전체 화면 연결 맵 */
 export type ScreenLinkMap = Record<string, ScreenNode>;
+
+export interface DocFile {
+  /** 파일명 (확장자 제외) */
+  name: string;
+  /** 마크다운 원본 */
+  content: string;
+  /** docs/ 폴더의 상위 경로 (slug 이후 상대 경로, 예: "namespace/workspace/") */
+  folder: string;
+}
 
 export interface DiscoveredDocument {
   slug: string;
