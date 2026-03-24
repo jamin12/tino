@@ -60,6 +60,10 @@ export type {
 export { SeeMoreMenu } from "./composites/SeeMoreMenu";
 export type { SeeMoreMenuItem } from "./composites/SeeMoreMenu";
 export { CodeEditor } from "./composites/CodeEditor";
+export { Modal } from "./composites/Modal";
+export { AlertBanner } from "./composites/AlertBanner";
+export { ItemGroup, ItemGroupRow } from "./composites/ItemGroup";
+export { FieldGroup } from "./composites/FieldGroup";
 export { YamlImportModal } from "./YamlImportModal";
 export { WebTerminalPanel } from "./WebTerminalPanel";
 

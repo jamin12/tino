@@ -8,6 +8,7 @@ import {
   TextInput,
   Toggle,
   FormActions,
+  FormBanner,
   createSideMenuItems,
 } from "../../_components";
 import type { SlideMeta } from "@entities/document";
@@ -17,6 +18,7 @@ export const slideMeta: SlideMeta = {
   title: "Namespace 생성 (리스트)",
   section: "네임스페이스",
   links: [
+    { targetScreenId: "CCP-NSR-002b", type: "toggle", label: "YAML 모드 ON → YAML 모드" },
     { targetScreenId: "CCP-NS-002", type: "tab", label: "GitOps 탭 → 워크스페이스 생성" },
   ],
   annotations: [
@@ -37,26 +39,31 @@ export const slideMeta: SlideMeta = {
     },
     {
       id: 4,
+      label: "유형 선택 (필수)",
+      description: "생성할 namespace의 용도를 선택합니다. 기본값은 **USER**입니다.\n\n- **USER** (기본값): 사용자가 직접 생성/관리하는 Namespace\n- **SYSTEM**: CCP를 위한 Resource 관리 Namespace\n- **CI_CD**: CI/CD 파이프라인에서 사용하는 Namespace\n\n!!!필수 항목입니다. 유형에 따라 CCP 내부에서 namespace를 분류·관리하는 기준이 달라집니다.!!!",
+    },
+    {
+      id: 5,
       label: "네임스페이스 이름",
       description: "생성할 K8s namespace의 이름을 입력합니다.\n\n???RFC 1123: 소문자 영문, 숫자, 하이픈(-) 사용 가능. 63자 이내.???",
     },
     {
-      id: 5,
+      id: 6,
       label: "레이블 / 어노테이션",
       description: "namespace에 추가할 K8s Labels, Annotations (key=value 쌍)을 설정합니다. 추가 버튼으로 여러 쌍을 입력할 수 있습니다.",
     },
     {
-      id: 6,
+      id: 7,
       label: "임시저장",
       description: "현재 입력한 폼 상태를 임시저장합니다. 나중에 생성 화면에 재진입하면 저장된 상태를 복원할 수 있습니다.",
     },
     {
-      id: 7,
+      id: 8,
       label: "검증",
       description: "생성 전 사전 검증을 수행합니다. 선택한 클러스터에 동일 이름의 namespace가 이미 존재하는지, 이름이 RFC 1123 규격에 맞는지 등을 확인하여 충돌 및 유효성 여부를 알려줍니다.",
     },
     {
-      id: 8,
+      id: 9,
       label: "생성",
       description: "검증을 통과한 후 K8s API를 호출하여 namespace를 생성합니다.\n\n!!!이 기능은 namespace 오브젝트만 생성합니다. 작업 환경(RBAC, Secret 등)이 필요하면 GitOps 탭을 이용하세요.!!!",
     },
@@ -76,6 +83,16 @@ export default function Slide02NamespaceResourceCreate() {
       title="네임스페이스 생성"
       sideMenuItems={createSideMenuItems({ activeId: "namespace" })}
     >
+      <FormBanner
+        title="안내사항"
+        lines={[
+          "기본 설정만 입력하면 바로 시작할 수 있어요",
+          "고급 설정을 원하시면 \"YAML 모드\"를 ON 해보세요.",
+          "이 화면에서 생성된 네임스페이스는 GitOps로 변경할 수 없습니다.",
+        ]}
+        className="mx-6"
+      />
+
       <ContentSection card>
         {/* Tab + YAML toggle */}
         <ContentSection className="flex items-center justify-between w-full px-6">
@@ -103,14 +120,25 @@ export default function Slide02NamespaceResourceCreate() {
             />
           </InfoRow>
 
-          <InfoRow label="네임스페이스 이름 ⓘ" labelWidth="120px" data-annotation-id="4">
+          <InfoRow label="유형 *" labelWidth="120px" data-annotation-id="4">
+            <Select
+              options={[
+                { value: "USER", label: "USER — 사용자 Namespace", selected: true },
+                { value: "SYSTEM", label: "SYSTEM — CCP 리소스 관리" },
+                { value: "CI_CD", label: "CI_CD — CI/CD 파이프라인" },
+              ]}
+              className="flex-1"
+            />
+          </InfoRow>
+
+          <InfoRow label="네임스페이스 이름 ⓘ" labelWidth="120px" data-annotation-id="5">
             <TextInput
               placeholder="예: my-namespace"
               className="flex-1"
             />
           </InfoRow>
 
-          <InfoRow label="레이블 ⓘ" labelWidth="120px" data-annotation-id="5">
+          <InfoRow label="레이블 ⓘ" labelWidth="120px" data-annotation-id="6">
             <ContentSection className="flex items-center gap-2 flex-1">
               <TextInput placeholder="key" className="flex-1" />
               <TextInput placeholder="value" className="flex-1" />
@@ -134,9 +162,9 @@ export default function Slide02NamespaceResourceCreate() {
         <FormActions
           actions={[
             { label: "취소", variant: "gray-solid" },
-            { label: "임시저장", variant: "ghost", annotationId: 6 },
-            { label: "검증", variant: "blue-solid", annotationId: 7 },
-            { label: "생성", variant: "primary", annotationId: 8 },
+            { label: "임시저장", variant: "ghost", annotationId: 7 },
+            { label: "검증", variant: "blue-solid", annotationId: 8 },
+            { label: "생성", variant: "primary", annotationId: 9 },
           ]}
         />
       </ContentSection>
