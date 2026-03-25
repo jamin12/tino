@@ -6,6 +6,7 @@ import {
   FormActions,
   InfoRow,
   TextCell,
+  TextInput,
   createSideMenuItems,
 } from "../../_components";
 
@@ -18,7 +19,7 @@ export const slideMeta: SlideMeta = {
   links: [],
   annotations: [
     { id: 1, label: "현재 환경 표시", description: "이 네임스페이스에 이미 생성된 배포 환경 목록입니다. 이미 존재하는 환경은 중복 추가할 수 없으므로 참고 정보로 표시됩니다." },
-    { id: 2, label: "기존 환경 선택", description: "클러스터에 등록되어 있지만 이 NS에는 아직 추가되지 않은 환경 목록입니다. 체크하면 k8s-app-init 레포의 overlays/{env}/sample-{env}/ 폴더를 복제하여 overlays/{env}/{ns}-{env}/ 폴더가 생성되고, 내부 파일의 'sample'이 NS 이름으로 치환됩니다. 해당 환경의 kustomization.yaml에도 참조가 추가됩니다. CICD 파이프라인(k8s-cicd-init)은 이미 존재하므로 app-init 리소스만 생성됩니다." },
+    { id: 2, label: "기존 환경 선택", description: "클러스터에 등록되어 있지만 이 NS에는 아직 추가되지 않은 환경 목록입니다. 체크하면 **네임스페이스 이름을 커스텀** 지정할 수 있으며, 기본값은 `{ns}-{env}` 패턴입니다. 체크 해제된 환경의 이름 입력은 비활성화됩니다. k8s-app-init 레포의 overlays/{env}/sample-{env}/ 폴더를 복제하여 overlays/{env}/{커스텀이름}/ 폴더가 생성됩니다." },
     { id: 3, label: "생성될 리소스 미리보기", description: "선택한 환경에 따라 k8s-app-init 레포에 실제로 생성될 파일 경로를 보여줍니다. sample 템플릿의 내용에 따라 파일 목록이 달라지며, 공통적으로 overlays/{env}/{ns}-{env}/ 폴더(sample-{env}/ 복제)가 생성되고, 해당 환경의 overlays/{env}/kustomization.yaml에 참조가 추가됩니다." },
   ],
 };
@@ -74,11 +75,20 @@ export default function SlideNamespaceEnvAdd() {
             <div className="flex flex-col gap-3 pl-1" data-annotation-id="2">
               <div className="flex items-center gap-3">
                 <Checkbox label="qa" />
-                <Badge variant="orange-label" size="sm">QA</Badge>
+                <TextInput
+                  defaultValue="sample-qa"
+                  placeholder="네임스페이스 이름"
+                  className="flex-1"
+                  disabled
+                />
               </div>
               <div className="flex items-center gap-3">
                 <Checkbox label="perf" checked />
-                <Badge variant="neutral" size="sm">성능 테스트</Badge>
+                <TextInput
+                  defaultValue="sample-perf"
+                  placeholder="네임스페이스 이름"
+                  className="flex-1"
+                />
               </div>
             </div>
 
