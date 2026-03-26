@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState, useMemo, type MouseEvent } from "react";
+import { useCallback, useEffect, useRef, useState, useMemo, forwardRef, type MouseEvent } from "react";
 import { useSearchParams } from "react-router";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
@@ -65,6 +65,7 @@ export function SlidePresenter({ slides, docs = [] }: Props) {
   const slideContentRef = useRef<HTMLDivElement>(null);
   const wrapperRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
   const [scale, setScale] = useState(1);
 
   // Ctrl 모드 상태
@@ -206,6 +207,22 @@ export function SlidePresenter({ slides, docs = [] }: Props) {
     }
   }, [currentSlideIndex, slides, allSections]);
 
+  // 슬라이드 높이에 맞춰 Spec 패널 max-height 직접 설정 (스크롤용)
+  useEffect(() => {
+    const slide = slideContentRef.current;
+    const panel = panelRef.current;
+    if (!slide || !panel) return;
+
+    const sync = () => {
+      panel.style.maxHeight = `${slide.offsetHeight}px`;
+    };
+    sync();
+
+    const ro = new ResizeObserver(sync);
+    ro.observe(slide);
+    return () => ro.disconnect();
+  }, [currentSlideIndex, showAnnotations]);
+
   // 현재 폴더에 docs가 없으면 drawer 자동 닫기
   useEffect(() => {
     if (filteredDocs.length === 0 && docsOpen) {
@@ -243,21 +260,34 @@ export function SlidePresenter({ slides, docs = [] }: Props) {
   );
 
   // Copy selected component
+  const restoreCopyState = useCallback(() => {
+    if (wrapperRef.current) {
+      wrapperRef.current.style.transform = `translate(-50%, -50%) scale(${scale})`;
+    }
+    if (panelRef.current && slideContentRef.current) {
+      panelRef.current.style.maxHeight = `${slideContentRef.current.offsetHeight}px`;
+      panelRef.current.style.overflow = "auto";
+    }
+  }, [scale]);
+
   const handleCopySelected = useCallback(async () => {
     if (!selectedEl) return;
     try {
       setCopyStatus("copying");
 
+      // 복사 전: scale 리셋 + 패널 max-height 해제 (전체 내용 캡처)
       if (wrapperRef.current) {
         wrapperRef.current.style.transform = "translate(-50%, -50%)";
+      }
+      if (panelRef.current) {
+        panelRef.current.style.maxHeight = "none";
+        panelRef.current.style.overflow = "visible";
       }
 
       const name = getComponentName(selectedEl);
       const svgString = await domToFigmaSvg(selectedEl, name);
 
-      if (wrapperRef.current) {
-        wrapperRef.current.style.transform = `translate(-50%, -50%) scale(${scale})`;
-      }
+      restoreCopyState();
 
       if (!svgString) throw new Error("SVG extraction failed");
       await navigator.clipboard.writeText(svgString);
@@ -265,14 +295,12 @@ export function SlidePresenter({ slides, docs = [] }: Props) {
       setCopyStatus("copied");
       setTimeout(() => setCopyStatus("idle"), 2000);
     } catch (err) {
-      if (wrapperRef.current) {
-        wrapperRef.current.style.transform = `translate(-50%, -50%) scale(${scale})`;
-      }
+      restoreCopyState();
       console.error("Failed to copy component to Figma:", err);
       setCopyStatus("error");
       setTimeout(() => setCopyStatus("idle"), 2000);
     }
-  }, [selectedEl, scale]);
+  }, [selectedEl, restoreCopyState]);
 
   // Deselect on Escape
   useEffect(() => {
@@ -429,10 +457,18 @@ export function SlidePresenter({ slides, docs = [] }: Props) {
               if (wrapperRef.current) {
                 wrapperRef.current.style.transform = "translate(-50%, -50%)";
               }
+              if (panelRef.current) {
+                panelRef.current.style.maxHeight = "none";
+                panelRef.current.style.overflow = "visible";
+              }
             }}
             onAfterCapture={() => {
               if (wrapperRef.current) {
                 wrapperRef.current.style.transform = `translate(-50%, -50%) scale(${scale})`;
+              }
+              if (panelRef.current && slideContentRef.current) {
+                panelRef.current.style.maxHeight = `${slideContentRef.current.offsetHeight}px`;
+                panelRef.current.style.overflow = "auto";
               }
             }}
           />
@@ -496,7 +532,7 @@ export function SlidePresenter({ slides, docs = [] }: Props) {
 
                   {/* Annotation side panel (inside captureRef for Figma export) */}
                   {showAnnotations && currentAnnotations && currentAnnotations.length > 0 && (
-                    <AnnotationSidePanel annotations={currentAnnotations} description={currentMeta?.description} />
+                    <AnnotationSidePanel ref={panelRef} annotations={currentAnnotations} description={currentMeta?.description} />
                   )}
                 </div>
 
@@ -754,9 +790,12 @@ function renderDescriptionInner(text: string) {
   });
 }
 
-function AnnotationSidePanel({ annotations, description }: { annotations: SlideAnnotation[]; description?: string }) {
+const AnnotationSidePanel = forwardRef<HTMLDivElement, { annotations: SlideAnnotation[]; description?: string }>(function AnnotationSidePanel({ annotations, description }, ref) {
   return (
-    <div className="w-[480px] shrink-0 border-l border-gray-200 bg-gray-50 rounded-r-lg p-8 flex flex-col gap-6">
+    <div
+      ref={ref}
+      className="w-[480px] shrink-0 border-l border-gray-200 bg-gray-50 rounded-r-lg p-8 flex flex-col gap-6 overflow-y-auto"
+    >
       <div className="text-[16px] font-bold text-gray-400 uppercase tracking-wide">Spec</div>
       {description && (
         <div className="text-[14px] text-gray-500 leading-snug whitespace-pre-line">{renderDescription(description)}</div>
@@ -774,7 +813,7 @@ function AnnotationSidePanel({ annotations, description }: { annotations: SlideA
       ))}
     </div>
   );
-}
+});
 
 // ─── Docs Drawer ─────────────────────────────────────────────────────────────
 

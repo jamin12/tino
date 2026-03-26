@@ -61,7 +61,7 @@ export const slideMeta: SlideMeta = {
     {
       id: 5,
       label: "대상 목록",
-      description: "라벨을 부여할 네임스페이스 목록입니다. 리스트에서 체크박스로 선택한 항목이 표시되며, 각 항목의 현재 타입 상태도 함께 표시됩니다.",
+      description: "라벨을 부여할 네임스페이스 목록입니다. 리스트에서 체크박스로 선택한 항목이 표시되며, 각 항목의 현재 타입 상태도 함께 표시됩니다.\n\n- GitOps(ArgoCD)로 관리되는 NS는 리스트에서 체크박스가 disabled 처리되어 이 목록에 포함될 수 없습니다\n- 판별 기준: `argocd.argoproj.io/managed-by` 라벨 존재 여부",
     },
     {
       id: 6,

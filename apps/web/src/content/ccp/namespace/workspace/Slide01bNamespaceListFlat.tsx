@@ -87,6 +87,11 @@ export const slideMeta: SlideMeta = {
       label: "라벨 부여",
       description: "체크박스로 네임스페이스를 선택하면 활성화됩니다. 클릭 시 타입 라벨 부여 모달(CCP-NSR-006)이 열리며, 미지정 NS에 신규 부여하거나 기존 타입을 변경할 수 있습니다.",
     },
+    {
+      id: 10,
+      label: "GitOps 관리 NS 선택 제한",
+      description: "GitOps(ArgoCD)로 관리되는 네임스페이스는 체크박스가 비활성화(disabled)되어 라벨 부여 대상에서 제외됩니다.\n\n- **판별 기준**: NS Labels에 `argocd.argoproj.io/managed-by` 키가 존재하면 GitOps 관리 대상\n- **사유**: Git 저장소가 Single Source of Truth이므로 CCP 웹에서 라벨을 변경해도 다음 ArgoCD sync 시 원복됨\n- **안내**: disabled 행 hover 시 Tooltip으로 \"GitOps로 관리되는 네임스페이스는 라벨을 직접 변경할 수 없습니다\" 표시\n- GitOps 관리 NS의 타입 라벨을 변경하려면 Git 저장소에서 직접 수정해야 합니다",
+    },
   ],
 };
 
