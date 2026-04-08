@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState, useMemo, forwardRef, type MouseEvent } from "react";
-import { useSearchParams } from "react-router";
+import { useSearchParams, Link } from "react-router";
+import { ArrowLeft } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import {
@@ -319,7 +320,7 @@ export function SlidePresenter({ slides, docs = [] }: Props) {
   return (
     <div className="flex h-full">
       {/* Thumbnail sidebar */}
-      <div className="flex w-28 flex-col gap-0.5 overflow-y-auto border-r border-gray-200 bg-gray-50 p-2">
+      <div className="flex w-44 shrink-0 flex-col gap-0.5 overflow-y-auto border-r border-gray-200 bg-gray-50 p-2">
         {(() => {
           const subColors = [
             { border: "border-blue-300", bg: "bg-blue-50/60", text: "text-blue-600" },

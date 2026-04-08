@@ -4,6 +4,7 @@ import { ChevronLeft, ChevronRight, FileText, BookOpen } from "lucide-react";
 
 export function AppLayout() {
   const location = useLocation();
+  const isDocumentView = location.pathname.startsWith("/document/");
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   return (
@@ -11,7 +12,7 @@ export function AppLayout() {
       {/* Sidebar */}
       <aside
         className={`${
-          isSidebarOpen ? "w-64" : "w-[68px]"
+          isDocumentView ? "hidden" : isSidebarOpen ? "w-64" : "w-[68px]"
         } relative flex flex-col border-r border-gray-200 bg-white transition-all duration-300`}
       >
         {/* Toggle Button */}
