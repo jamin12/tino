@@ -57,6 +57,49 @@ function countSlides(slug: string): number {
   ).length;
 }
 
+/**
+ * 같은 section 내에서 subSection이 같은 슬라이드끼리 연속 배치되도록 안정 정렬.
+ * subSection이 없는 슬라이드는 원래 위치를 유지한다.
+ * 첫 등장 순서(파일명 정렬 기준)를 보존하여 subSection 그룹의 순서가 바뀌지 않는다.
+ */
+function stableGroupBySubSection(slides: SlideWithMeta[]): SlideWithMeta[] {
+  // section별로 그룹화
+  const groups: { section: string | undefined; items: SlideWithMeta[] }[] = [];
+  for (const slide of slides) {
+    const section = slide.meta.section;
+    const last = groups[groups.length - 1];
+    if (last && last.section === section) {
+      last.items.push(slide);
+    } else {
+      groups.push({ section, items: [slide] });
+    }
+  }
+
+  // 각 section 그룹 내에서 subSection별로 재배치
+  const result: SlideWithMeta[] = [];
+  for (const group of groups) {
+    const hasSubSections = group.items.some((s) => s.meta.subSection);
+    if (!hasSubSections) {
+      result.push(...group.items);
+      continue;
+    }
+
+    // subSection 첫 등장 순서 기록
+    const order: string[] = [];
+    for (const s of group.items) {
+      const sub = s.meta.subSection ?? "";
+      if (!order.includes(sub)) order.push(sub);
+    }
+
+    // subSection별로 분류 후 순서대로 배치
+    for (const sub of order) {
+      result.push(...group.items.filter((s) => (s.meta.subSection ?? "") === sub));
+    }
+  }
+
+  return result;
+}
+
 export function getDocuments(): DiscoveredDocument[] {
   return Object.entries(metaModules)
     .filter(([path]) => !path.includes("/_template/"))
@@ -115,9 +158,12 @@ export async function getDocument(
     ),
   ]);
 
+  // 같은 section 내에서 subSection이 같은 슬라이드끼리 연속 배치되도록 안정 정렬
+  const sortedSlides = stableGroupBySubSection(slides);
+
   return {
     meta: metaMod.default,
-    slides,
+    slides: sortedSlides,
     docs,
   };
 }

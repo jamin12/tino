@@ -15,6 +15,7 @@ export const slideMeta: SlideMeta = {
   screenId: "CCP-NSR-005",
   title: "Namespace 리소스 수정",
   section: "네임스페이스",
+  subSection: "리스트 보기",
   links: [],
   annotations: [
     {

@@ -28,6 +28,8 @@ export interface ScreenLink {
 export interface SlideMeta {
   title?: string;
   section?: string;
+  /** 섹션 내 시각적 서브 그룹 라벨 (접기/펼치기 없이 구분선 + 라벨만 표시) */
+  subSection?: string;
   /** Spec 패널 상단에 표시할 설명 (???...??? 파란 박스 등 서식 지원) */
   description?: string;
   annotations?: SlideAnnotation[];

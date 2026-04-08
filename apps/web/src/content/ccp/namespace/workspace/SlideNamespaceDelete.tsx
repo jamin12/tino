@@ -31,10 +31,48 @@ import type {
 } from "../../_components";
 import type { SlideMeta } from "@entities/document";
 
+// ─── Sub-row Data ──────────────────────────────────────────────────────────
+
+interface SubNamespace {
+  name: string;
+  cluster: string;
+  syncStatus: "Synced" | "OutOfSync" | "Missing";
+  syncVariant: string;
+  repo: string;
+}
+
+const subRowsMap: Record<string, SubNamespace[]> = {
+  sample: [
+    { name: "sample-cicd", cluster: "dev-cluster", syncStatus: "Synced", syncVariant: "green-solid", repo: "k8s-cicd-init" },
+    { name: "sample-dev", cluster: "dev-cluster", syncStatus: "Synced", syncVariant: "green-solid", repo: "k8s-app-init" },
+    { name: "sample-stg", cluster: "dev-cluster", syncStatus: "OutOfSync", syncVariant: "warning", repo: "k8s-app-init" },
+    { name: "sample-prd", cluster: "prd-cluster", syncStatus: "Synced", syncVariant: "green-solid", repo: "k8s-app-init" },
+  ],
+  payment: [
+    { name: "payment-cicd", cluster: "dev-cluster", syncStatus: "Synced", syncVariant: "green-solid", repo: "k8s-cicd-init" },
+    { name: "payment-dev", cluster: "dev-cluster", syncStatus: "Synced", syncVariant: "green-solid", repo: "k8s-app-init" },
+    { name: "payment-stg", cluster: "dev-cluster", syncStatus: "Synced", syncVariant: "green-solid", repo: "k8s-app-init" },
+  ],
+  auth: [
+    { name: "auth-cicd", cluster: "dev-cluster", syncStatus: "Synced", syncVariant: "green-solid", repo: "k8s-cicd-init" },
+    { name: "auth-dev", cluster: "dev-cluster", syncStatus: "Missing", syncVariant: "red-solid", repo: "k8s-app-init" },
+  ],
+  monitoring: [
+    { name: "monitoring-cicd", cluster: "dev-cluster", syncStatus: "Synced", syncVariant: "green-solid", repo: "k8s-cicd-init" },
+    { name: "monitoring-dev", cluster: "dev-cluster", syncStatus: "Synced", syncVariant: "green-solid", repo: "k8s-app-init" },
+    { name: "monitoring-prd", cluster: "prd-cluster", syncStatus: "Synced", syncVariant: "green-solid", repo: "k8s-app-init" },
+  ],
+  logging: [
+    { name: "logging-cicd", cluster: "dev-cluster", syncStatus: "Synced", syncVariant: "green-solid", repo: "k8s-cicd-init" },
+    { name: "logging-prd", cluster: "prd-cluster", syncStatus: "Synced", syncVariant: "green-solid", repo: "k8s-app-init" },
+  ],
+};
+
 export const slideMeta: SlideMeta = {
   screenId: "CCP-NS-007",
   title: "Namespace 삭제 모달",
   section: "네임스페이스",
+  subSection: "묶음 보기",
   links: [],
   annotations: [
     { id: 1, label: "삭제 유형 선택", description: "환경별 삭제는 선택한 배포 환경의 app-init 리소스만 제거하고 CICD 파이프라인은 유지합니다. 전체 삭제는 CICD 파이프라인과 모든 배포 환경을 함께 제거합니다." },
@@ -45,7 +83,7 @@ export const slideMeta: SlideMeta = {
 };
 
 // ─── Side Menu Data ─────────────────────────────────────────────────────────
-
+
 
 // ─── Table Data (Background List) ───────────────────────────────────────────
 
@@ -105,7 +143,7 @@ const columns: DataTableColumn<NamespaceRow>[] = [
     header: "이름",
     width: "200px",
     render: (row) => (
-      <TextCell bold color="#111111" linked className="px-4">
+      <TextCell bold color="#111111" className="px-4">
         {row.name}
       </TextCell>
     ),
@@ -147,7 +185,6 @@ const columns: DataTableColumn<NamespaceRow>[] = [
 
 const iconClass = "w-[14px] h-[14px] text-[#555759]";
 const actionMenuItems: ActionMenuEntry[] = [
-  { key: "detail", label: "상세보기", icon: <Eye className={iconClass} /> },
   { key: "env-add", label: "환경 추가", icon: <FolderPlus className={iconClass} /> },
   { type: "divider" },
   {
@@ -157,6 +194,57 @@ const actionMenuItems: ActionMenuEntry[] = [
   },
 ];
 
+// ─── Sub-row Renderer ──────────────────────────────────────────────────────
+
+function renderSubRows(row: NamespaceRow) {
+  const subs = subRowsMap[row.name];
+  if (!subs) return null;
+
+  return (
+    <div className="flex flex-col">
+      {/* Sub-row header */}
+      <div className="flex items-center h-8 bg-[#f4f6f8] border-b border-[#e8e8e8] pl-12">
+        <span className="w-[200px] text-xs font-bold text-[#666666] tracking-[-0.12px]">
+          Namespace
+        </span>
+        <span className="w-[120px] text-xs font-bold text-[#666666] tracking-[-0.12px]">
+          클러스터
+        </span>
+        <span className="w-[120px] text-xs font-bold text-[#666666] tracking-[-0.12px]">
+          Sync 상태
+        </span>
+        <span className="w-[160px] text-xs font-bold text-[#666666] tracking-[-0.12px]">
+          저장소
+        </span>
+      </div>
+      {/* Sub-rows */}
+      {subs.map((sub, idx) => (
+        <div
+          key={sub.name}
+          className={`flex items-center h-10 pl-12 ${idx < subs.length - 1 ? "border-b border-[#f0f0f0]" : ""}`}
+        >
+          <span className="w-[200px]">
+            <TextCell linked color="#0066cc" className="text-sm">
+              {sub.name}
+            </TextCell>
+          </span>
+          <span className="w-[120px] text-xs text-[#888888] tracking-[-0.12px]">
+            {sub.cluster}
+          </span>
+          <span className="w-[120px]">
+            <Badge variant={sub.syncVariant as any} size="sm">
+              {sub.syncStatus}
+            </Badge>
+          </span>
+          <span className="w-[160px] text-xs text-[#888888] tracking-[-0.12px]">
+            {sub.repo}
+          </span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 // ─── Slide ──────────────────────────────────────────────────────────────────
 
 export default function SlideNamespaceDelete() {
@@ -164,8 +252,7 @@ export default function SlideNamespaceDelete() {
     <CcpDashboardLayout
       gnbPreset="namespace"
       breadcrumbs={[
-        { label: "네임스페이스" },
-        { label: "워크스페이스", isBold: true },
+        { label: "네임스페이스", isBold: true },
       ]}
       title="Namespaces"
       sideMenuItems={createSideMenuItems({ activeId: "namespace" })}
@@ -292,6 +379,9 @@ export default function SlideNamespaceDelete() {
           data={tableData}
           selectedIds={new Set()}
           onSelectionChange={() => {}}
+          expandedId="1"
+          onExpandChange={() => {}}
+          renderSubRows={renderSubRows}
         />
 
         <Overlay top={133} right={0}>

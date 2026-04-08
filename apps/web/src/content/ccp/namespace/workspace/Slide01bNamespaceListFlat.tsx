@@ -34,6 +34,7 @@ export const slideMeta: SlideMeta = {
   screenId: "CCP-NS-001-L",
   title: "Namespace 목록 (리스트 보기)",
   section: "네임스페이스",
+  subSection: "리스트 보기",
   links: [
     { targetScreenId: "CCP-NS-001", type: "tab", label: "묶음 보기 전환" },
     { targetScreenId: "CCP-NSR-002", type: "navigate", label: "생성 버튼 → NS 생성" },

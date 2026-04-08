@@ -320,18 +320,65 @@ export function SlidePresenter({ slides, docs = [] }: Props) {
     <div className="flex h-full">
       {/* Thumbnail sidebar */}
       <div className="flex w-28 flex-col gap-0.5 overflow-y-auto border-r border-gray-200 bg-gray-50 p-2">
-        {slides.map((slide, index) => {
-          const section = slide.meta.section;
-          const prevSection = index > 0 ? slides[index - 1].meta.section : undefined;
-          const showSectionHeader = section && section !== prevSection;
-          const isCollapsed = section ? collapsedSections.has(section) : false;
+        {(() => {
+          const subColors = [
+            { border: "border-blue-300", bg: "bg-blue-50/60", text: "text-blue-600" },
+            { border: "border-amber-300", bg: "bg-amber-50/60", text: "text-amber-600" },
+            { border: "border-emerald-300", bg: "bg-emerald-50/60", text: "text-emerald-600" },
+            { border: "border-purple-300", bg: "bg-purple-50/60", text: "text-purple-600" },
+          ];
 
-          if (!showSectionHeader && isCollapsed) return null;
+          // 슬라이드를 렌더 그룹으로 묶기: section header / subSection 그룹 / 개별 슬라이드
+          type RenderItem =
+            | { type: "section-header"; section: string; index: number }
+            | { type: "sub-group"; subSection: string; color: typeof subColors[number]; slides: { slide: SlideWithMeta; index: number }[] }
+            | { type: "slide"; slide: SlideWithMeta; index: number };
 
-          return (
-            <div key={index}>
-              {showSectionHeader && (
+          const items: RenderItem[] = [];
+          let currentSubGroup: RenderItem & { type: "sub-group" } | null = null;
+          const sectionSubCounter = new Map<string, string[]>();
+
+          for (let i = 0; i < slides.length; i++) {
+            const slide = slides[i];
+            const section = slide.meta.section;
+            const prevSection = i > 0 ? slides[i - 1].meta.section : undefined;
+            const isNewSection = section && section !== prevSection;
+
+            if (isNewSection) {
+              if (currentSubGroup) { items.push(currentSubGroup); currentSubGroup = null; }
+              items.push({ type: "section-header", section, index: i });
+            }
+
+            const subSection = slide.meta.subSection;
+            if (subSection) {
+              // 같은 서브그룹 계속
+              if (currentSubGroup && currentSubGroup.subSection === subSection && !isNewSection) {
+                currentSubGroup.slides.push({ slide, index: i });
+              } else {
+                // 이전 서브그룹 닫기
+                if (currentSubGroup) { items.push(currentSubGroup); currentSubGroup = null; }
+                // 색상 결정
+                const sectionKey = section ?? "";
+                if (!sectionSubCounter.has(sectionKey)) sectionSubCounter.set(sectionKey, []);
+                const subs = sectionSubCounter.get(sectionKey)!;
+                if (!subs.includes(subSection)) subs.push(subSection);
+                const colorIdx = subs.indexOf(subSection) % subColors.length;
+                currentSubGroup = { type: "sub-group", subSection, color: subColors[colorIdx], slides: [{ slide, index: i }] };
+              }
+            } else {
+              if (currentSubGroup) { items.push(currentSubGroup); currentSubGroup = null; }
+              items.push({ type: "slide", slide, index: i });
+            }
+          }
+          if (currentSubGroup) items.push(currentSubGroup);
+
+          return items.map((item, idx) => {
+            if (item.type === "section-header") {
+              const section = item.section;
+              const isCollapsed = collapsedSections.has(section);
+              return (
                 <button
+                  key={`sec-${idx}`}
                   type="button"
                   onClick={() =>
                     setCollapsedSections((prev) => {
@@ -341,7 +388,7 @@ export function SlidePresenter({ slides, docs = [] }: Props) {
                       return next;
                     })
                   }
-                  className={`flex w-full items-center gap-1 px-1 py-1 text-[9px] font-semibold tracking-wide text-gray-400 uppercase cursor-pointer hover:text-gray-600 transition-colors ${index > 0 ? "mt-2 border-t border-gray-200 pt-2" : ""}`}
+                  className={`flex w-full items-center gap-1 px-1 py-1 text-[9px] font-semibold tracking-wide text-gray-400 uppercase cursor-pointer hover:text-gray-600 transition-colors ${item.index > 0 ? "mt-2 border-t border-gray-200 pt-2" : ""}`}
                 >
                   <svg
                     className={`h-2.5 w-2.5 shrink-0 transition-transform ${isCollapsed ? "-rotate-90" : ""}`}
@@ -353,25 +400,61 @@ export function SlidePresenter({ slides, docs = [] }: Props) {
                   </svg>
                   <span className="truncate">{section}</span>
                 </button>
-              )}
-              {!isCollapsed && (
-                <button
-                  onClick={() => setSlideIndex(index)}
-                  className={`w-full rounded border px-2 py-1.5 text-left text-[10px] transition-colors ${
-                    index === currentSlideIndex
-                      ? "border-blue-500 bg-blue-50 text-blue-700"
-                      : "border-gray-200 bg-white text-gray-600 hover:border-gray-300"
-                  }`}
-                >
-                  {slide.meta.screenId && (
-                    <div className="font-mono text-[8px] text-gray-400 mb-0.5">{slide.meta.screenId}</div>
-                  )}
-                  <div className="font-medium truncate">{slide.meta.title ?? index + 1}</div>
-                </button>
-              )}
-            </div>
-          );
-        })}
+              );
+            }
+
+            if (item.type === "sub-group") {
+              const section = item.slides[0].slide.meta.section;
+              const isCollapsed = section ? collapsedSections.has(section) : false;
+              if (isCollapsed) return null;
+              const { color } = item;
+              return (
+                <div key={`sub-${idx}`} className={`mt-1 rounded-md border ${color.border} ${color.bg} p-1 flex flex-col gap-0.5`}>
+                  <div className="px-1 pb-0.5">
+                    <span className={`text-[8px] font-bold ${color.text} tracking-wide`}>{item.subSection}</span>
+                  </div>
+                  {item.slides.map(({ slide, index }) => (
+                    <button
+                      key={index}
+                      onClick={() => setSlideIndex(index)}
+                      className={`w-full rounded border px-2 py-1.5 text-left text-[10px] transition-colors ${
+                        index === currentSlideIndex
+                          ? "border-blue-500 bg-blue-50 text-blue-700"
+                          : "border-gray-200 bg-white text-gray-600 hover:border-gray-300"
+                      }`}
+                    >
+                      {slide.meta.screenId && (
+                        <div className="font-mono text-[8px] text-gray-400 mb-0.5">{slide.meta.screenId}</div>
+                      )}
+                      <div className="font-medium truncate">{slide.meta.title ?? index + 1}</div>
+                    </button>
+                  ))}
+                </div>
+              );
+            }
+
+            // type: "slide" (no subSection)
+            const section = item.slide.meta.section;
+            const isCollapsed = section ? collapsedSections.has(section) : false;
+            if (isCollapsed) return null;
+            return (
+              <button
+                key={`s-${idx}`}
+                onClick={() => setSlideIndex(item.index)}
+                className={`w-full rounded border px-2 py-1.5 text-left text-[10px] transition-colors ${
+                  item.index === currentSlideIndex
+                    ? "border-blue-500 bg-blue-50 text-blue-700"
+                    : "border-gray-200 bg-white text-gray-600 hover:border-gray-300"
+                }`}
+              >
+                {item.slide.meta.screenId && (
+                  <div className="font-mono text-[8px] text-gray-400 mb-0.5">{item.slide.meta.screenId}</div>
+                )}
+                <div className="font-medium truncate">{item.slide.meta.title ?? item.index + 1}</div>
+              </button>
+            );
+          });
+        })()}
       </div>
 
       {/* Main slide area */}

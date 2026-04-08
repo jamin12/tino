@@ -17,6 +17,7 @@ export const slideMeta: SlideMeta = {
   screenId: "CCP-NSR-002",
   title: "Namespace 생성 (리스트)",
   section: "네임스페이스",
+  subSection: "리스트 보기",
   links: [
     { targetScreenId: "CCP-NSR-002b", type: "toggle", label: "YAML 모드 ON → YAML 모드" },
     { targetScreenId: "CCP-NS-002", type: "tab", label: "GitOps 탭 → 워크스페이스 생성" },

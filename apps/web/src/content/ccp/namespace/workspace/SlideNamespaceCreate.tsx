@@ -19,6 +19,7 @@ export const slideMeta: SlideMeta = {
   screenId: "CCP-NS-002",
   title: "Namespace 생성",
   section: "네임스페이스",
+  subSection: "묶음 보기",
   links: [],
   annotations: [
     { id: 1, label: "NS 이름 입력", description: "sample-cicd/ 템플릿 폴더 내 모든 파일에서 'sample'을 입력한 이름으로 치환합니다. 영문 소문자, 숫자, 하이픈만 사용 가능합니다." },
@@ -28,7 +29,7 @@ export const slideMeta: SlideMeta = {
 };
 
 // ─── Side Menu Data ─────────────────────────────────────────────────────────
-
+
 
 // ─── Slide ──────────────────────────────────────────────────────────────────
 

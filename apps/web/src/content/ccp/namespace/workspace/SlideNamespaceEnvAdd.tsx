@@ -16,6 +16,7 @@ export const slideMeta: SlideMeta = {
   screenId: "CCP-NS-006",
   title: "Namespace 환경 추가",
   section: "네임스페이스",
+  subSection: "묶음 보기",
   links: [],
   annotations: [
     { id: 1, label: "현재 환경 표시", description: "이 네임스페이스에 이미 생성된 배포 환경 목록입니다. 이미 존재하는 환경은 중복 추가할 수 없으므로 참고 정보로 표시됩니다." },
@@ -25,7 +26,7 @@ export const slideMeta: SlideMeta = {
 };
 
 // ─── Side Menu Data ─────────────────────────────────────────────────────────
-
+
 
 // ─── Slide ──────────────────────────────────────────────────────────────────
 

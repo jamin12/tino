@@ -33,6 +33,7 @@ export const slideMeta: SlideMeta = {
   screenId: "CCP-NSR-006",
   title: "Namespace 타입 라벨 일괄 부여",
   section: "네임스페이스",
+  subSection: "리스트 보기",
   links: [
     { targetScreenId: "CCP-NS-001-L", type: "navigate", label: "취소 → 리스트로 복귀" },
     { targetScreenId: "CCP-NSR-005", type: "navigate", label: "개별 편집으로 이동" },

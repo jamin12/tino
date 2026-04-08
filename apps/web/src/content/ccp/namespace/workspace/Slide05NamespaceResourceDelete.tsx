@@ -35,6 +35,7 @@ export const slideMeta: SlideMeta = {
   screenId: "CCP-NSR-003",
   title: "Namespace 리소스 삭제 (다건)",
   section: "네임스페이스",
+  subSection: "리스트 보기",
   links: [
     { targetScreenId: "CCP-NS-001-L", type: "navigate", label: "취소 → 리스트로 복귀" },
     { targetScreenId: "CCP-NS-007", type: "navigate", label: "GitOps 삭제로 이동" },

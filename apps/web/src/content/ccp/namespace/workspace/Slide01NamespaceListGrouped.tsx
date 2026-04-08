@@ -31,10 +31,11 @@ export const slideMeta: SlideMeta = {
   screenId: "CCP-NS-001",
   title: "Namespace 목록 (묶음 보기)",
   section: "네임스페이스",
+  subSection: "묶음 보기",
   links: [
     { targetScreenId: "CCP-NS-001-L", type: "tab", label: "리스트 보기 전환" },
     { targetScreenId: "CCP-NS-002", type: "navigate", label: "생성 버튼 → NS 생성" },
-    { targetScreenId: "CCP-NS-004", type: "navigate", label: "행 클릭 → NS 상세" },
+    { targetScreenId: "CCP-NS-004", type: "navigate", label: "sub-row 클릭 → NS 상세" },
     { targetScreenId: "CCP-NS-007", type: "modal", label: "삭제 → 삭제 모달" },
   ],
   annotations: [
@@ -156,7 +157,7 @@ const columns: DataTableColumn<NamespaceRow>[] = [
     header: "이름",
     width: "200px",
     render: (row) => (
-      <TextCell bold color="#111111" linked className="px-4">
+      <TextCell bold color="#111111" className="px-4">
         {row.name}
       </TextCell>
     ),
@@ -198,7 +199,6 @@ const columns: DataTableColumn<NamespaceRow>[] = [
 
 const iconClass = "w-[14px] h-[14px] text-[#555759]";
 const actionMenuItems: ActionMenuEntry[] = [
-  { key: "detail", label: "상세보기", icon: <Eye className={iconClass} /> },
   { key: "env-add", label: "환경 추가", icon: <FolderPlus className={iconClass} /> },
   { type: "divider" },
   {
@@ -237,8 +237,10 @@ function renderSubRows(row: NamespaceRow) {
           key={sub.name}
           className={`flex items-center h-10 pl-12 ${idx < subs.length - 1 ? "border-b border-[#f0f0f0]" : ""}`}
         >
-          <span className="w-[200px] text-sm text-[#333333] tracking-[-0.14px]">
-            {sub.name}
+          <span className="w-[200px]">
+            <TextCell linked color="#0066cc" className="text-sm">
+              {sub.name}
+            </TextCell>
           </span>
           <span className="w-[120px] text-xs text-[#888888] tracking-[-0.12px]">
             {sub.cluster}
@@ -310,7 +312,7 @@ export default function Slide01NamespaceListGrouped() {
         <Overlay top={133} right={0} data-annotation-id="4">
           <ActionMenu
             items={actionMenuItems}
-            highlightedKeys={["detail"]}
+            highlightedKeys={["env-add"]}
             static
             className="w-[160px]"
           />
