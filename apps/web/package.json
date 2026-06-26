@@ -9,9 +9,6 @@
     "lint": "eslint ."
   },
   "dependencies": {
-    "@nhn-cloud/ncui": "^3.2.1",
-    "@nhn-cloud/ncui-chart": "^2.0.0",
-    "@nhn-cloud/ncui-icons": "^3.2.1",
     "@tanstack/react-query": "^5.0.0",
     "@workpulse/shared": "workspace:*",
     "@xyflow/react": "^12.10.1",

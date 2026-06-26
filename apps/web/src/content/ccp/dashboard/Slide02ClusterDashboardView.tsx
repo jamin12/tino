@@ -18,8 +18,6 @@ import {
 } from "../_components";
 
 import type { SlideMeta } from "@entities/document";
-import { LineChart } from "@nhn-cloud/ncui-chart";
-import "@nhn-cloud/ncui-chart/style.css";
 
 export const slideMeta: SlideMeta = {
   screenId: "CCP-DSH-001",
@@ -79,7 +77,7 @@ export const slideMeta: SlideMeta = {
 };
 
 // ─── Side Menu (대시보드 active) ──────────────────────────────────────────────
-
+
 
 // ─── Widget Wrapper (정상 모드 – 편집 UI 없음) ────────────────────────────────
 
@@ -208,16 +206,29 @@ const cpuData = [6.8, 6.4, 6.5, 6.4, 6.8, 7.2, 7.0, 7.4, 7.1, 6.9, 7.0, 7.2, 7.5
 const memData = [13.0, 13.2, 13.4, 13.3, 13.5, 13.6, 13.4, 13.5, 13.3, 13.6, 13.8, 13.5, 13.7, 13.9, 13.6, 13.8, 14.0, 13.8, 13.9, 13.7, 13.5, 13.8, 13.6, 13.7];
 const podData = [24, 24, 23, 24, 25, 24, 22, 21, 22, 22, 23, 23, 22, 23, 24, 23, 24, 24, 23, 24, 24, 23, 24, 24];
 
-// ─── NCUI LineChart Component ────────────────────────────────────────────────
+// ─── Usage Trend Chart (self-contained SVG) ──────────────────────────────────
 
-const lineChartData = {
-  categories: timeLabels,
-  series: [
-    { id: "cpu", name: "CPU (Core)", data: cpuData, yAxisIndex: 0 },
-    { id: "mem", name: "Mem (GiB)", data: memData, yAxisIndex: 0 },
-    { id: "pod", name: "Pod", data: podData, yAxisIndex: 1 },
-  ],
-};
+const chartSeries = [
+  { id: "cpu", name: "CPU (Core)", data: cpuData, color: "#4A90D9", axis: "left" as const },
+  { id: "mem", name: "Mem (GiB)", data: memData, color: "#F5A623", axis: "left" as const },
+  { id: "pod", name: "Pod", data: podData, color: "#E16B8C", axis: "right" as const },
+];
+
+const LEFT_MAX = 16;
+const RIGHT_MAX = 30;
+const CHART_HEIGHT = 320;
+const PAD = { top: 16, right: 48, bottom: 36, left: 48 };
+
+function buildPath(values: number[], max: number, innerW: number, innerH: number) {
+  const stepX = values.length > 1 ? innerW / (values.length - 1) : 0;
+  return values
+    .map((v, i) => {
+      const x = PAD.left + stepX * i;
+      const y = PAD.top + innerH - (Math.min(v, max) / max) * innerH;
+      return `${i === 0 ? "M" : "L"}${x.toFixed(1)},${y.toFixed(1)}`;
+    })
+    .join(" ");
+}
 
 function UsageTrendChart() {
   const chartWrapperRef = useRef<HTMLDivElement>(null);
@@ -235,40 +246,71 @@ function UsageTrendChart() {
     return () => ro.disconnect();
   }, []);
 
+  const innerW = Math.max(chartWidth - PAD.left - PAD.right, 0);
+  const innerH = CHART_HEIGHT - PAD.top - PAD.bottom;
+  const gridLines = 4;
+  const tickEvery = 4;
+
   return (
     <div ref={chartWrapperRef} className="w-full">
       {chartWidth > 0 && (
-        <LineChart
-          key={chartWidth}
-          data={lineChartData}
-          width={chartWidth}
-          height={320}
-          chartOptions={{
-            eventDetectType: "grouped",
-          }}
-          xAxisOptions={{
-            title: { text: "시간" },
-          }}
-          yAxisOptions={[
-            {
-              title: { text: "CPU (Core) / Mem (GiB)" },
-              scale: { min: 0, max: 16 },
-              position: "left",
-            },
-            {
-              title: { text: "Pod" },
-              scale: { min: 0, max: 30 },
-              position: "right",
-            },
-          ]}
-          seriesOptions={{
-            colors: ["#4A90D9", "#F5A623", "#E16B8C"],
-          }}
-          legendOptions={{
-            enable: true,
-            align: "bottom",
-          }}
-        />
+        <>
+          <svg width={chartWidth} height={CHART_HEIGHT} role="img" aria-label="24시간 사용량 추이">
+            {/* horizontal grid + left/right axis labels */}
+            {Array.from({ length: gridLines + 1 }, (_, i) => {
+              const y = PAD.top + (innerH / gridLines) * i;
+              const leftVal = (LEFT_MAX * (gridLines - i)) / gridLines;
+              const rightVal = (RIGHT_MAX * (gridLines - i)) / gridLines;
+              return (
+                <g key={i}>
+                  <line x1={PAD.left} y1={y} x2={chartWidth - PAD.right} y2={y} stroke="#EAEDF1" strokeWidth={1} />
+                  <text x={PAD.left - 8} y={y + 4} textAnchor="end" fontSize={11} fill="#8B95A1">
+                    {leftVal.toFixed(0)}
+                  </text>
+                  <text x={chartWidth - PAD.right + 8} y={y + 4} textAnchor="start" fontSize={11} fill="#8B95A1">
+                    {rightVal.toFixed(0)}
+                  </text>
+                </g>
+              );
+            })}
+            {/* x-axis tick labels */}
+            {timeLabels.map((label, i) =>
+              i % tickEvery === 0 ? (
+                <text
+                  key={label}
+                  x={PAD.left + (innerW / (timeLabels.length - 1)) * i}
+                  y={CHART_HEIGHT - PAD.bottom + 18}
+                  textAnchor="middle"
+                  fontSize={11}
+                  fill="#8B95A1"
+                >
+                  {label}
+                </text>
+              ) : null,
+            )}
+            {/* series lines */}
+            {chartSeries.map((s) => (
+              <path
+                key={s.id}
+                d={buildPath(s.data, s.axis === "left" ? LEFT_MAX : RIGHT_MAX, innerW, innerH)}
+                fill="none"
+                stroke={s.color}
+                strokeWidth={2}
+                strokeLinejoin="round"
+                strokeLinecap="round"
+              />
+            ))}
+          </svg>
+          {/* legend */}
+          <div className="mt-2 flex items-center justify-center gap-5">
+            {chartSeries.map((s) => (
+              <div key={s.id} className="flex items-center gap-1.5">
+                <span className="inline-block h-2.5 w-2.5 rounded-full" style={{ backgroundColor: s.color }} />
+                <span className="text-xs text-[#6B7684]">{s.name}</span>
+              </div>
+            ))}
+          </div>
+        </>
       )}
     </div>
   );
